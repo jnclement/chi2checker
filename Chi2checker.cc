@@ -630,7 +630,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		  v2 = 0;
 		  maxJetE = testJetE;
 		  maxJetEta = jet->get_eta();
-		  maxJetPhi = jet->get_phi()+M_PI;//(jet->get_phi()>0?jet->get_phi():jet->get_phi()+2*M_PI);
+		  maxJetPhi = jet->get_phi();//(jet->get_phi()>0?jet->get_phi():jet->get_phi()+2*M_PI);
 		  float sigEtaEta = 0;
 		  float sigEtaPhi = 0;
 		  float sigPhiPhi = 0;
@@ -855,11 +855,12 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		  sigEtaEta /= sqrtMaxJetE;
 		  sigEtaPhi /= sqrtMaxJetE;
 		  sigPhiPhi /= sqrtMaxJetE;
-		  float a = 1;
-		  float b = -1*(sigEtaEta+sigPhiPhi);
-		  float c = sigEtaEta*sigEtaPhi-sigEtaPhi*sigPhiPhi;
-		  float lam1 = (-b+sqrt(b*b-4*a*c))/(2*a);
-		  float lam2 = (-b-sqrt(b*b-4*a*c))/(2*a);
+		  float a = sigEtaEta;
+		  float b = sigEtaPhi;
+		  float c = sigEtaPhi;
+		  float d = sigPhiPhi;
+		  float lam1 = (a+d+sqrt((a+d)*(a+d)-4*(a*d-b*c)))/2;
+		  float lam2 = (a+d-sqrt((a+d)*(a+d)-4*(a*d-b*c)))/2;
 		  v1 /= ncomp;
 		  v2 /= ncomp;
 		  maxEoverTot = (maxLayerE[0] > maxLayerE[1]?maxLayerE[0]:maxLayerE[1])/maxJetE;
