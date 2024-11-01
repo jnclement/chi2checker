@@ -598,7 +598,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	      float testJetE = jet->get_e()/cosh(jet->get_eta());
 	      float squareDif = 0;
 	      float squareSum = 0;
-	      float testJetPhi = jet->get_phi()+M_PI;
+	      float testJetPhi = jet->get_phi();
 	      if(_debug > 3) cout << "jet E/eta: " << testJetE  << " " << jet->get_eta() << endl;
 	      if(testJetE < 8) continue;
 
@@ -635,19 +635,21 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		  float sigEtaPhi = 0;
 		  float sigPhiPhi = 0;
 		  if(_debug > 4) cout << "getting comp vec" << endl;
-		  /*
+		  
 		  int subcomp[3] = {0};
 		  for(int i=0; i<3; ++i)
 		    {
-		      _maxTowChi2[i] = 0;
+		      _maxTowChi2[i] = -1;
+		      /*
 		      for(int k=0; k<512; ++k)
 			{
 			  _jetcompE[i][k] = 0;
 			  _jetcompEta[i][k] = 0;
 			  _jetcompPhi[i][k] = 0;
 			}
+		      */
 		    }
-		  */
+		  
 		  for(auto comp: jet->get_comp_vec())
 		    {
 		      ++ncomp;
@@ -672,7 +674,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			  float newz = tower_geom->get_center_z() - zvtx;
 			  if(_debug > 6) cout << "got center values of towers" << endl;
 			  float towerEta = asinh(newz/sqrt(newx*newx+newy*newy));//getEtaFromBinEM()+0.012;
-			  float towerPhi = tower_geom->get_phi()+M_PI;//getPhiFromBinEM(towers[1]->getTowerPhiBin(key))+0.048;//tower_geom->get_phicenter();;
+			  float towerPhi = tower_geom->get_phi();//getPhiFromBinEM(towers[1]->getTowerPhiBin(key))+0.048;//tower_geom->get_phicenter();;
 			  
 			  /*
 			  _jetcompE[1][subcomp[1]] = towerE;
@@ -680,8 +682,9 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			  _jetcompPhi[1][subcomp[1]] = towerEta;
 			  subcomp[1]++;
 			  */
+			  towerE /= cosh(towerEta);
 			  if(towerE < 0) continue;
-			  towerE = sqrt(towerE);
+			  //towerE = sqrt(towerE);
 			  float dPhi = towerPhi - maxJetPhi;
 			  if(dPhi > M_PI) dPhi -= 2*M_PI;
 			  if(dPhi < -M_PI) dPhi += 2*M_PI;
@@ -698,7 +701,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			{
 			  tower = towers[2]->get_tower_at_channel(channel);
 			  float towerE = tower->get_energy();
-			  maxLayerE[1] += towerE;
+			  
 			  float chi2 = tower->get_chi2();
 			  if(chi2 > _maxTowChi2[2]) _maxTowChi2[2] = chi2;
 			  //fracOH += towerE;
@@ -710,15 +713,17 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			  float newy = tower_geom->get_center_y();
 			  float newz = tower_geom->get_center_z() - zvtx;
 			  float towerEta = asinh(newz/sqrt(newx*newx+newy*newy));//getEtaFromBinEM()+0.012;
-			  float towerPhi = tower_geom->get_phi()+M_PI;//getPhiFromBinEM(towers[2]->getTowerPhiBin(key))+0.048;//tower_geom->get_phicenter(towers[2]->getTowerPhiBin(key));//getPhiFromBinEM()+0.012;
+			  float towerPhi = tower_geom->get_phi();//getPhiFromBinEM(towers[2]->getTowerPhiBin(key))+0.048;//tower_geom->get_phicenter(towers[2]->getTowerPhiBin(key));//getPhiFromBinEM()+0.012;
 			  /*
 			  _jetcompE[2][subcomp[2]] = towerE;
 			  _jetcompEta[2][subcomp[2]] = towerPhi;
 			  _jetcompPhi[2][subcomp[2]] = towerEta;
 			  subcomp[2]++;
 			  */
+			  towerE /= cosh(towerEta);
+			  maxLayerE[1] += towerE;
 			  if(towerE < 0) continue;
-			  towerE = sqrt(towerE);
+			  //towerE = sqrt(towerE);
 			  float dPhi = towerPhi - maxJetPhi;
 			  if(dPhi > M_PI) dPhi -= 2*M_PI;
 			  if(dPhi < -M_PI) dPhi += 2*M_PI;
@@ -738,7 +743,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			  float towerE = tower->get_energy();
 			  float chi2 = tower->get_chi2();
 			  if(chi2 > _maxTowChi2[0]) _maxTowChi2[0] = chi2;
-			  maxLayerE[0] += towerE;
+			  
 			  //Etot += towerE;
 			  //fracEM += towerE;
 			  int key = towers[0]->encode_key(channel);
@@ -748,15 +753,17 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			  float newy = tower_geom->get_center_y();
 			  float newz = tower_geom->get_center_z() - zvtx;
 			  float towerEta = asinh(newz/sqrt(newx*newx+newy*newy));//getEtaFromBinEM()+0.012;
-			  float towerPhi = tower_geom->get_phi()+M_PI;//getPhiFromBinEM(towers[0]->getTowerPhiBin(key))+0.012;//tower_geom->get_phicenter(towers[0]->getTowerPhiBin(key));//getPhiFromBinEM()+0.012;
+			  float towerPhi = tower_geom->get_phi();//getPhiFromBinEM(towers[0]->getTowerPhiBin(key))+0.012;//tower_geom->get_phicenter(towers[0]->getTowerPhiBin(key));//getPhiFromBinEM()+0.012;
 			  /*
 			  _jetcompE[0][subcomp[0]] = towerE;
 			  _jetcompEta[0][subcomp[0]] = towerPhi;
 			  _jetcompPhi[0][subcomp[0]] = towerEta;
 			  subcomp[0]++;
 			  */
+			  towerE /= cosh(towerEta);
+			  maxLayerE[0] += towerE;
 			  if(towerE < 0) continue;
-			  towerE = sqrt(towerE);
+			  //towerE = sqrt(towerE);
 			  float dPhi = towerPhi - maxJetPhi;
 			  if(dPhi > M_PI) dPhi -= 2*M_PI;
 			  if(dPhi < -M_PI) dPhi += 2*M_PI;
@@ -852,9 +859,9 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		    }
 		  */
 		  float sqrtMaxJetE = sqrt(maxJetE);
-		  sigEtaEta /= sqrtMaxJetE;
-		  sigEtaPhi /= sqrtMaxJetE;
-		  sigPhiPhi /= sqrtMaxJetE;
+		  sigEtaEta /= maxJetE;
+		  sigEtaPhi /= maxJetE;
+		  sigPhiPhi /= maxJetE;
 		  float a = sigEtaEta;
 		  float b = sigEtaPhi;
 		  float c = sigEtaPhi;
