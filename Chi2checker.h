@@ -82,7 +82,14 @@ class Chi2checker : public SubsysReco
   float _jetcompPhi[3][512];
   float _jetcompEta[3][512];
   float _maxTowChi2[3];
+  float _maxTowE;
+  float _subTowE;
+  float _maxTowDiff;
   int n_nozvtx = 0;
+  int _nBadChi2;
+  float _maxETowChi2;
+  int _maxETowChi2Det;
+  int _maxETowIsZS;
 };
 
 #endif // CHI2TREEMAKER

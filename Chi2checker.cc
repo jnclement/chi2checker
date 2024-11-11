@@ -327,6 +327,7 @@ Chi2checker::~Chi2checker()
 int Chi2checker::Init(PHCompositeNode *topNode)
 {
   if(_debug > 1) cout << "Begin init: " << endl;
+  jet_tree->Branch("nBadChi2",&_nBadChi2,"nBadChi2/I");
   jet_tree->Branch("ecc",&_eccentricity,"ecc/F");
   jet_tree->Branch("theta",&_theta,"theta/F");
   jet_tree->Branch("frcoh",&_frcoh,"frcoh/F");
@@ -340,7 +341,13 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   //jet_tree->Branch("jetcompE",_jetcompE,"jetcompE[3][512]/F");
   //jet_tree->Branch("jetcompEta",_jetcompEta,"jetcompEta[3][512]/F");
   //jet_tree->Branch("jetcompPhi",_jetcompPhi,"jetcompPhi[3][512]/F");
-  jet_tree->Branch("maxTowChi2",_maxTowChi2,"maxTowChi2[3]");
+  jet_tree->Branch("maxTowChi2",_maxTowChi2,"maxTowChi2[3]/F");
+  jet_tree->Branch("maxTowE",&_maxTowE,"maxTowE/F");
+  jet_tree->Branch("subTowE",&_subTowE,"subTowE/F");
+  jet_tree->Branch("maxTowDiff",&_maxTowDiff,"maxTowDiff/F");
+  jet_tree->Branch("maxETowChi2",&_maxETowChi2,"maxETowChi2/F");
+  jet_tree->Branch("maxETowIsZS",&_maxETowIsZS,"maxETowIsZS/I");
+  jet_tree->Branch("maxETowChi2Det",&_maxETowChi2Det,"maxETowChi2Det/I");
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -557,6 +564,10 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 
   //float fracEM = 0;
   //float fracOH = 0;
+  _maxTowE = 0;
+  _subTowE = 0;
+  _maxTowDiff = 0;
+  _nBadChi2 = 0;
   float maxJetE = 0;
   float maxJetEta = 0;
   float maxJetPhi = 0;
@@ -601,7 +612,6 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	      float testJetPhi = jet->get_phi();
 	      if(_debug > 3) cout << "jet E/eta: " << testJetE  << " " << jet->get_eta() << endl;
 	      if(testJetE < 8) continue;
-
 	      jet_e[jet_n] = testJetE;
 	      jet_eta[jet_n] = jet->get_eta();
 	      //if(abs(jet_eta[jet_n]) > 0.9) continue;
@@ -621,6 +631,13 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		      subJetPhi = maxJetPhi;
 		    }
 		  int ncomp = 0;
+		  _maxTowE = 0;
+		  _subTowE = 0;
+		  _maxTowDiff = 0;
+		  _nBadChi2 = 0;
+		  _maxETowChi2 = 0;
+		  _maxETowIsZS = -1;
+		  _maxETowChi2Det = -1;
 		  eccentricity = 0;
 		  maxLayerE[0] = 0;
 		  maxLayerE[1] = 0;
@@ -662,7 +679,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			  float towerE = tower->get_energy();
 			  float chi2 = tower->get_chi2();
 			  if(chi2 > _maxTowChi2[1]) _maxTowChi2[1] = chi2;
-			  
+			  if(tower->get_isBadChi2()) _nBadChi2++;
 			  //Etot += towerE;
 			  int key = towers[1]->encode_key(channel);
 			  const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, towers[1]->getTowerEtaBin(key), towers[1]->getTowerPhiBin(key));
@@ -674,6 +691,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			  float newz = tower_geom->get_center_z() - zvtx;
 			  if(_debug > 6) cout << "got center values of towers" << endl;
 			  float towerEta = asinh(newz/sqrt(newx*newx+newy*newy));//getEtaFromBinEM()+0.012;
+			  
 			  float towerPhi = tower_geom->get_phi();//getPhiFromBinEM(towers[1]->getTowerPhiBin(key))+0.048;//tower_geom->get_phicenter();;
 			  
 			  /*
@@ -683,6 +701,14 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			  subcomp[1]++;
 			  */
 			  towerE /= cosh(towerEta);
+			  if(towerE > _maxTowE)
+			    {
+			      _subTowE = _maxTowE;
+			      _maxTowE = towerE;
+			      _maxETowChi2 = tower->get_chi2();
+			      _maxETowChi2Det = 1;
+			      _maxETowIsZS = tower->get_isZS();
+			    }
 			  if(towerE < 0) continue;
 			  //towerE = sqrt(towerE);
 			  float dPhi = towerPhi - maxJetPhi;
@@ -704,6 +730,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			  
 			  float chi2 = tower->get_chi2();
 			  if(chi2 > _maxTowChi2[2]) _maxTowChi2[2] = chi2;
+			  if(tower->get_isBadChi2()) _nBadChi2++;
 			  //fracOH += towerE;
 			  //Etot += towerE;
 			  int key = towers[2]->encode_key(channel);
@@ -721,6 +748,14 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			  subcomp[2]++;
 			  */
 			  towerE /= cosh(towerEta);
+			  if(towerE > _maxTowE)
+			    {
+			      _subTowE = _maxTowE;
+			      _maxTowE = towerE;
+			      _maxETowChi2 = tower->get_chi2();
+			      _maxETowChi2Det = 2;
+			      _maxETowIsZS = tower->get_isZS();
+			    }
 			  maxLayerE[1] += towerE;
 			  if(towerE < 0) continue;
 			  //towerE = sqrt(towerE);
@@ -743,7 +778,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			  float towerE = tower->get_energy();
 			  float chi2 = tower->get_chi2();
 			  if(chi2 > _maxTowChi2[0]) _maxTowChi2[0] = chi2;
-			  
+      			  if(tower->get_isBadChi2()) _nBadChi2++;
 			  //Etot += towerE;
 			  //fracEM += towerE;
 			  int key = towers[0]->encode_key(channel);
@@ -761,6 +796,14 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			  subcomp[0]++;
 			  */
 			  towerE /= cosh(towerEta);
+			  if(towerE > _maxTowE)
+			    {
+			      _subTowE = _maxTowE;
+			      _maxTowE = towerE;
+			      _maxETowChi2 = tower->get_chi2();
+			      _maxETowChi2Det = 0;
+			      _maxETowIsZS = tower->get_isZS();
+			    }
 			  maxLayerE[0] += towerE;
 			  if(towerE < 0) continue;
 			  //towerE = sqrt(towerE);
@@ -884,6 +927,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
             }
 	  ++jet_n;
 	}
+      _maxTowDiff = _maxTowE - _subTowE;
       //fracEM /= Etot;
       //fracOH /= Etot;
       int fillnum = 0;
