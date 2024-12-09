@@ -27,7 +27,7 @@ class Chi2checker : public SubsysReco
 
   float bintophi_hc(int phibin);
 
-  void drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet_et, float* jet_ph, int jet_n, float jet_ecc, float jet_lfrac, RawTowerGeomContainer** geom, float zvtx, float theta);
+  void drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet_et, float* jet_ph, int jet_n, float jet_ecc, float jet_lfrac, RawTowerGeomContainer** geom, float zvtx, int failscut);
   float getEtaFromBin(int binEta);
 
   float getPhiFromBin(int binPhi);
@@ -90,6 +90,11 @@ class Chi2checker : public SubsysReco
   float _maxETowChi2;
   int _maxETowChi2Det;
   int _maxETowIsZS;
+  float _ohPhiBinMaxFrac;
+  float _zvtx;
+  long long unsigned int _triggervec;
+  unsigned int _bbfqavec;
+  unsigned int _elmbgvec;
 };
 
 #endif // CHI2TREEMAKER

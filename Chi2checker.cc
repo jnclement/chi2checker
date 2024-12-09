@@ -58,7 +58,6 @@
 #include <g4main/PHG4Hit.h>
 
 #include <iostream>
-
 #include <centrality/CentralityInfo.h>
 #include <calotrigger/MinimumBiasInfo.h>
 #include <TH2D.h>
@@ -70,6 +69,10 @@
 #include <TStyle.h>
 #include <TLine.h>
 #include <TH1D.h>
+#include <calotrigger/MinimumBiasInfo.h>
+#include <calotrigger/MinimumBiasInfov1.h>
+#include <calotrigger/MinimumBiasClassifier.h>
+#include <ffarawobjects/Gl1Packetv2.h>
 using namespace std;
 
 void drawText(const char *text, float xp, float yp, bool isRightAlign=0, int textColor=kBlack, double textSize=0.04, int textFont = 42, bool isNDC=true){
@@ -116,7 +119,7 @@ float bintophi_em(int phibin)
   return (2*M_PI*phibin)/256;
 }
 
-void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet_et, float* jet_ph, int jet_n, float jet_ecc, float jet_lfrac, RawTowerGeomContainer** geom, float zvtx, float theta)
+void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet_et, float* jet_ph, int jet_n, float jet_ecc, float jet_lfrac, RawTowerGeomContainer** geom, float zvtx, int failscut)
 {
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
@@ -135,8 +138,9 @@ void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet
   TH2D* event_disrt[3];
   for(int i=0; i<3; ++i)
     {
-      event_disrt[i] = new TH2D(("event_display_rt"+to_string(i)).c_str(),"",(i==0?192:48),-2.2,2.2,(i==0?256:64),0,2*M_PI);
+      event_disrt[i] = new TH2D(("event_display_rt"+to_string(i)).c_str(),"",48,-2.2,2.2,64,0,2*M_PI);
     }
+
   event_disrt[0]->GetXaxis()->SetTitle("EMCal #eta");
   event_disrt[0]->GetYaxis()->SetTitle("EMCal #phi");
   event_disrt[1]->GetXaxis()->SetTitle("IHCal #eta");
@@ -157,7 +161,7 @@ void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet
       event_disrt[i]->GetXaxis()->SetLabelSize(0.04);
       event_disrt[i]->GetYaxis()->SetLabelSize(0.04);
       event_disrt[i]->GetZaxis()->SetLabelSize(0.04);
-      event_disrt[i]->GetXaxis()->SetLabelOffset(-0.02);
+      event_disrt[i]->GetXaxis()->SetLabelOffset(0.02);
     }
   event_sum->GetXaxis()->SetTitle("Calo Sum #eta");
   event_sum->GetYaxis()->SetTitle("Calo Sum #phi");
@@ -173,7 +177,7 @@ void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet
   event_sum->GetXaxis()->SetLabelSize(0.04);
   event_sum->GetYaxis()->SetLabelSize(0.04);
   event_sum->GetZaxis()->SetLabelSize(0.04);
-  event_sum->GetXaxis()->SetLabelOffset(-0.02);
+  event_sum->GetXaxis()->SetLabelOffset(0.02);
   
   event_sum->Reset();
   for(int j=0; j<3; ++j)
@@ -208,8 +212,8 @@ void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet
 	    }
 	  else
 	    {
-	      const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, towers[j]->getTowerEtaBin(key), towers[j]->getTowerPhiBin(key));
-	      RawTowerGeom *tower_geom = geom[j]->get_tower_geometry(geomkey); //encode tower geometry
+	      const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, towers[j]->getTowerEtaBin(key), towers[j]->getTowerPhiBin(key));
+	      RawTowerGeom *tower_geom = geom[1]->get_tower_geometry(geomkey); //encode tower geometry
 	      float newx = tower_geom->get_center_x();
 	      float newy = tower_geom->get_center_y();
 	      float newz = tower_geom->get_center_z() - zvtx;
@@ -251,6 +255,9 @@ void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet
   std::string z_string = z_stream.str();
   drawText(("z_{vtx}="+z_string).c_str(),0.25,0.95);
   
+  std::string fails = failscut?"Fails OHCal cut":"Passes OHCal cut";
+  drawText(fails.c_str(),0.7,0.95);
+
   c->cd(4);
   float maxJetEta = 0;
   float maxJetPhi = 0;
@@ -267,6 +274,7 @@ void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet
 	{
 	  float eta = jet_et[k]+0.4*cos(2*l*M_PI/ncircle);
 	  float phi = jet_ph[k]+0.4*sin(2*l*M_PI/ncircle);
+	  phi += M_PI;
 	  if(eta > 2.2 || eta < -2.2) continue;
 	  if(phi > 2*M_PI) phi -= 2*M_PI;
 	  if(phi < 0) phi += 2*M_PI;
@@ -278,13 +286,9 @@ void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet
       std::stringstream e_stream;
       e_stream << std::fixed << std::setprecision(2) << jet_e[k]/cosh(jet_et[k]);
       std::string e_string = e_stream.str();
-      drawText((e_string+" GeV").c_str(),jet_et[k],jet_ph[k]+(jet_ph[k]>3.84?-0.53:0.43),(jet_et[k]>0?1:0),kBlack,0.04,42,false);
+      drawText((e_string+" GeV").c_str(),jet_et[k],jet_ph[k]+(jet_ph[k]+M_PI>3.84?-0.53:0.43)+M_PI,(jet_et[k]>0?1:0),kBlack,0.04,42,false);
 
     }
-  TLine* thetaline = new TLine(maxJetEta-0.4*jet_ecc*cos(theta),maxJetPhi-0.4*jet_ecc*sin(theta),maxJetEta+0.4*jet_ecc*cos(theta),maxJetPhi+0.4*jet_ecc*sin(theta));
-  thetaline->SetLineColor(kBlue);
-  thetaline->SetLineWidth(2);
-  thetaline->Draw();
   c->SaveAs(("./output/smg/candidate_"+_name+"_supersuperhighE_eccentricityfinder_"+to_string(cancount)+".png").c_str());
   cout << "Saved" << endl;
   cancount++;
@@ -300,6 +304,7 @@ Chi2checker::Chi2checker(const std::string &filename, const std::string &name, c
   _filename = filename;
   _f = new TFile(filename.c_str(), "RECREATE");
   jet_tree = new TTree("jet_tree","a persevering date tree");
+  /*
   for(int h=0; h<3; ++h)
     {
       if(h<2) h1_dphi[h] = new TH1D(("h1_dphi"+to_string(h)).c_str(),"",32,0,M_PI);
@@ -314,7 +319,8 @@ Chi2checker::Chi2checker(const std::string &filename, const std::string &name, c
       h2_g20_ecc_frcem[h] = new TH2D(("h2_g20_ecc_frcem"+to_string(h)).c_str(),"",120,0,1.2,100,0,2);
       h1_jet_eta[h] = new TH1D(("h1_jet_eta"+to_string(h)).c_str(),"",48,-2.2,2.2);
       h1_jet_phi[h] = new TH1D(("h1_jet_phi"+to_string(h)).c_str(),"",64,0,2*M_PI);
-    }
+      }
+  */
 }
 
 //____________________________________________________________________________..
@@ -329,7 +335,6 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   if(_debug > 1) cout << "Begin init: " << endl;
   jet_tree->Branch("nBadChi2",&_nBadChi2,"nBadChi2/I");
   jet_tree->Branch("ecc",&_eccentricity,"ecc/F");
-  jet_tree->Branch("theta",&_theta,"theta/F");
   jet_tree->Branch("frcoh",&_frcoh,"frcoh/F");
   jet_tree->Branch("frcem",&_frcem,"frcem/F");
   jet_tree->Branch("eta",&_eta,"eta/F");
@@ -338,6 +343,7 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("dphi",&_dphi,"dphi/F");
   jet_tree->Branch("isdijet",&_isdijet,"isdijet/I");
   jet_tree->Branch("subjet_ET",&_subjet_ET,"subjet_ET/F");
+  jet_tree->Branch("zvtx",&_zvtx,"zvtx/F");
   //jet_tree->Branch("jetcompE",_jetcompE,"jetcompE[3][512]/F");
   //jet_tree->Branch("jetcompEta",_jetcompEta,"jetcompEta[3][512]/F");
   //jet_tree->Branch("jetcompPhi",_jetcompPhi,"jetcompPhi[3][512]/F");
@@ -346,8 +352,12 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("subTowE",&_subTowE,"subTowE/F");
   jet_tree->Branch("maxTowDiff",&_maxTowDiff,"maxTowDiff/F");
   jet_tree->Branch("maxETowChi2",&_maxETowChi2,"maxETowChi2/F");
+  jet_tree->Branch("ohPhiBinMaxFrac",&_ohPhiBinMaxFrac,"ohPhiBinMaxFrac/F");
   jet_tree->Branch("maxETowIsZS",&_maxETowIsZS,"maxETowIsZS/I");
   jet_tree->Branch("maxETowChi2Det",&_maxETowChi2Det,"maxETowChi2Det/I");
+  jet_tree->Branch("triggervec",&_triggervec,"triggervec/g");
+  jet_tree->Branch("bbfqavec",&_bbfqavec,"bbfqavec/i");
+  jet_tree->Branch("elmbgvec",&_elmbgvec,"elmbgvec/i");
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -377,125 +387,6 @@ float getPhiFromBinEM(int binPhi)
 {
   return ((2*M_PI*binPhi)/256);
 }
-/*
-void Chi2checker::towerSearch(int px, int py, float* caloE, int* isPerimeter, float threshold)
-{
-  for(int i=-1, i<2; ++i)
-    {
-      for(int j=-1, j<2; ++j)
-	{
-	  int targetX = px+i;
-	  int targetY = py+j;
-	  if(targetX < 0) continue;
-	  if(targetY < 0) targetY+=ny;
-	  if(targetX > nx) continue;
-	  if(targetY > ny) targetY-=ny;
-	  if(j==0 && i==0) continue;
-	  if(caloE[targetX][targety] < threshold) isPerimeter[targetX][targetY] = 1;
-	  else towerSearch(nx, ny, targetX, targetY, caloE, isPerimeter, threshold);
-	}
-    }
-}
-
-TGraph* Chi2checker::findPerimeterGraph(float* caloE, float threshold, int jetx, int jety)
-{
-  int isPerimeter[nx][ny] = {0};
-  towerSearch(ny, ny, jetx, jety, caloE, isPerimeter, threshold);
-  int hasBot = 0;
-  int hasTop = 0;
-  for(int i=0; i<nx; ++i)
-    {
-      if(isPerimeter[i][0] == 1) hasBot = 1;
-      if(isPerimeter[i][ny-1] == 1) hasTop = 1;
-    }
-  int endIsPerimeter[nx][ny] = {0};
-  if(hasBot && hasTop)
-    {
-      if(jetx < ny/2) jetx += ny/2;
-      else jetx -= ny/2;
-      for(int i=0; i<ny; ++i)
-	{
-	  for(int j=0; j<nx; ++j)
-	    {
-	      if(i<ny/2 && isPerimeter[j][i])
-		{
-		  endIsPerimeter[j][i+ny/2] = 1;
-		}
-	      if(i>=ny/2 && isPerimeter[j][i])
-		{
-		  endIsPerimeter[j][i-ny/2] = 1;
-		}
-	    }
-	}
-    }
-  float x[nt] = {0};
-  float y[nt] = {0};
-  int np = 0;
-  for(int i=0; i<nx; ++i)
-    {
-      for(int j=0; j<ny; ++j)
-	{
-	  if(endIsPerimeter[i][j])
-	    {
-	      x[np] = getEtaFromBin(i);
-	      y[np] = getPhiFromBin(j);
-	      ++np;
-	    }
-	}
-    }
-
-  for(int i=0; i<np; ++i)
-    {
-      x[i] -= jetx;
-      y[i] -= jety;
-    }
-
-  auto g = new TGraph(np, x, y);
-  return g;
-}
-
-float findEccentricity(TGraph* thegraph)
-{
-  auto chi2Function = [&](const double* par)
-    {
-      int nt = thegraph->GetN();
-      double f = 0;
-      double* x = thegraph->GetX();
-      double* y = thegraph->GetY();
-      for(int i=0; i<nt; ++i)
-	{
-	  double u = x[i] - par[0];
-	  double v = y[i] - par[1];
-	  double dr = 1 - std::sqrt(u*u/(par[2]*par[2])+v*v/(par[3]*par[3]));
-	  f += dr*dr;
-	}
-      return f;
-    }
-
-  ROOT::Math::Functor fcn(chi2Function, 4);
-  ROOT::Fit::Fitter fitter;
-  
-  double pStart[4] = {0,0,0.4,0.4};
-  fitter.setFCN(fcn, pStart);
-  fitter.Config().ParSettings(0).SetName("x0");
-  fitter.Config().ParSettings(1).SetName("y0");
-  fitter.Config().ParSettings(2).SetName("a");
-  fitter.Config().ParSettings(3).SetName("b");
-
-  bool ok = fitter.FitFCN();
-  if(!ok) return -1;
-  
-  const ROOT::Fit::FitResult & result = fitter.Result();
-
-  double* params = result.GetParams();
-  
-  float a = (params[2]>params[3]?params[2]:params[3]);
-  float b = (params[2]>params[3]?params[3]:params[2]);
-
-  float eccentricity = std::sqrt(1-b*b/(a*a));
-  return eccentricity;
-}
-*/
 //____________________________________________________________________________..
 
 void print_debug(float jet_eta, float jet_phi, float tower_eta, float tower_phi, float dphi, float deta)
@@ -527,7 +418,14 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 
   MbdVertexMap* mbdvtxmap = findNode::getClass<MbdVertexMapv1>(topNode, "MbdVertexMap");
   GlobalVertexMap* gvtxmap = findNode::getClass<GlobalVertexMapv1>(topNode, "GlobalVertexMap");
-
+  Gl1Packetv2* gl1 = gl1 = findNode::getClass<Gl1Packetv2>(topNode, "GL1Packet");
+  if(!gl1)
+    {
+      cout << "No trigger info!" << endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+  if(_debug > 1) cout << "Getting gl1 trigger vector from: " << gl1 << endl;
+  _triggervec = gl1->getScaledVector();
 
   float zvtx = NAN;
   if(!gvtxmap)
@@ -550,7 +448,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
           break;
         }
     }
-  if(std::isnan(zvtx) || abs(zvtx) > 100)
+  if(std::isnan(zvtx) || abs(zvtx) > 150)
     {
       /*
       if(std::isnan(zvtx))
@@ -561,7 +459,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       */
       return Fun4AllReturnCodes::EVENT_OK;
     }
-
+  _zvtx = zvtx;
   //float fracEM = 0;
   //float fracOH = 0;
   _maxTowE = 0;
@@ -589,13 +487,13 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   //float Etot = 0;
   //bool isPerimeter[nx][ny] = {0};
   //float calE[3][nx][ny] = {0};
-
+  MinimumBiasInfov1* mb3 = findNode::getClass<MinimumBiasInfov1>(topNode,"mbc_bkgd3");
   //int maxCalN = -1;
   //float maxCaleE = 0;
   //float eTot = 0;
 
   float eccentricity = 0;
-
+  //int failscut = 0;
   if(jets)
     {
       int tocheck = jets->size();
@@ -606,12 +504,14 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
           if(jet)
             {
 	      //float Etot = 0;
+	      if(_debug > 5) cout << "getting jet E/eta" << endl;
 	      float testJetE = jet->get_e()/cosh(jet->get_eta());
 	      float squareDif = 0;
 	      float squareSum = 0;
 	      float testJetPhi = jet->get_phi();
-	      if(_debug > 3) cout << "jet E/eta: " << testJetE  << " " << jet->get_eta() << endl;
+	      if(_debug > 5) cout << "jet E/eta: " << testJetE  << " " << jet->get_eta() << endl;
 	      if(testJetE < 8) continue;
+	      if(_debug > 3) cout << "got a candidate jet" << endl;
 	      jet_e[jet_n] = testJetE;
 	      jet_eta[jet_n] = jet->get_eta();
 	      //if(abs(jet_eta[jet_n]) > 0.9) continue;
@@ -667,6 +567,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		      */
 		    }
 		  
+		  int skipflag = 0;
 		  for(auto comp: jet->get_comp_vec())
 		    {
 		      ++ncomp;
@@ -678,6 +579,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			  tower = towers[1]->get_tower_at_channel(channel);
 			  float towerE = tower->get_energy();
 			  float chi2 = tower->get_chi2();
+			  //if(abs(chi2 - 0.08) < 0.00001 && towerE > 8) failscut = 2;
 			  if(chi2 > _maxTowChi2[1]) _maxTowChi2[1] = chi2;
 			  if(tower->get_isBadChi2()) _nBadChi2++;
 			  //Etot += towerE;
@@ -705,7 +607,6 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			    {
 			      _subTowE = _maxTowE;
 			      _maxTowE = towerE;
-			      _maxETowChi2 = tower->get_chi2();
 			      _maxETowChi2Det = 1;
 			      _maxETowIsZS = tower->get_isZS();
 			    }
@@ -729,6 +630,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			  float towerE = tower->get_energy();
 			  
 			  float chi2 = tower->get_chi2();
+			  //if(abs(chi2 - 0.08) < 0.00001 && towerE > 8) failscut = 2;
 			  if(chi2 > _maxTowChi2[2]) _maxTowChi2[2] = chi2;
 			  if(tower->get_isBadChi2()) _nBadChi2++;
 			  //fracOH += towerE;
@@ -752,7 +654,6 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			    {
 			      _subTowE = _maxTowE;
 			      _maxTowE = towerE;
-			      _maxETowChi2 = tower->get_chi2();
 			      _maxETowChi2Det = 2;
 			      _maxETowIsZS = tower->get_isZS();
 			    }
@@ -777,6 +678,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			  tower = towers[0]->get_tower_at_channel(channel);
 			  float towerE = tower->get_energy();
 			  float chi2 = tower->get_chi2();
+			  //if(abs(chi2 - 0.08) < 0.00001 && towerE > 8) failscut = 2;
 			  if(chi2 > _maxTowChi2[0]) _maxTowChi2[0] = chi2;
       			  if(tower->get_isBadChi2()) _nBadChi2++;
 			  //Etot += towerE;
@@ -800,7 +702,6 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			    {
 			      _subTowE = _maxTowE;
 			      _maxTowE = towerE;
-			      _maxETowChi2 = tower->get_chi2();
 			      _maxETowChi2Det = 0;
 			      _maxETowIsZS = tower->get_isZS();
 			    }
@@ -820,87 +721,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			  SumEdEtadPhiDiff += towerE*(dPhi*dPhi-dEta*dEta);
 			}
 		    }
-		  //theta = 0.5*atan(SumEdEtadPhi/SumEdEtadPhiDiff);
-		  //if(_debug > 5) cout << "got theta = " << theta << endl;
-		  /*
-		  for(auto comp: jet->get_comp_vec())
-		    {
-		      unsigned int channel = comp.second;
-		      TowerInfo* tower;
-		      if(comp.first == 5 || comp.first == 26)
-			{
-			  tower = towers[1]->get_tower_at_channel(channel);
-			  float towerE = tower->get_energy();
-			  if(towerE < 0) continue;
-			  towerE = sqrt(towerE);
-			  int key = towers[1]->encode_key(channel);
-			  const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, towers[1]->getTowerEtaBin(key), towers[1]->getTowerPhiBin(key));
-			  RawTowerGeom *tower_geom = geom[1]->get_tower_geometry(geomkey); //encode tower geometry
-			  float newx = tower_geom->get_center_x();
-			  float newy = tower_geom->get_center_y();
-			  float newz = tower_geom->get_center_z() - zvtx;
-			  float towerEta = asinh(newz/sqrt(newx*newx+newy*newy));//getEtaFromBinEM()+0.012;
-			  float towerPhi = tower_geom->get_phi()+M_PI;//getPhiFromBinEM(towers[1]->getTowerPhiBin(key))+0.048;//tower_geom->get_phicenter(towers[1]->getTowerPhiBin(key));//getPhiFromBinEM()+0.012;
-			  float dPhi = towerPhi - maxJetPhi;
-			  if(dPhi > M_PI) dPhi -= 2*M_PI;
-			  if(dPhi < -M_PI) dPhi += 2*M_PI;
-			  float dEta = towerEta - maxJetEta;
-			  squareDif = cos(theta)*dEta - sin(theta)*dPhi;
-			  squareSum = sin(theta)*dEta + cos(theta)*dPhi;
-			  v1 += towerE*squareDif*squareDif;
-			  v2 += towerE*squareSum*squareSum;
-			  if(_debug > 3 && towerE*squareDif*squareDif < 0) cout << "something impossible has happened in the IHCal: towerE, squaresum, squarediff: " << towerE << " " << squareSum << " " << squareDif << " " << towerE*squareDif*squareDif << endl;
-			}
-		      else if(comp.first == 7 || comp.first == 27)
-			{
-			  tower = towers[2]->get_tower_at_channel(channel);
-			  float towerE = tower->get_energy();
-			  if(towerE < 0) continue;
-			  towerE = sqrt(towerE);
-			  int key = towers[2]->encode_key(channel);
-			  const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, towers[2]->getTowerEtaBin(key), towers[2]->getTowerPhiBin(key));
-			  RawTowerGeom *tower_geom = geom[2]->get_tower_geometry(geomkey); //encode tower geometry
-			  float newx = tower_geom->get_center_x();
-			  float newy = tower_geom->get_center_y();
-			  float newz = tower_geom->get_center_z() - zvtx;
-			  float towerEta = asinh(newz/sqrt(newx*newx+newy*newy));//getEtaFromBinEM()+0.012;
-			  float towerPhi = tower_geom->get_phi()+M_PI;//getPhiFromBinEM(towers[2]->getTowerPhiBin(key))+0.048;//tower_geom->get_phicenter(towers[2]->getTowerPhiBin(key));//getPhiFromBinEM()+0.012;
-			  float dPhi = towerPhi - maxJetPhi;
-			  if(dPhi > M_PI) dPhi -= 2*M_PI;
-			  if(dPhi < -M_PI) dPhi += 2*M_PI;
-			  float dEta = towerEta - maxJetEta;
-			  squareDif = cos(theta)*dEta - sin(theta)*dPhi;
-			  squareSum = sin(theta)*dEta + cos(theta)*dPhi;
-			  v1 += towerE*squareDif*squareDif;
-			  v2 += towerE*squareSum*squareSum;
-			  if(_debug > 3 && towerE*squareDif*squareDif < 0) cout << "something impossible has happened in the OHCal: towerE, squaresum, squarediff: " << towerE << " " << squareSum << " " << squareDif << " " << towerE*squareDif*squareDif << endl;
-			}
-		      else if(comp.first == 13 || comp.first == 28 || comp.first == 25)
-			{
-			  tower = towers[0]->get_tower_at_channel(channel);
-			  float towerE = tower->get_energy();
-			  if(towerE < 0) continue;
-			  towerE = sqrt(towerE);
-			  int key = towers[0]->encode_key(channel);
-			  const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, towers[0]->getTowerEtaBin(key), towers[0]->getTowerPhiBin(key));
-			  RawTowerGeom *tower_geom = geom[1]->get_tower_geometry(geomkey); //encode tower geometry
-			  float newx = tower_geom->get_center_x();
-			  float newy = tower_geom->get_center_y();
-			  float newz = tower_geom->get_center_z() - zvtx;
-			  float towerEta = asinh(newz/sqrt(newx*newx+newy*newy));//getEtaFromBinEM()+0.012;
-			  float towerPhi = tower_geom->get_phi()+M_PI;//getPhiFromBinEM(towers[0]->getTowerPhiBin(key))+0.012;//tower_geom->get_phicenter(towers[0]->getTowerPhiBin(key));//getPhiFromBinEM()+0.012;
-			  float dPhi = towerPhi - maxJetPhi;
-			  if(dPhi > M_PI) dPhi -= 2*M_PI;
-			  if(dPhi < -M_PI) dPhi += 2*M_PI;
-			  float dEta = towerEta - maxJetEta;
-			  squareDif = cos(theta)*dEta - sin(theta)*dPhi;
-			  squareSum = sin(theta)*dEta + cos(theta)*dPhi;
-			  v1 += towerE*squareDif*squareDif;
-			  v2 += towerE*squareSum*squareSum;
-			  if(_debug > 3 && towerE*squareDif*squareDif < 0) cout << "something impossible has happened in the EMCal: towerE, squaresum, squarediff: " << towerE << " " << squareSum << " " << squareDif << " " << towerE*squareDif*squareDif << endl;
-			}
-		    }
-		  */
+
 		  float sqrtMaxJetE = sqrt(maxJetE);
 		  sigEtaEta /= maxJetE;
 		  sigEtaPhi /= maxJetE;
@@ -920,12 +741,68 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		  if(_debug > 3) cout << "ecc/layer: " << eccentricity << " " << maxEoverTot << endl;
 		  //if(_debug > 3) cout << "ecc entries: " << h2_ecc_layer->GetEntries() << endl;
 		}
+	      ++jet_n;
 	    }
           else
             {
               continue;
             }
-	  ++jet_n;
+	}
+      _maxETowChi2 = mb3->getMyVal();
+
+      /*
+      if(_debug > 4) cout << "ended jets" << endl;
+      if (gDirectory->Get("hcal_phi"))
+	{
+	  gDirectory->Delete("hcal_phi");
+	  delete gDirectory->Get("hcal_phi");
+	}
+      TH1F* hcal_phi = new TH1F("hcal_phi", "", 64, -0.5, 63.5);
+      hcal_phi->SetDirectory(nullptr);
+      int size = towers[2]->size();
+      for (int channel = 0; channel < size;channel++)
+	{
+	  TowerInfo *tower = towers[2]->get_tower_at_channel(channel);
+	  float energy = tower->get_energy();
+	  unsigned int towerkey = towers[2]->encode_key(channel);
+
+	  int iphi = towers[2]->getTowerPhiBin(towerkey);
+	  short good = (tower->get_isGood() ? 1:0);
+	  if (!good) continue;
+	  hcal_phi->Fill(iphi,energy);
+	}
+
+      int bmax = hcal_phi->GetMaximumBin();
+      float binmax = hcal_phi->GetBinContent(bmax);
+
+      //float binsum = binsup+binslo+binmax;                                        
+      float binsum = hcal_phi->Integral();
+      delete hcal_phi;
+      hcal_phi = nullptr;
+      if (_f->Get("hcal_phi"))
+	{
+	  _f->Delete("hcal_phi");
+	  delete _f->Get("hcal_phi");
+	}
+      _ohPhiBinMaxFrac = binmax/binsum;
+      */
+      MinimumBiasInfov1* mbinfo = findNode::getClass<MinimumBiasInfov1>(topNode, "mbc_bkgd2");
+      int failscut = 0;
+      if(_debug > 3) cout << "mbinfo: " << mbinfo << endl; 
+      if(mbinfo)
+	{
+	  //cout << "mbinfo exists - setting failscut to" << mbinfo->isAuAuMinimumBias() << endl;
+	  _elmbgvec = mbinfo->getBkgdType(); //THIS IS ACTUALLY WHETHER OR NOT IT FAILS HANPU'S CUT//(binmax/binsum > 0.9)?1:0;
+	}
+      else
+	{
+	  if(_debug > 3) cout << "NO MBINFO NODE!" << endl;
+	}
+
+      MinimumBiasInfov1* mbinfo2 = findNode::getClass<MinimumBiasInfov1>(topNode, "mbc_bkgd");
+      if(mbinfo2)
+	{
+	  _bbfqavec = mbinfo2->getBkgdType();
 	}
       _maxTowDiff = _maxTowE - _subTowE;
       //fracEM /= Etot;
@@ -934,10 +811,16 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       int hfillnum = 2;
       float dphi = abs(maxJetPhi-subJetPhi);
       if(dphi > M_PI) dphi = 2*M_PI - dphi;
-      if(subJetE < 8) hfillnum=2;
+      //if(subJetE < 8) hfillnum=2;
       if(subJetE > 8) _isdijet = 1;
       else _isdijet = 0;
+      /*
+      if(failscut && _isdijet) _isdijet = 3;
+      else if(failscut) _isdijet = 2;
+      */
+      //_isdijet += failscut;
       //{
+      if(_debug > 4) cout << "assigning vars now" << endl;
       _eccentricity = eccentricity;
       _theta = theta;
       _frcoh = maxLayerE[1]/maxJetE;
@@ -949,61 +832,16 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       _subjet_ET = subJetE;
       if(maxJetE > 8) jet_tree->Fill();
       //}
-      if(dphi > 3*M_PI/4) hfillnum = 0;
-      else hfillnum = 1;
-      if(maxJetE < 10) fillnum = 0;
-      else if(maxJetE < 20) fillnum = 1;
-      else if(maxJetE < 30) fillnum = 2;
-      else if(maxJetE < 40) fillnum = 3;
-      else if(maxJetE < 50) fillnum = 4;
-      else fillnum = 5;
-      if(hfillnum != 2) h1_dphi[hfillnum]->Fill(dphi);
-      h2_ecc_layer[hfillnum][fillnum]->Fill(eccentricity,maxEoverTot);
-      h2_ecc_angle[hfillnum][fillnum]->Fill(eccentricity,theta);
-      h2_ecc_E[hfillnum]->Fill(eccentricity,maxJetE);
-      h2_g20_ecc_angle[hfillnum]->Fill(eccentricity, theta);
-      h2_g20_ecc_frcoh[hfillnum]->Fill(eccentricity, maxLayerE[1]/maxJetE);
-      h2_g20_ecc_frcem[hfillnum]->Fill(eccentricity, maxLayerE[0]/maxJetE);
-      h1_jet_phi[hfillnum]->Fill(maxJetPhi);
-      h1_jet_eta[hfillnum]->Fill(maxJetEta);
       jet_ecc = eccentricity;
       jet_lfrac = maxEoverTot;
-      /*
-      if(maxJetE > 25)
+      
+      if(maxJetE > 45)
 	{
-	  drawCalo(towers, jet_e, jet_eta, jet_phi, jet_n, jet_ecc, jet_lfrac, geom, zvtx, theta);
+	  drawCalo(towers, jet_e, jet_eta, jet_phi, jet_n, jet_ecc, jet_lfrac, geom, zvtx, failscut);
 	  cout << "drew calo" << endl;
 	}
-      */
+      
     }
-
-  /*
-  for(int h=0; h<3; ++h)
-    {
-      eTot = 0;
-      if(towers[h])
-	{ //get EMCal values
-	  int nchannels = nt; //channels in emcal
-	  for(int i=0; i<nchannels; ++i) //loop over channels 
-	    {
-	      TowerInfo *tower = towers[h]->get_tower_at_channel(i); //get EMCal tower
-	      int key = towers[h]->encode_key(i);
-	      int eta = towers[h]->getTowerEtaBin(key);
-	      int phi = towers[h]->getTowerPhiBin(key);
-	      calE[eta][phi] = tower->get_energy();
-	      eTot += tower->get_energy();
-	    }
-	}
-      if(eTot > maxCalE)
-	{
-	  maxCalE = eTot;
-	  maxCalN = h;
-	}
-    }
-
-  TGraph* jetgraph = findPerimeterGraph(calE, threshold, maxJetEta, maxJetPhi);
-  */
-  
 
   return Fun4AllReturnCodes::EVENT_OK;
     
@@ -1036,6 +874,7 @@ int Chi2checker::End(PHCompositeNode *topNode)
       std::cout << "Chi2checker::End(PHCompositeNode *topNode) This is the End..." << std::endl;
     }
   _f->cd();
+  /*
   for(int h=0; h<3; ++h)
     {
       if(h<2) _f->WriteObject(h1_dphi[h],h1_dphi[h]->GetName());
@@ -1049,6 +888,7 @@ int Chi2checker::End(PHCompositeNode *topNode)
       _f->WriteObject(h2_g20_ecc_frcoh[h],h2_g20_ecc_frcoh[h]->GetName());
       _f->WriteObject(h2_g20_ecc_frcem[h],h2_g20_ecc_frcem[h]->GetName());
     }
+  */
   jet_tree->Write();
   _f->Write();
   _f->Close();
