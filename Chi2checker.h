@@ -52,6 +52,7 @@ class Chi2checker : public SubsysReco
  private:
   int cancount = 0;
   TTree* jet_tree;
+  TTree* mbtree;
   TH2D* h2_ecc_layer[3][6];
   TH2D* h2_ecc_angle[3][6];
   TH2D* h2_ecc_E[3];
@@ -95,6 +96,11 @@ class Chi2checker : public SubsysReco
   long long unsigned int _triggervec;
   unsigned int _bbfqavec;
   unsigned int _elmbgvec;
+  int _mbevt;
+  int _jet_n;
+  float _jet_et[10];
+  float _jet_eta[10];
+  float _jet_phi[10];
 };
 
 #endif // CHI2TREEMAKER
