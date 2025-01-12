@@ -41,7 +41,7 @@
 #include <jetbackground/SubtractTowersCS.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>  // for gsl_rng_uniform_pos
-
+#include <phool/recoConsts.h>
 #include <iostream>
 #include <centrality/CentralityInfo.h>
 #include <calotrigger/MinimumBiasInfo.h>
@@ -136,6 +136,7 @@ void drawText(const char *text, float xp, float yp, bool isRightAlign=0, int tex
   if(isNDC) tex->SetNDC();
   if(isRightAlign) tex->SetTextAlign(31);
   tex->Draw();
+  delete tex;
 }
 
 void sqrt_snn_text(float xp = 0.7, float yp = 0.8, bool isRightAlign=0, double textsize = 0.04)
@@ -336,6 +337,7 @@ void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet
 	  circlemarker->SetMarkerSize(0.3);
 	  circlemarker->SetMarkerColor(kBlue);
 	  circlemarker->Draw();
+	  delete circlemarker;
 	}
       std::stringstream e_stream;
       e_stream << std::fixed << std::setprecision(2) << jet_e[k]/cosh(jet_et[k]);
@@ -359,6 +361,14 @@ void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet
   event_sum->GetZaxis()->SetRangeUser(0.05,25);
   gPad->Update();
   c->SaveAs(("./output/smg/candidate_"+_name+"_supersuperhighE_eccentricityfinder_"+to_string(cancount)+"_log.png").c_str());
+  /*
+  delete c;
+  delete event_sum;
+  for(int i=0; i<3; ++i)
+    {
+      delete event_disrt[i];
+    }
+  */
 }
 
 //____________________________________________________________________________..
@@ -369,6 +379,7 @@ Chi2checker::Chi2checker(const std::string &filename, const std::string &name, c
   _debug = debug;
   _filename = filename;
   _f = new TFile(filename.c_str(), "RECREATE");
+  _rc = recoConsts::instance();
   jet_tree = new TTree("jet_tree","a persevering date tree");
 }
 
@@ -557,7 +568,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   //float Etot = 0;
   //bool isPerimeter[nx][ny] = {0};
   //float calE[3][nx][ny] = {0};
-  MinimumBiasInfov1* mb3 = findNode::getClass<MinimumBiasInfov1>(topNode,"mbc_bkgd3");
+  //MinimumBiasInfov1* mb3 = findNode::getClass<MinimumBiasInfov1>(topNode,"mbc_bkgd3");
   //int maxCalN = -1;
   //float maxCaleE = 0;
   //float eTot = 0;
@@ -620,7 +631,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		  float sigEtaEta = 0;
 		  float sigEtaPhi = 0;
 		  float sigPhiPhi = 0;
-		  if(_debug > 4) cout << "getting comp vec" << endl;
+		  if(_debug > 3) cout << "getting comp vec" << endl;
 		  
 		  for(int i=0; i<3; ++i)
 		    {
@@ -820,7 +831,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	{
 	  return Fun4AllReturnCodes::ABORTEVENT;
 	}
-      _maxETowChi2 = mb3->getMyVal();
+      //_maxETowChi2 = mb3->getMyVal();
 
       /*
       if(_debug > 4) cout << "ended jets" << endl;
@@ -858,24 +869,25 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	}
       _ohPhiBinMaxFrac = binmax/binsum;
       */
-      MinimumBiasInfov1* mbinfo = findNode::getClass<MinimumBiasInfov1>(topNode, "mbc_bkgd2");
+      //MinimumBiasInfov1* mbinfo = findNode::getClass<MinimumBiasInfov1>(topNode, "mbc_bkgd2");
       int failscut = 0;
-      if(_debug > 3) cout << "mbinfo: " << mbinfo << endl; 
-      if(mbinfo)
-	{
-	  //cout << "mbinfo exists - setting failscut to" << mbinfo->isAuAuMinimumBias() << endl;
-	  _elmbgvec = mbinfo->getBkgdType(); //THIS IS ACTUALLY WHETHER OR NOT IT FAILS HANPU'S CUT//(binmax/binsum > 0.9)?1:0;
-	}
-      else
-	{
-	  if(_debug > 3) cout << "NO MBINFO NODE!" << endl;
-	}
+      _bbfqavec = 0;
+      _elmbgvec = 0;
+      //if(mbinfo)
+      //{
+      //cout << "mbinfo exists - setting failscut to" << mbinfo->isAuAuMinimumBias() << endl;
+      //_elmbgvec = mbinfo->getBkgdType(); //THIS IS ACTUALLY WHETHER OR NOT IT FAILS HANPU'S CUT//(binmax/binsum > 0.9)?1:0;
+      //}
+      //else
+      //{
+      //if(_debug > 3) cout << "NO MBINFO NODE!" << endl;
+      //}
 
-      MinimumBiasInfov1* mbinfo2 = findNode::getClass<MinimumBiasInfov1>(topNode, "mbc_bkgd");
-      if(mbinfo2)
-	{
-	  _bbfqavec = mbinfo2->getBkgdType();
-	}
+      //MinimumBiasInfov1* mbinfo2 = findNode::getClass<MinimumBiasInfov1>(topNode, "mbc_bkgd");
+      //if(mbinfo2)
+      //{
+      _bbfqavec = 0;//_rc->get_IntFlag("HasBeamBackground_StreakSidebandFilter") << 5;
+	  //}
       _maxTowDiff = _maxTowE - _subTowE;
       //fracEM /= Etot;
       //fracOH /= Etot;
@@ -890,7 +902,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       */
       //_isdijet += failscut;
       //{
-      if(_debug > 4) cout << "assigning vars now" << endl;
+      if(_debug > 3) cout << "assigning vars now" << endl;
       _eccentricity = eccentricity;
       _theta = theta;
       _frcoh = maxLayerE[1]/maxJetE;
@@ -922,6 +934,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
     {
       return Fun4AllReturnCodes::ABORTEVENT;
     }
+  if(_debug > 3) cout << "end event" << endl;
   return Fun4AllReturnCodes::EVENT_OK;
     
 }
@@ -952,12 +965,14 @@ int Chi2checker::End(PHCompositeNode *topNode)
     {
       std::cout << "Chi2checker::End(PHCompositeNode *topNode) This is the End..." << std::endl;
     }
+  if(_debug > 1) cout << "ending run" << endl;
   _f->cd();
   jet_tree->Write();
   _f->Write();
   _f->Close();
 
-
+  //delete jet_tree;
+  //delete _f;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

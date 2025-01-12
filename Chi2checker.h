@@ -12,7 +12,7 @@
 #include "TFile.h"
 #include "TH2D.h"
 #include <calobase/RawTowerGeomContainer.h>
-
+#include <phool/recoConsts.h>
 class PHCompositeNode;
 class CentralityInfo;
 class Chi2checker : public SubsysReco
@@ -48,9 +48,10 @@ class Chi2checker : public SubsysReco
 
   void Print(const std::string &what = "ALL") const override;
 
-
+ 
  private:
   int cancount = 0;
+  recoConsts* _rc;
   TTree* jet_tree;
   TTree* mbtree;
   TH2D* h2_ecc_layer[3][6];
