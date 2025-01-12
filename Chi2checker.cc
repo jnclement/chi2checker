@@ -398,6 +398,10 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("ecc",&_eccentricity,"ecc/F");
   jet_tree->Branch("frcoh",&_frcoh,"frcoh/F");
   jet_tree->Branch("frcem",&_frcem,"frcem/F");
+
+  jet_tree->Branch("alljetfrcoh",_alljetfrcoh,"alljetfrcoh/F");
+  jet_tree->Branch("alljetfrcem",&_alljetfrcem,"alljetfrcem/F");
+
   jet_tree->Branch("eta",&_eta,"eta/F");
   jet_tree->Branch("phi",&_phi,"phi/F");
   jet_tree->Branch("jet_ET",&_jet_ET,"jet_ET/F");
@@ -588,15 +592,21 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	      if(_debug > 5) cout << "getting jet E/eta" << endl;
 	      float testJetE = jet->get_e()/cosh(jet->get_eta());
 	      float testJetPhi = jet->get_phi();
+	      float sigEtaEta = 0;
+	      float sigEtaPhi = 0;
+	      float sigPhiPhi = 0;
 	      if(_debug > 5) cout << "jet E/eta: " << testJetE  << " " << jet->get_eta() << endl;
 	      if(testJetE < 8) continue;
 	      if(_debug > 3) cout << "got a candidate jet" << endl;
+	      _alljetfrcem[_jet_n] = 0;
+	      _alljetfrcoh[_jet_n] = 0;
 	      _jet_et[_jet_n] = testJetE;
 	      _jet_eta[_jet_n] = jet->get_eta();
 	      if(check_bad_jet_eta(_jet_eta[_jet_n],zvtx,0.4)) continue;
 	      //if(abs(jet_eta[jet_n]) > 0.9) continue;
 	      _jet_phi[_jet_n] = testJetPhi;//(jet->get_phi()>0?jet->get_phi():jet->get_phi()+2*M_PI);
-	      
+	      int ncomp = 0;
+	      bool newMaxJetET = false;
 	      if(testJetE > subJetE && testJetE < maxJetE)
 		{
 		  subJetE = testJetE;
@@ -605,12 +615,12 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	      if(_debug > 2) cout << "found a good jet!" << endl;
 	      if(testJetE > maxJetE)
 		{
+		  newMaxJetET = true;
 		  if(maxJetE > subJetE)
 		    {
 		      subJetE = maxJetE;
 		      subJetPhi = maxJetPhi;
 		    }
-		  int ncomp = 0;
 		  _maxTowE = 0;
 		  _subTowE = 0;
 		  _maxTowDiff = 0;
@@ -628,171 +638,124 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		  maxJetE = testJetE;
 		  maxJetEta = jet->get_eta();
 		  maxJetPhi = jet->get_phi();//(jet->get_phi()>0?jet->get_phi():jet->get_phi()+2*M_PI);
-		  float sigEtaEta = 0;
-		  float sigEtaPhi = 0;
-		  float sigPhiPhi = 0;
-		  if(_debug > 3) cout << "getting comp vec" << endl;
-		  
-		  for(int i=0; i<3; ++i)
+		}
+	
+	      if(_debug > 3) cout << "getting comp vec" << endl;
+	      
+	      for(int i=0; i<3; ++i)
+		{
+		  _maxTowChi2[i] = -1;
+		  /*
+		    for(int k=0; k<512; ++k)
 		    {
-		      _maxTowChi2[i] = -1;
+		    _jetcompE[i][k] = 0;
+		    _jetcompEta[i][k] = 0;
+		    _jetcompPhi[i][k] = 0;
+		    }
+		  */
+		}
+	      
+	      for(auto comp: jet->get_comp_vec())
+		{
+		  ++ncomp;
+		  unsigned int channel = comp.second;
+		  TowerInfo* tower;
+		  //cout << "type: " << comp.first << endl;
+		  if(comp.first == 5 || comp.first == 26)
+		    {
+		      tower = towers[1]->get_tower_at_channel(channel);
+		      float towerE = tower->get_energy();
+		      float chi2 = tower->get_chi2();
+		      //if(abs(chi2 - 0.08) < 0.00001 && towerE > 8) failscut = 2;
+		      if(chi2 > _maxTowChi2[1]) _maxTowChi2[1] = chi2;
+		      if(tower->get_isBadChi2()) _nBadChi2++;
+		      //Etot += towerE;
+		      int key = towers[1]->encode_key(channel);
+		      const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, towers[1]->getTowerEtaBin(key), towers[1]->getTowerPhiBin(key));
+		      if(_debug > 6) cout << "encoding tower geom" << endl;
+		      RawTowerGeom *tower_geom = geom[1]->get_tower_geometry(geomkey); //encode tower geometry
+		      float radius = tower_geom->get_center_radius();
+		      float newz = tower_geom->get_center_z() - zvtx;
+		      float newTheta = atan2(radius,newz);
+		      float towerEta = -log(tan(0.5*newTheta));
+		      float towerPhi = tower_geom->get_phi();
 		      /*
-		      for(int k=0; k<512; ++k)
-			{
-			  _jetcompE[i][k] = 0;
-			  _jetcompEta[i][k] = 0;
-			  _jetcompPhi[i][k] = 0;
-			}
+			_jetcompE[1][subcomp[1]] = towerE;
+			_jetcompEta[1][subcomp[1]] = towerPhi;
+			_jetcompPhi[1][subcomp[1]] = towerEta;
+			subcomp[1]++;
 		      */
+		      towerE /= cosh(towerEta);
+		      if(towerE > _maxTowE)
+			{
+			  _subTowE = _maxTowE;
+			  _maxTowE = towerE;
+			  _maxETowChi2Det = 1;
+			  _maxETowIsZS = tower->get_isZS();
+			}
+		      if(towerE < 0) continue;
+		      //towerE = sqrt(towerE);
+		      float dPhi = towerPhi - maxJetPhi;
+		      if(dPhi > M_PI) dPhi -= 2*M_PI;
+		      if(dPhi < -M_PI) dPhi += 2*M_PI;
+		      float dEta = towerEta - maxJetEta;
+		      if(_debug > 4) cout << "IHCal" << endl;
+		      if(_debug > 4) print_debug(maxJetEta, maxJetPhi, towerEta, towerPhi, dPhi, dEta);
+		      if(newMaxJetET)
+			{
+			  sigEtaEta += towerE*dEta*dEta;
+			  sigEtaPhi += towerE*dEta*dPhi;
+			  sigPhiPhi += towerE*dPhi*dPhi;
+			  SumEdEtadPhi += 2*towerE*dPhi*dEta;
+			  SumEdEtadPhiDiff += towerE*(dPhi*dPhi-dEta*dEta);
+			}
 		    }
-		  
-		  for(auto comp: jet->get_comp_vec())
+		  else if(comp.first == 7 || comp.first == 27)
 		    {
-		      ++ncomp;
-		      unsigned int channel = comp.second;
-		      TowerInfo* tower;
-		      //cout << "type: " << comp.first << endl;
-		      if(comp.first == 5 || comp.first == 26)
+		      tower = towers[2]->get_tower_at_channel(channel);
+		      float towerE = tower->get_energy();
+		      
+		      float chi2 = tower->get_chi2();
+		      //if(abs(chi2 - 0.08) < 0.00001 && towerE > 8) failscut = 2;
+		      if(chi2 > _maxTowChi2[2]) _maxTowChi2[2] = chi2;
+		      if(tower->get_isBadChi2()) _nBadChi2++;
+		      //fracOH += towerE;
+		      //Etot += towerE;
+		      int key = towers[2]->encode_key(channel);
+		      const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, towers[2]->getTowerEtaBin(key), towers[2]->getTowerPhiBin(key));
+		      RawTowerGeom *tower_geom = geom[2]->get_tower_geometry(geomkey); //encode tower geometry
+		      
+		      float radius = tower_geom->get_center_radius();
+		      float newz = tower_geom->get_center_z() - zvtx;
+		      float newTheta = atan2(radius,newz);
+		      float towerEta = -log(tan(0.5*newTheta));
+		      float towerPhi = tower_geom->get_phi();
+		      /*
+			_jetcompE[2][subcomp[2]] = towerE;
+			_jetcompEta[2][subcomp[2]] = towerPhi;
+			_jetcompPhi[2][subcomp[2]] = towerEta;
+			subcomp[2]++;
+		      */
+		      towerE /= cosh(towerEta);
+		      _alljetfrcoh[_jet_n] += towerE;
+		      if(towerE > _maxTowE)
 			{
-			  tower = towers[1]->get_tower_at_channel(channel);
-			  float towerE = tower->get_energy();
-			  float chi2 = tower->get_chi2();
-			  //if(abs(chi2 - 0.08) < 0.00001 && towerE > 8) failscut = 2;
-			  if(chi2 > _maxTowChi2[1]) _maxTowChi2[1] = chi2;
-			  if(tower->get_isBadChi2()) _nBadChi2++;
-			  //Etot += towerE;
-			  int key = towers[1]->encode_key(channel);
-			  const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, towers[1]->getTowerEtaBin(key), towers[1]->getTowerPhiBin(key));
-			  if(_debug > 6) cout << "encoding tower geom" << endl;
-			  RawTowerGeom *tower_geom = geom[1]->get_tower_geometry(geomkey); //encode tower geometry
-			  float radius = tower_geom->get_center_radius();
-			  float newz = tower_geom->get_center_z() - zvtx;
-			  float newTheta = atan2(radius,newz);
-			  float towerEta = -log(tan(0.5*newTheta));
-			  float towerPhi = tower_geom->get_phi();
-			  /*
-			  _jetcompE[1][subcomp[1]] = towerE;
-			  _jetcompEta[1][subcomp[1]] = towerPhi;
-			  _jetcompPhi[1][subcomp[1]] = towerEta;
-			  subcomp[1]++;
-			  */
-			  towerE /= cosh(towerEta);
-			  if(towerE > _maxTowE)
-			    {
-			      _subTowE = _maxTowE;
-			      _maxTowE = towerE;
-			      _maxETowChi2Det = 1;
-			      _maxETowIsZS = tower->get_isZS();
-			    }
-			  if(towerE < 0) continue;
-			  //towerE = sqrt(towerE);
-			  float dPhi = towerPhi - maxJetPhi;
-			  if(dPhi > M_PI) dPhi -= 2*M_PI;
-			  if(dPhi < -M_PI) dPhi += 2*M_PI;
-			  float dEta = towerEta - maxJetEta;
-			  if(_debug > 4) cout << "IHCal" << endl;
-			  if(_debug > 4) print_debug(maxJetEta, maxJetPhi, towerEta, towerPhi, dPhi, dEta);
-			  sigEtaEta += towerE*dEta*dEta;
-			  sigEtaPhi += towerE*dEta*dPhi;
-			  sigPhiPhi += towerE*dPhi*dPhi;
-			  SumEdEtadPhi += 2*towerE*dPhi*dEta;
-			  SumEdEtadPhiDiff += towerE*(dPhi*dPhi-dEta*dEta);
+			  _subTowE = _maxTowE;
+			  _maxTowE = towerE;
+			  _maxETowChi2Det = 2;
+			  _maxETowIsZS = tower->get_isZS();
 			}
-		      else if(comp.first == 7 || comp.first == 27)
+		      if(newMaxJetE) maxLayerE[1] += towerE;
+		      if(towerE < 0) continue;
+		      //towerE = sqrt(towerE);
+		      float dPhi = towerPhi - maxJetPhi;
+		      if(dPhi > M_PI) dPhi -= 2*M_PI;
+		      if(dPhi < -M_PI) dPhi += 2*M_PI;
+		      float dEta = towerEta - maxJetEta;
+		      if(_debug > 4) cout << "OHCal" << endl;
+		      if(_debug > 4) print_debug(maxJetEta, maxJetPhi, towerEta, towerPhi, dPhi, dEta);
+		      if(newMaxJetET)
 			{
-			  tower = towers[2]->get_tower_at_channel(channel);
-			  float towerE = tower->get_energy();
-			  
-			  float chi2 = tower->get_chi2();
-			  //if(abs(chi2 - 0.08) < 0.00001 && towerE > 8) failscut = 2;
-			  if(chi2 > _maxTowChi2[2]) _maxTowChi2[2] = chi2;
-			  if(tower->get_isBadChi2()) _nBadChi2++;
-			  //fracOH += towerE;
-			  //Etot += towerE;
-			  int key = towers[2]->encode_key(channel);
-			  const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, towers[2]->getTowerEtaBin(key), towers[2]->getTowerPhiBin(key));
-			  RawTowerGeom *tower_geom = geom[2]->get_tower_geometry(geomkey); //encode tower geometry
-
-			  float radius = tower_geom->get_center_radius();
-			  float newz = tower_geom->get_center_z() - zvtx;
-			  float newTheta = atan2(radius,newz);
-			  float towerEta = -log(tan(0.5*newTheta));
-			  float towerPhi = tower_geom->get_phi();
-			  /*
-			  _jetcompE[2][subcomp[2]] = towerE;
-			  _jetcompEta[2][subcomp[2]] = towerPhi;
-			  _jetcompPhi[2][subcomp[2]] = towerEta;
-			  subcomp[2]++;
-			  */
-			  towerE /= cosh(towerEta);
-			  if(towerE > _maxTowE)
-			    {
-			      _subTowE = _maxTowE;
-			      _maxTowE = towerE;
-			      _maxETowChi2Det = 2;
-			      _maxETowIsZS = tower->get_isZS();
-			    }
-			  maxLayerE[1] += towerE;
-			  if(towerE < 0) continue;
-			  //towerE = sqrt(towerE);
-			  float dPhi = towerPhi - maxJetPhi;
-			  if(dPhi > M_PI) dPhi -= 2*M_PI;
-			  if(dPhi < -M_PI) dPhi += 2*M_PI;
-			  float dEta = towerEta - maxJetEta;
-			  if(_debug > 4) cout << "OHCal" << endl;
-			  if(_debug > 4) print_debug(maxJetEta, maxJetPhi, towerEta, towerPhi, dPhi, dEta);
-			  sigEtaEta += towerE*dEta*dEta;
-			  sigEtaPhi += towerE*dEta*dPhi;
-			  sigPhiPhi += towerE*dPhi*dPhi;
-			  SumEdEtadPhi += 2*towerE*dPhi*dEta;
-			  SumEdEtadPhiDiff += towerE*(dPhi*dPhi-dEta*dEta);
-
-			}
-		      else if(comp.first == 13 || comp.first == 28 || comp.first == 25)
-			{
-			  tower = towers[0]->get_tower_at_channel(channel);
-			  float towerE = tower->get_energy();
-			  float chi2 = tower->get_chi2();
-			  //if(abs(chi2 - 0.08) < 0.00001 && towerE > 8) failscut = 2;
-			  if(chi2 > _maxTowChi2[0]) _maxTowChi2[0] = chi2;
-      			  if(tower->get_isBadChi2()) _nBadChi2++;
-			  //Etot += towerE;
-			  //fracEM += towerE;
-			  int key = towers[0]->encode_key(channel);
-			  const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, towers[0]->getTowerEtaBin(key), towers[0]->getTowerPhiBin(key));
-			  RawTowerGeom *tower_geom = geom[1]->get_tower_geometry(geomkey); //encode tower geometry
-
-			  float radius = 93.5;
-			  float ihEta = tower_geom->get_eta();
-			  float emZ = radius/(tan(2*atan(exp(-ihEta))));
-			  float newz = emZ - zvtx;
-			  float newTheta = atan2(radius,newz);
-			  float towerEta = -log(tan(0.5*newTheta));
-			  float towerPhi = tower_geom->get_phi();
-			  
-			  /*
-			  _jetcompE[0][subcomp[0]] = towerE;
-			  _jetcompEta[0][subcomp[0]] = towerPhi;
-			  _jetcompPhi[0][subcomp[0]] = towerEta;
-			  subcomp[0]++;
-			  */
-			  towerE /= cosh(towerEta);
-			  if(towerE > _maxTowE)
-			    {
-			      _subTowE = _maxTowE;
-			      _maxTowE = towerE;
-			      _maxETowChi2Det = 0;
-			      _maxETowIsZS = tower->get_isZS();
-			    }
-			  maxLayerE[0] += towerE;
-			  if(towerE < 0) continue;
-			  //towerE = sqrt(towerE);
-			  float dPhi = towerPhi - maxJetPhi;
-			  if(dPhi > M_PI) dPhi -= 2*M_PI;
-			  if(dPhi < -M_PI) dPhi += 2*M_PI;
-			  float dEta = towerEta - maxJetEta;
-			  if(_debug > 4) cout << "EMCal" << endl;
-			  if(_debug > 4) print_debug(maxJetEta, maxJetPhi, towerEta, towerPhi, dPhi, dEta);
 			  sigEtaEta += towerE*dEta*dEta;
 			  sigEtaPhi += towerE*dEta*dPhi;
 			  sigPhiPhi += towerE*dPhi*dPhi;
@@ -800,7 +763,64 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			  SumEdEtadPhiDiff += towerE*(dPhi*dPhi-dEta*dEta);
 			}
 		    }
-
+		  else if(comp.first == 13 || comp.first == 28 || comp.first == 25)
+		    {
+		      tower = towers[0]->get_tower_at_channel(channel);
+		      float towerE = tower->get_energy();
+		      float chi2 = tower->get_chi2();
+		      //if(abs(chi2 - 0.08) < 0.00001 && towerE > 8) failscut = 2;
+		      if(chi2 > _maxTowChi2[0]) _maxTowChi2[0] = chi2;
+		      if(tower->get_isBadChi2()) _nBadChi2++;
+		      //Etot += towerE;
+		      //fracEM += towerE;
+		      int key = towers[0]->encode_key(channel);
+		      const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, towers[0]->getTowerEtaBin(key), towers[0]->getTowerPhiBin(key));
+		      RawTowerGeom *tower_geom = geom[1]->get_tower_geometry(geomkey); //encode tower geometry
+		      
+		      float radius = 93.5;
+		      float ihEta = tower_geom->get_eta();
+		      float emZ = radius/(tan(2*atan(exp(-ihEta))));
+		      float newz = emZ - zvtx;
+		      float newTheta = atan2(radius,newz);
+		      float towerEta = -log(tan(0.5*newTheta));
+		      float towerPhi = tower_geom->get_phi();
+		      
+		      /*
+			_jetcompE[0][subcomp[0]] = towerE;
+			_jetcompEta[0][subcomp[0]] = towerPhi;
+			_jetcompPhi[0][subcomp[0]] = towerEta;
+			subcomp[0]++;
+		      */
+		      towerE /= cosh(towerEta);
+		      _alljetfrcem[_jet_n] += towerE;
+		      if(towerE > _maxTowE)
+			{
+			  _subTowE = _maxTowE;
+			  _maxTowE = towerE;
+			  _maxETowChi2Det = 0;
+			  _maxETowIsZS = tower->get_isZS();
+			}
+		      if(newMaxJetET) maxLayerE[0] += towerE;
+		      if(towerE < 0) continue;
+		      //towerE = sqrt(towerE);
+		      float dPhi = towerPhi - maxJetPhi;
+		      if(dPhi > M_PI) dPhi -= 2*M_PI;
+		      if(dPhi < -M_PI) dPhi += 2*M_PI;
+		      float dEta = towerEta - maxJetEta;
+		      if(_debug > 4) cout << "EMCal" << endl;
+		      if(_debug > 4) print_debug(maxJetEta, maxJetPhi, towerEta, towerPhi, dPhi, dEta);
+		      if(newMaxJetET)
+			{
+			  sigEtaEta += towerE*dEta*dEta;
+			  sigEtaPhi += towerE*dEta*dPhi;
+			  sigPhiPhi += towerE*dPhi*dPhi;
+			  SumEdEtadPhi += 2*towerE*dPhi*dEta;
+			  SumEdEtadPhiDiff += towerE*(dPhi*dPhi-dEta*dEta);
+			}
+		    }
+		}
+	      if(newMaxJetET)
+		{
 		  sigEtaEta /= maxJetE;
 		  sigEtaPhi /= maxJetE;
 		  sigPhiPhi /= maxJetE;
@@ -813,80 +833,32 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		  v1 /= ncomp;
 		  v2 /= ncomp;
 		  maxEoverTot = (maxLayerE[0] > maxLayerE[1]?maxLayerE[0]:maxLayerE[1])/maxJetE;
+		
 		  if(_debug > 3 && (lam1 < 0 || lam2 < 0)) cout << "lam1 or lam2 < 0, printing:" << lam1 << " " << lam2 << endl;
 		  if(lam1 > lam2) eccentricity = 1-lam2/lam1;
 		  else eccentricity = 1-lam1/lam2;
 		  if(_debug > 3) cout << "ecc/layer: " << eccentricity << " " << maxEoverTot << endl;
-		  //if(_debug > 3) cout << "ecc entries: " << h2_ecc_layer->GetEntries() << endl;
 		}
+	      //if(_debug > 3) cout << "ecc entries: " << h2_ecc_layer->GetEntries() << endl;
+	      _alljetfrcoh[_jet_n] /= _jet_et[_jet_n];
+	      _alljetfrcem[_jet_n] /= _jet_et[_jet_n];
 	      ++_jet_n;
 	      if(jet_n > 9) break;
 	    }
-          else
-            {
-              continue;
-            }
+	  else
+	    {
+	      continue;
+	    }
 	}
       if(!_jet_n)
 	{
 	  return Fun4AllReturnCodes::ABORTEVENT;
 	}
-      //_maxETowChi2 = mb3->getMyVal();
-
-      /*
-      if(_debug > 4) cout << "ended jets" << endl;
-      if (gDirectory->Get("hcal_phi"))
-	{
-	  gDirectory->Delete("hcal_phi");
-	  delete gDirectory->Get("hcal_phi");
-	}
-      TH1F* hcal_phi = new TH1F("hcal_phi", "", 64, -0.5, 63.5);
-      hcal_phi->SetDirectory(nullptr);
-      int size = towers[2]->size();
-      for (int channel = 0; channel < size;channel++)
-	{
-	  TowerInfo *tower = towers[2]->get_tower_at_channel(channel);
-	  float energy = tower->get_energy();
-	  unsigned int towerkey = towers[2]->encode_key(channel);
-
-	  int iphi = towers[2]->getTowerPhiBin(towerkey);
-	  short good = (tower->get_isGood() ? 1:0);
-	  if (!good) continue;
-	  hcal_phi->Fill(iphi,energy);
-	}
-
-      int bmax = hcal_phi->GetMaximumBin();
-      float binmax = hcal_phi->GetBinContent(bmax);
-
-      //float binsum = binsup+binslo+binmax;                                        
-      float binsum = hcal_phi->Integral();
-      delete hcal_phi;
-      hcal_phi = nullptr;
-      if (_f->Get("hcal_phi"))
-	{
-	  _f->Delete("hcal_phi");
-	  delete _f->Get("hcal_phi");
-	}
-      _ohPhiBinMaxFrac = binmax/binsum;
-      */
-      //MinimumBiasInfov1* mbinfo = findNode::getClass<MinimumBiasInfov1>(topNode, "mbc_bkgd2");
       int failscut = 0;
       _bbfqavec = 0;
       _elmbgvec = 0;
-      //if(mbinfo)
-      //{
-      //cout << "mbinfo exists - setting failscut to" << mbinfo->isAuAuMinimumBias() << endl;
-      //_elmbgvec = mbinfo->getBkgdType(); //THIS IS ACTUALLY WHETHER OR NOT IT FAILS HANPU'S CUT//(binmax/binsum > 0.9)?1:0;
-      //}
-      //else
-      //{
-      //if(_debug > 3) cout << "NO MBINFO NODE!" << endl;
-      //}
 
-      //MinimumBiasInfov1* mbinfo2 = findNode::getClass<MinimumBiasInfov1>(topNode, "mbc_bkgd");
-      //if(mbinfo2)
-      //{
-      _bbfqavec = 0;//_rc->get_IntFlag("HasBeamBackground_StreakSidebandFilter") << 5;
+      _bbfqavec = _rc->get_IntFlag("HasBeamBackground_StreakSidebandFilter") << 5;
 	  //}
       _maxTowDiff = _maxTowE - _subTowE;
       //fracEM /= Etot;

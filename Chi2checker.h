@@ -102,6 +102,8 @@ class Chi2checker : public SubsysReco
   float _jet_et[10];
   float _jet_eta[10];
   float _jet_phi[10];
+  float _alljetfrcem[10];
+  float _alljetfrcoh[10];
 };
 
 #endif // CHI2TREEMAKER
