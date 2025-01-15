@@ -104,6 +104,21 @@ class Chi2checker : public SubsysReco
   float _jet_phi[10];
   float _alljetfrcem[10];
   float _alljetfrcoh[10];
+  float _dPhi2pc[1000];
+  float _dEta2pc[1000];
+  float _dPhiLayer[10];
+  float _l2pcEta;
+  /*
+  float _emLayerJetPhi[10];
+  float _ohLayerJetPhi[10];
+  float _emLayerJetEta[10];
+  float _ohLayerJetEta[10];
+  float _emLayerJetET[10];
+  float _ohLayerJetET[10];
+  int _nLayerEm;
+  int _nLayerOh;
+  */
+  int _n2pc;
 };
 
 #endif // CHI2TREEMAKER

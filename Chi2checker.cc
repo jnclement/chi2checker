@@ -58,6 +58,7 @@
 #include <calotrigger/MinimumBiasInfov1.h>
 #include <calotrigger/MinimumBiasClassifier.h>
 #include <ffarawobjects/Gl1Packetv2.h>
+#include <TLorentzVector.h>
 using namespace std;
 static const float radius_EM = 93.5;
 static const float minz_EM = -130.23;
@@ -427,6 +428,20 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("jet_et",_jet_et,"jet_et[jet_n]/F");
   jet_tree->Branch("jet_eta",_jet_eta,"jet_eta[jet_n]/F");
   jet_tree->Branch("jet_phi",_jet_phi,"jet_phi[jet_n]/F");
+  //jet_tree->Branch("nLayerEm",&_nLayerEm,"nLayerEm/I");
+  //jet_tree->Branch("nLayerOh",&_nLayerOh,"nLayerOh/I");
+  jet_tree->Branch("n2pc",&_n2pc,"n2pc/I");
+  jet_tree->Branch("l2pcEta",&_l2pcEta,"l2pcEta/F");
+  jet_tree->Branch("dPhi2pc",_dPhi2pc,"dPhi2pc[n2pc]/F");
+  jet_tree->Branch("dEta2pc",_dEta2pc,"dEta2pc[n2pc]/F");
+  jet_tree->Branch("dPhiLayer",_dPhiLayer,"dPhiLayer[jet_n]/F");
+  //jet_tree->Branch("emLayerJetPhi",_emLayerJetPhi,"emLayerJetPhi[nLayerEm]/F");
+  //jet_tree->Branch("ohLayerJetPhi",_ohLayerJetPhi,"ohLayerJetPhi[nLayerOh]/F");
+  //jet_tree->Branch("emLayerJetEta",_emLayerJetEta,"emLayerJetEta[nLayerEm]/F");
+  //jet_tree->Branch("ohLayerJetEta",_ohLayerJetEta,"ohLayerJetEta[nLayerOh]/F");
+  //jet_tree->Branch("emLayerJetET",_emLayerJetET,"emLayerJetET[nLayerEm]/F");
+  //jet_tree->Branch("ohLayerJetET",_ohLayerJetET,"ohLayerJetET[nLayerOh]/F");
+  
   //mbtree->Branch("mbevt",&_mbevt,"mbevt/I");
   
   _mbevt = 0;
@@ -541,11 +556,125 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   geom[2] = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
 
   //TowerInfoContainer* emcrt = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
+  /*
+  JetContainer* emjets = findNode::getClass<JetContainerv1>(topNode, "emtowjet");
+  JetContainer* ohjets = findNode::getClass<JetContainerv1>(topNode, "ohtowjet");
 
+  _nLayerEm = 0;
+  _nLayerOh = 0;
+  _n2pc = 0;
 
+  if(emjets)
+    {
+      int tocheck = emjets->size();
+      for(int i=0; i<tocheck; ++i)
+	{
+	  Jet* jet = emjets->get_jet(i);
+	  if(jet)
+	    {
+	      float testJetET = jet->get_e()/cosh(jet->get_eta());
+	      if(testJetET < 8) continue;
+	      _emLayerJetEta[_nLayerEm] = jet->get_eta();
+	      if(check_bad_jet_eta(_emLayerJetEta[_nLayerEm],zvtx,0.4)) continue;
+	      _emLayerJetPhi[_nLayerEm] = jet->get_phi();
+	      _emLayerJetET[_nLayerEm] = testJetET;
+	      _nLayerEm++;
+	    }
+	}
+    }
 
-      
+  if(ohjets)
+    {
+      int tocheck = ohjets->size();
+      for(int i=0; i<tocheck; ++i)
+	{
+	  Jet* jet = ohjets->get_jet(i);
+	  if(jet)
+	    {
+	      float testJetET = jet->get_e()/cosh(jet->get_eta());
+	      if(testJetET < 5) continue;
+	      _ohLayerJetEta[_nLayerOh] = jet->get_eta();
+	      if(check_bad_jet_eta(_ohLayerJetEta[_nLayerOh],zvtx,0.4)) continue;
+	      _ohLayerJetPhi[_nLayerOh] = jet->get_phi();
+	      _ohLayerJetET[_nLayerOh] = testJetET;
+	      _nLayerOh++;
+	    }
+	}
+    }
+  */
 
+  int nchan = 1536;
+  vector<vector<float>> emTowAbove1GeV;
+  vector<vector<float>> ohTowAbove1GeV;
+  _l2pcEta = 0;
+  float maxTowET;
+  if(towers[0])
+    {
+      for(int i=0; i<nchan; ++i)
+	{
+	  TowerInfo* tower = towers[0]->get_tower_at_channel(i);
+	  if(!tower->get_isGood()) continue;
+	  int key = towers[0]->encode_key(i);
+	  const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, towers[0]->getTowerEtaBin(key), towers[0]->getTowerPhiBin(key));
+	  RawTowerGeom *tower_geom = geom[1]->get_tower_geometry(geomkey);
+	  float radius = 93.5;
+	  float ihEta = tower_geom->get_eta();
+	  float emZ = radius/(tan(2*atan(exp(-ihEta))));
+	  float newz = emZ - zvtx;
+	  float newTheta = atan2(radius,newz);
+	  float towerEta = -log(tan(0.5*newTheta));
+	  float towerPhi = tower_geom->get_phi();
+	  float towerET = tower->get_energy()/cosh(towerEta);
+	  if(towerET < 1) continue;
+	  if(towerET > maxTowET)
+	    {
+	      maxTowET = towerET;
+	      _l2pcEta = towerEta;
+	    }
+	  vector<float> toPush = {towerEta, towerPhi};
+	  emTowAbove1GeV.push_back(toPush);
+	}
+    }
+
+  if(towers[2])
+    {
+      for(int i=0; i<nchan; ++i)
+	{
+	  TowerInfo* tower = towers[2]->get_tower_at_channel(i);
+	  if(!tower->get_isGood()) continue;
+	  int key = towers[2]->encode_key(i);
+	  const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, towers[2]->getTowerEtaBin(key), towers[2]->getTowerPhiBin(key));
+	  RawTowerGeom *tower_geom = geom[2]->get_tower_geometry(geomkey); //encode tower geometry                                                                                      
+
+	  float radius = tower_geom->get_center_radius();
+	  float newz = tower_geom->get_center_z() - zvtx;
+	  float newTheta = atan2(radius,newz);
+	  float towerEta = -log(tan(0.5*newTheta));
+	  float towerPhi = tower_geom->get_phi();
+	  float towerET = tower->get_energy()/cosh(towerEta);
+	  if(towerET < 1) continue;
+	  if(towerET > maxTowET)
+	    {
+	      maxTowET = towerET;
+	      _l2pcEta = towerEta;
+	    }
+	  vector<float> toPush = {towerEta, towerPhi};
+	  ohTowAbove1GeV.push_back(toPush);
+	}
+    }
+  _n2pc = 0;
+  for(int i=0; i<emTowAbove1GeV.size(); ++i)
+    {
+      for(int j=0; j<ohTowAbove1GeV.size(); ++j)
+	{
+	  if(_n2pc > 1000) break;
+	  _dPhi2pc[_n2pc] = emTowAbove1GeV.at(i).at(1) - ohTowAbove1GeV.at(j).at(1);
+	  if(_dPhi2pc[_n2pc] > M_PI) _dPhi2pc[_n2pc] -= 2*M_PI;
+	  if(_dPhi2pc[_n2pc] < -M_PI) _dPhi2pc[_n2pc] += 2*M_PI;
+	  _dEta2pc[_n2pc] = emTowAbove1GeV.at(i).at(0) - ohTowAbove1GeV.at(j).at(0);
+	  ++_n2pc;
+	}
+    }
 
   //float fracEM = 0;
   //float fracOH = 0;
@@ -605,6 +734,8 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	      if(check_bad_jet_eta(_jet_eta[_jet_n],zvtx,0.4)) continue;
 	      //if(abs(jet_eta[jet_n]) > 0.9) continue;
 	      _jet_phi[_jet_n] = testJetPhi;//(jet->get_phi()>0?jet->get_phi():jet->get_phi()+2*M_PI);
+	      TLorentzVector emAxis;
+	      TLorentzVector ohAxis;
 	      int ncomp = 0;
 	      bool newMaxJetET = false;
 	      if(testJetE > subJetE && testJetE < maxJetE)
@@ -737,6 +868,9 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			subcomp[2]++;
 		      */
 		      towerE /= cosh(towerEta);
+		      TLorentzVector tempOH;
+		      tempOH.SetPtEtaPhiE(towerE,towerEta,towerPhi,tower->get_energy());
+		      ohAxis += tempOH;
 		      _alljetfrcoh[_jet_n] += towerE;
 		      if(towerE > _maxTowE)
 			{
@@ -745,7 +879,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			  _maxETowChi2Det = 2;
 			  _maxETowIsZS = tower->get_isZS();
 			}
-		      if(newMaxJetE) maxLayerE[1] += towerE;
+		      if(newMaxJetET) maxLayerE[1] += towerE;
 		      if(towerE < 0) continue;
 		      //towerE = sqrt(towerE);
 		      float dPhi = towerPhi - maxJetPhi;
@@ -792,6 +926,9 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			subcomp[0]++;
 		      */
 		      towerE /= cosh(towerEta);
+		      TLorentzVector tempEM;
+		      tempEM.SetPtEtaPhiE(towerE,towerEta,towerPhi,tower->get_energy());
+		      emAxis += tempEM;
 		      _alljetfrcem[_jet_n] += towerE;
 		      if(towerE > _maxTowE)
 			{
@@ -842,6 +979,9 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	      //if(_debug > 3) cout << "ecc entries: " << h2_ecc_layer->GetEntries() << endl;
 	      _alljetfrcoh[_jet_n] /= _jet_et[_jet_n];
 	      _alljetfrcem[_jet_n] /= _jet_et[_jet_n];
+	      _dPhiLayer[_jet_n] = emAxis.Phi() - ohAxis.Phi();
+	      if(_dPhiLayer[_jet_n] > M_PI) _dPhiLayer[_jet_n] -= 2*M_PI;
+	      if(_dPhiLayer[_jet_n] < -M_PI) _dPhiLayer[_jet_n] += 2*M_PI;
 	      ++_jet_n;
 	      if(jet_n > 9) break;
 	    }
