@@ -50,6 +50,7 @@ class Chi2checker : public SubsysReco
 
  
  private:
+  bool _printedPhi = false;
   int cancount = 0;
   recoConsts* _rc;
   TTree* jet_tree;
