@@ -513,10 +513,10 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
     }
 
   MbdVertexMap* mbdvtxmap = findNode::getClass<MbdVertexMapv1>(topNode, "MbdVertexMap");
-  GlobalVertexMap* gvtxmap = findNode::getClass<GlobalVertexMapv1>(topNode, "GlobalVertexMap");
+  //GlobalVertexMap* gvtxmap = NULL; //findNode::getClass<GlobalVertexMapv1>(topNode, "GlobalVertexMap");
 
   float zvtx = NAN;
-  if(!gvtxmap)
+  if(mbdvtxmap)
     {
       for(auto iter = mbdvtxmap->begin(); iter != mbdvtxmap->end(); ++iter)
         {
@@ -525,6 +525,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
           break;
         }
     }
+  /*
   else
     {
       auto iter = gvtxmap->begin();
@@ -536,6 +537,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
           break;
         }
     }
+  */
   if(std::isnan(zvtx) || abs(zvtx) > 150)
     {
       return Fun4AllReturnCodes::ABORTEVENT;
@@ -543,7 +545,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   _zvtx = zvtx;
 
   TowerInfoContainer *towers[3];
-  towers[0] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
+  towers[0] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
   towers[1] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
   towers[2] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
   JetContainer *jets = findNode::getClass<JetContainerv1>(topNode, "AntiKt_Tower_HIRecoSeedsRaw_r04");
@@ -603,11 +605,11 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
     }
   */
 
-  int nchan = 1536;
+  int nchan = 24576;
   vector<vector<float>> emTowAbove1GeV;
   vector<vector<float>> ohTowAbove1GeV;
   _l2pcEta = 0;
-  float maxTowET;
+  float maxTowET = 0;
   if(towers[0])
     {
       for(int i=0; i<nchan; ++i)
@@ -615,12 +617,12 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	  TowerInfo* tower = towers[0]->get_tower_at_channel(i);
 	  if(!tower->get_isGood()) continue;
 	  int key = towers[0]->encode_key(i);
-	  const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, towers[0]->getTowerEtaBin(key), towers[0]->getTowerPhiBin(key));
-	  RawTowerGeom *tower_geom = geom[1]->get_tower_geometry(geomkey);
-	  float radius = 93.5;
-	  float ihEta = tower_geom->get_eta();
-	  float emZ = radius/(tan(2*atan(exp(-ihEta))));
-	  float newz = emZ - zvtx;
+	  const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, towers[0]->getTowerEtaBin(key), towers[0]->getTowerPhiBin(key));
+	  RawTowerGeom *tower_geom = geom[0]->get_tower_geometry(geomkey);
+	  float radius = tower_geom->get_center_radius();
+	  //float ihEta = tower_geom->get_eta();
+	  //float emZ = radius/(tan(2*atan(exp(-ihEta))));
+	  float newz = tower_geom->get_center_z() - zvtx;
 	  float newTheta = atan2(radius,newz);
 	  float towerEta = -log(tan(0.5*newTheta));
 	  float towerPhi = tower_geom->get_phi();
@@ -635,7 +637,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	  emTowAbove1GeV.push_back(toPush);
 	}
     }
-
+  nchan = 1536;
   if(towers[2])
     {
       for(int i=0; i<nchan; ++i)
@@ -651,6 +653,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	  float newTheta = atan2(radius,newz);
 	  float towerEta = -log(tan(0.5*newTheta));
 	  float towerPhi = tower_geom->get_phi();
+	  if(!_printedPhi) cout << "Phi tower : " << towerPhi << endl;
 	  float towerET = tower->get_energy()/cosh(towerEta);
 	  if(towerET < 1) continue;
 	  if(towerET > maxTowET)
@@ -662,6 +665,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	  ohTowAbove1GeV.push_back(toPush);
 	}
     }
+  _printedPhi = true;
   _n2pc = 0;
   for(int i=0; i<emTowAbove1GeV.size(); ++i)
     {
@@ -908,13 +912,13 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		      //Etot += towerE;
 		      //fracEM += towerE;
 		      int key = towers[0]->encode_key(channel);
-		      const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, towers[0]->getTowerEtaBin(key), towers[0]->getTowerPhiBin(key));
-		      RawTowerGeom *tower_geom = geom[1]->get_tower_geometry(geomkey); //encode tower geometry
+		      const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, towers[0]->getTowerEtaBin(key), towers[0]->getTowerPhiBin(key));
+		      RawTowerGeom *tower_geom = geom[0]->get_tower_geometry(geomkey); //encode tower geometry
 		      
-		      float radius = 93.5;
-		      float ihEta = tower_geom->get_eta();
-		      float emZ = radius/(tan(2*atan(exp(-ihEta))));
-		      float newz = emZ - zvtx;
+		      float radius = tower_geom->get_center_radius();
+		      //float ihEta = tower_geom->get_eta();
+		      //float emZ = radius/(tan(2*atan(exp(-ihEta))));
+		      float newz =tower_geom->get_center_z() - zvtx;
 		      float newTheta = atan2(radius,newz);
 		      float towerEta = -log(tan(0.5*newTheta));
 		      float towerPhi = tower_geom->get_phi();
@@ -1032,14 +1036,16 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       bool dPhiCut = (_dphi < 3*M_PI/4 && _isdijet);
       bool loETCut = ((_frcem < 0.1) && (_jet_ET > (50*_frcem+20))) && (dPhiCut || !_isdijet);
       bool hiETCut = ((_frcem > 0.9) && (_jet_ET > (-50*_frcem+75))) && (dPhiCut || !_isdijet);
-      bool ihCut = (_frcem+_frcoh) > 0.65;
-      bool fullCut = loETCut || hiETCut || ihCut || failscut;
+      bool ihCut = (_frcem+_frcoh) < 0.65;
+      bool fullCut = loETCut || hiETCut || ihCut || failscut || (_bbfqavec >> 5 & 0x1);
       int failsall = fullCut?1:0;
+      /*
       if((maxJetE > 45 && !fullCut) || maxJetE > 70)
 	{
 	  drawCalo(towers, _jet_et, _jet_eta, _jet_phi, _jet_n, jet_ecc, jet_lfrac, geom, zvtx, failsall);
 	  cout << "drew calo" << endl;
 	}
+      */
       
     }
   else
