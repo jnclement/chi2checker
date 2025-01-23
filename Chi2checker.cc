@@ -1003,6 +1003,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       _elmbgvec = 0;
 
       _bbfqavec = _rc->get_IntFlag("HasBeamBackground_StreakSidebandFilter") << 5;
+      if(_bbfqavec) cout << "bbfqavec: " << _bbfqavec <<  " and >> 5: " << (_bbfqavec >> 5) << endl;
 	  //}
       _maxTowDiff = _maxTowE - _subTowE;
       //fracEM /= Etot;
