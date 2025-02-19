@@ -13,6 +13,7 @@
 #include "TH2D.h"
 #include <calobase/RawTowerGeomContainer.h>
 #include <phool/recoConsts.h>
+#include <phparameter/PHParameters.h>
 class PHCompositeNode;
 class CentralityInfo;
 class Chi2checker : public SubsysReco
@@ -53,6 +54,7 @@ class Chi2checker : public SubsysReco
   bool _printedPhi = false;
   int cancount = 0;
   recoConsts* _rc;
+  //PHParameters _cutParams;
   TTree* jet_tree;
   TTree* mbtree;
   TH2D* h2_ecc_layer[3][6];
@@ -101,6 +103,7 @@ class Chi2checker : public SubsysReco
   int _mbevt;
   int _jet_n;
   float _jet_et[10];
+  float _jet_pt[10];
   float _jet_eta[10];
   float _jet_phi[10];
   float _alljetfrcem[10];

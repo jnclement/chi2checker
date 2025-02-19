@@ -374,7 +374,7 @@ void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet
 
 //____________________________________________________________________________..
 Chi2checker::Chi2checker(const std::string &filename, const std::string &name, const int debug):
-  SubsysReco("test")//).c_str())
+  SubsysReco("test")
 {
   _name = name;
   _debug = debug;
@@ -400,8 +400,7 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("frcoh",&_frcoh,"frcoh/F");
   jet_tree->Branch("frcem",&_frcem,"frcem/F");
 
-  jet_tree->Branch("alljetfrcoh",_alljetfrcoh,"alljetfrcoh/F");
-  jet_tree->Branch("alljetfrcem",&_alljetfrcem,"alljetfrcem/F");
+
 
   jet_tree->Branch("eta",&_eta,"eta/F");
   jet_tree->Branch("phi",&_phi,"phi/F");
@@ -425,7 +424,10 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("bbfqavec",&_bbfqavec,"bbfqavec/i");
   jet_tree->Branch("elmbgvec",&_elmbgvec,"elmbgvec/i");
   jet_tree->Branch("jet_n",&_jet_n,"jet_n/I");
+  jet_tree->Branch("alljetfrcoh",_alljetfrcoh,"alljetfrcoh[jet_n]/F");
+  jet_tree->Branch("alljetfrcem",_alljetfrcem,"alljetfrcem[jet_n]/F");
   jet_tree->Branch("jet_et",_jet_et,"jet_et[jet_n]/F");
+  jet_tree->Branch("jet_pt",_jet_pt,"jet_pt[jet_n]/F");
   jet_tree->Branch("jet_eta",_jet_eta,"jet_eta[jet_n]/F");
   jet_tree->Branch("jet_phi",_jet_phi,"jet_phi[jet_n]/F");
   //jet_tree->Branch("nLayerEm",&_nLayerEm,"nLayerEm/I");
@@ -497,7 +499,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
     }
   if(_debug > 1) cout << "Getting gl1 trigger vector from: " << gl1 << endl;
   _triggervec = gl1->getScaledVector();
-  int isjettrig = (_triggervec >> 17) & 1;
+  int isjettrig = (_triggervec >> 18) & 1;
   int ismbtrig = (_triggervec >> 10) & 1;
 
 
@@ -545,7 +547,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   _zvtx = zvtx;
 
   TowerInfoContainer *towers[3];
-  towers[0] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
+  towers[0] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
   towers[1] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
   towers[2] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
   JetContainer *jets = findNode::getClass<JetContainerv1>(topNode, "AntiKt_Tower_HIRecoSeedsRaw_r04");
@@ -605,7 +607,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
     }
   */
 
-  int nchan = 24576;
+  int nchan = 1536;
   vector<vector<float>> emTowAbove1GeV;
   vector<vector<float>> ohTowAbove1GeV;
   _l2pcEta = 0;
@@ -617,12 +619,12 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	  TowerInfo* tower = towers[0]->get_tower_at_channel(i);
 	  if(!tower->get_isGood()) continue;
 	  int key = towers[0]->encode_key(i);
-	  const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, towers[0]->getTowerEtaBin(key), towers[0]->getTowerPhiBin(key));
-	  RawTowerGeom *tower_geom = geom[0]->get_tower_geometry(geomkey);
-	  float radius = tower_geom->get_center_radius();
-	  //float ihEta = tower_geom->get_eta();
-	  //float emZ = radius/(tan(2*atan(exp(-ihEta))));
-	  float newz = tower_geom->get_center_z() - zvtx;
+	  const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, towers[0]->getTowerEtaBin(key), towers[0]->getTowerPhiBin(key));
+	  RawTowerGeom *tower_geom = geom[1]->get_tower_geometry(geomkey);
+	  float radius = 93.5;//tower_geom->get_center_radius();
+	  float ihEta = tower_geom->get_eta();
+	  float emZ = radius/(tan(2*atan(exp(-ihEta))));
+	  float newz = emZ - zvtx;//tower_geom->get_center_z() - zvtx;
 	  float newTheta = atan2(radius,newz);
 	  float towerEta = -log(tan(0.5*newTheta));
 	  float towerPhi = tower_geom->get_phi();
@@ -729,13 +731,14 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	      float sigEtaPhi = 0;
 	      float sigPhiPhi = 0;
 	      if(_debug > 5) cout << "jet E/eta: " << testJetE  << " " << jet->get_eta() << endl;
-	      if(testJetE < 8) continue;
+	      if(testJetE < 4) continue;
 	      if(_debug > 3) cout << "got a candidate jet" << endl;
 	      _alljetfrcem[_jet_n] = 0;
 	      _alljetfrcoh[_jet_n] = 0;
 	      _jet_et[_jet_n] = testJetE;
 	      _jet_eta[_jet_n] = jet->get_eta();
 	      if(check_bad_jet_eta(_jet_eta[_jet_n],zvtx,0.4)) continue;
+	      _jet_pt[_jet_n] = jet->get_pt();
 	      //if(abs(jet_eta[jet_n]) > 0.9) continue;
 	      _jet_phi[_jet_n] = testJetPhi;//(jet->get_phi()>0?jet->get_phi():jet->get_phi()+2*M_PI);
 	      TLorentzVector emAxis;
@@ -912,13 +915,13 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		      //Etot += towerE;
 		      //fracEM += towerE;
 		      int key = towers[0]->encode_key(channel);
-		      const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, towers[0]->getTowerEtaBin(key), towers[0]->getTowerPhiBin(key));
-		      RawTowerGeom *tower_geom = geom[0]->get_tower_geometry(geomkey); //encode tower geometry
+		      const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, towers[0]->getTowerEtaBin(key), towers[0]->getTowerPhiBin(key));
+		      RawTowerGeom *tower_geom = geom[1]->get_tower_geometry(geomkey); //encode tower geometry
 		      
-		      float radius = tower_geom->get_center_radius();
-		      //float ihEta = tower_geom->get_eta();
-		      //float emZ = radius/(tan(2*atan(exp(-ihEta))));
-		      float newz =tower_geom->get_center_z() - zvtx;
+		      float radius = 93.5;//tower_geom->get_center_radius();
+		      float ihEta = tower_geom->get_eta();
+		      float emZ = radius/(tan(2*atan(exp(-ihEta))));
+		      float newz = emZ - zvtx;//tower_geom->get_center_z() - zvtx;
 		      float newTheta = atan2(radius,newz);
 		      float towerEta = -log(tan(0.5*newTheta));
 		      float towerPhi = tower_geom->get_phi();
@@ -1011,7 +1014,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       float dphi = abs(maxJetPhi-subJetPhi);
       if(dphi > M_PI) dphi = 2*M_PI - dphi;
       //if(subJetE < 8) hfillnum=2;
-      if(subJetE > 8) _isdijet = 1;
+      if(subJetE > 4) _isdijet = 1;
       else _isdijet = 0;
       /*
       if(failscut && _isdijet) _isdijet = 3;
@@ -1029,7 +1032,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       _jet_ET = maxJetE;
       _dphi = dphi;
       _subjet_ET = subJetE;
-      if(maxJetE > 8) jet_tree->Fill();
+      if(maxJetE > 4) jet_tree->Fill();
       //}
       jet_ecc = eccentricity;
       jet_lfrac = maxEoverTot;
