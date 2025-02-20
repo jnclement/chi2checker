@@ -137,7 +137,7 @@ void drawText(const char *text, float xp, float yp, bool isRightAlign=0, int tex
   if(isNDC) tex->SetNDC();
   if(isRightAlign) tex->SetTextAlign(31);
   tex->Draw();
-  delete tex;
+  //delete tex;
 }
 
 void sqrt_snn_text(float xp = 0.7, float yp = 0.8, bool isRightAlign=0, double textsize = 0.04)
@@ -186,7 +186,7 @@ void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet
 
   
   TCanvas* c = new TCanvas("","",1900,600);
-  c->Divide(4,1,0,0);
+  c->Divide(4,1,0,0.1);
   
   TH2D* event_sum = new TH2D("event_sum","Calorimeter Sum",48,-2.2,2.2,64,0,2*M_PI);
   TH2D* event_disrt[3];
@@ -286,13 +286,15 @@ void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet
       c->cd(j+1);
       gPad->SetLogz(0);
       gPad->SetRightMargin(0.2);
-      gPad->SetLeftMargin(0.2);                                                               
+      gPad->SetLeftMargin(0.2);
+      gPad->SetTopMargin(0.05);
       event_disrt[j]->SetContour(ncol);
       event_disrt[j]->Draw("COLZ");
 
     }
   c->cd(4);
-  gPad->SetLogz(0);                                                                   
+  gPad->SetLogz(0);            
+  gPad->SetTopMargin(0.05);                                                       
   gPad->SetRightMargin(0.2);
   gPad->SetLeftMargin(0.2);
   event_sum->SetContour(ncol);
@@ -338,14 +340,14 @@ void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet
 	  circlemarker->SetMarkerSize(0.3);
 	  circlemarker->SetMarkerColor(kBlue);
 	  circlemarker->Draw();
-	  delete circlemarker;
-	}
+        }
       std::stringstream e_stream;
-      e_stream << std::fixed << std::setprecision(2) << jet_e[k]/cosh(jet_et[k]);
+      e_stream << std::fixed << std::setprecision(2) << jet_e[k];
       std::string e_string = e_stream.str();
       drawText((e_string+" GeV").c_str(),jet_et[k],jet_ph[k]+(jet_ph[k]+M_PI>3.84?-0.53:0.43)+M_PI,(jet_et[k]>0?1:0),kBlack,0.04,42,false);
 
     }
+  //c->Update();
   c->SaveAs(("./output/smg/candidate_"+_name+"_supersuperhighE_eccentricityfinder_"+to_string(cancount)+".png").c_str());
   cout << "Saved" << endl;
   cancount++;
@@ -540,7 +542,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
         }
     }
   */
-  if(std::isnan(zvtx) || abs(zvtx) > 150)
+  if(std::isnan(zvtx) || abs(zvtx) > 30)
     {
       return Fun4AllReturnCodes::ABORTEVENT;
     }
@@ -1039,17 +1041,17 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       failscut = (_bbfqavec >> 5) & 1;
       bool dPhiCut = (_dphi < 3*M_PI/4 && _isdijet);
       bool loETCut = ((_frcem < 0.1) && (_jet_ET > (50*_frcem+20))) && (dPhiCut || !_isdijet);
-      bool hiETCut = ((_frcem > 0.9) && (_jet_ET > (-50*_frcem+75))) && (dPhiCut || !_isdijet);
+      bool hiETCut = ((_frcem > 0.9) && (_jet_ET > (-50*_frcem+70))) && (dPhiCut || !_isdijet);
       bool ihCut = (_frcem+_frcoh) < 0.65;
       bool fullCut = loETCut || hiETCut || ihCut || failscut || (_bbfqavec >> 5 & 0x1);
       int failsall = fullCut?1:0;
-      /*
-      if((maxJetE > 45 && !fullCut) || maxJetE > 70)
+      
+      if(maxJetE > 45 && !fullCut)
 	{
 	  drawCalo(towers, _jet_et, _jet_eta, _jet_phi, _jet_n, jet_ecc, jet_lfrac, geom, zvtx, failsall);
 	  cout << "drew calo" << endl;
 	}
-      */
+      
       
     }
   else
