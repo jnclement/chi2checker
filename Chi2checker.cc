@@ -59,6 +59,8 @@
 #include <calotrigger/MinimumBiasClassifier.h>
 #include <ffarawobjects/Gl1Packetv2.h>
 #include <TLorentzVector.h>
+#include <ffaobjects/EventHeader.h>
+#include <pdbcalbase/PdbParameterMap.h>
 using namespace std;
 static const float radius_EM = 93.5;
 static const float minz_EM = -130.23;
@@ -170,8 +172,12 @@ float bintophi_em(int phibin)
   return (2*M_PI*phibin)/256;
 }
 
-void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet_et, float* jet_ph, int jet_n, float jet_ecc, float jet_lfrac, RawTowerGeomContainer** geom, float zvtx, int failscut)
+void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet_et, float* jet_ph, int jet_n, float jet_ecc, float jet_lfrac, RawTowerGeomContainer** geom, float zvtx, int failscut, int runnum, int evtnum, float frcoh, float frcem, float emtot, float ohtot)
 {
+  std::stringstream full_stream;
+  full_stream << std::fixed << std::setprecision(3) << "Run " << runnum << ", event " << evtnum << " EMCal total E_{T}: " << emtot << ", OHCal total E_{T}: " << ohtot << ", EM fraction: " << frcem << ", OH fraction: " << frcoh << ", z_{vtx} = " <<  std::setprecision(1) << zvtx << " ";
+  std::string full_string = full_stream.str();
+
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
   gStyle->SetNumberContours(50);
@@ -310,16 +316,29 @@ void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet
   std::stringstream lfrac_stream;
   lfrac_stream << std::fixed << std::setprecision(3) << jet_lfrac;
   std::string lfrac_string = lfrac_stream.str();
-  drawText(("E_{max layer,jet}/E_{max jet}="+lfrac_string).c_str(),0.4,0.95);
+  //drawText(("E_{max layer,jet}/E_{max jet}="+lfrac_string).c_str(),0.4,0.95);
 
   std::stringstream z_stream;
   z_stream << std::fixed << std::setprecision(1) << zvtx;
   std::string z_string = z_stream.str();
-  drawText(("z_{vtx}="+z_string).c_str(),0.25,0.95);
+  //  drawText(("z_{vtx}="+z_string).c_str(),0.25,0.95);
   
-  std::string fails = failscut?"Fails cuts":"Passes cuts";
-  drawText(fails.c_str(),0.7,0.95);
-
+  std::string fails = "";
+  if(failscut == 0)
+    {
+      fails = "Passes dijet cut";
+    }
+  else if(failscut == 1)
+    {
+      fails = "Passes frac. cut";
+    }
+  else
+    {
+      fails = "Passes both";
+    }
+  full_string += fails;
+  //drawText(fails.c_str(),0.7,0.95);
+  drawText(full_string.c_str(),0.1,0.95);
   c->cd(4);
   float maxJetE = 0;
   for(int k=0; k<jet_n; ++k)
@@ -376,7 +395,7 @@ void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet
 
 //____________________________________________________________________________..
 Chi2checker::Chi2checker(const std::string &filename, const std::string &name, const int debug):
-  SubsysReco("test")
+  SubsysReco(name), _cutParams(name)
 {
   _name = name;
   _debug = debug;
@@ -491,6 +510,8 @@ void print_debug(float jet_eta, float jet_phi, float tower_eta, float tower_phi,
 int Chi2checker::process_event(PHCompositeNode *topNode)
 {
 
+  
+
   if(_debug > 1) cout << endl << endl << endl << "Chi2checker: Beginning event processing" << endl;
 
     Gl1Packetv2* gl1 = findNode::getClass<Gl1Packetv2>(topNode, "GL1Packet");
@@ -499,7 +520,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       cout << "No trigger info!" << endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
-  if(_debug > 1) cout << "Getting gl1 trigger vector from: " << gl1 << endl;
+  if(_debug > 1) cout << "Chi2checker: Getting gl1 trigger vector from: " << gl1 << endl;
   _triggervec = gl1->getScaledVector();
   int isjettrig = (_triggervec >> 18) & 1;
   int ismbtrig = (_triggervec >> 10) & 1;
@@ -515,12 +536,79 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       _mbevt++;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
+  int runnumber = 0;
+  int evtnum = 0;
+  EventHeader *runheader = findNode::getClass<EventHeader>(topNode, "EventHeader");
+  if (!runheader)
+    {
+      std::cout << "can't find runheader" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  runnumber = runheader->get_RunNumber();
+  evtnum = runheader->get_EvtSequence();
 
-  MbdVertexMap* mbdvtxmap = findNode::getClass<MbdVertexMapv1>(topNode, "MbdVertexMap");
-  //GlobalVertexMap* gvtxmap = NULL; //findNode::getClass<GlobalVertexMapv1>(topNode, "GlobalVertexMap");
+  PHNodeIterator itNode(topNode);
+  PHCompositeNode* parNode = dynamic_cast<PHCompositeNode*>(itNode.findFirst("PHCompositeNode","PAR"));
+  PdbParameterMap* flagNode;
+  if(parNode) flagNode = findNode::getClass<PdbParameterMap>(parNode, "HasBeamBackground");
+  else
+    {
+      cout << "No parNode! Abort run." << endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+  if(flagNode) _cutParams.FillFrom(flagNode);
+  else
+    {
+      cout << "No flagNode - abort run" << endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+  //MbdVertexMap* mbdvtxmap = findNode::getClass<MbdVertexMapv1>(topNode, "MbdVertexMap");
+  GlobalVertexMap* gvtxmap = NULL; //findNode::getClass<GlobalVertexMapv1>(topNode, "GlobalVertexMap");
 
   float zvtx = NAN;
-  if(mbdvtxmap)
+  if (gvtxmap)
+    {
+      if (gvtxmap->empty())
+	{
+	  if (_debug > 0)
+	    {
+	      std::cout << "gvtxmap empty - aborting event." << std::endl;
+	    }
+	  return Fun4AllReturnCodes::ABORTEVENT;
+	}
+      GlobalVertex *gvtx = gvtxmap->begin()->second;
+      if (gvtx)
+	{
+	  auto startIter = gvtx->find_vertexes(_vtxtype);
+	  auto endIter = gvtx->end_vertexes();
+	  for (auto iter = startIter; iter != endIter; ++iter)
+	    {
+	      const auto &[type, vertexVec] = *iter;
+	      if (type != _vtxtype)
+		{
+		  continue;
+		}
+	      for (const auto *vertex : vertexVec)
+		{
+		  if (!vertex)
+		    {
+		      continue;
+		    }
+		  zvtx = vertex->get_z();
+		}
+	    }
+	}
+      else
+	{
+	  if (_debug > 0)
+	    {
+	      std::cout << "gvtx is NULL! Aborting event." << std::endl;
+	    }
+	  return Fun4AllReturnCodes::ABORTEVENT;
+	}
+    }
+  /*
+    if(mbdvtxmap)
     {
       for(auto iter = mbdvtxmap->begin(); iter != mbdvtxmap->end(); ++iter)
         {
@@ -552,7 +640,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   towers[0] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
   towers[1] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
   towers[2] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
-  JetContainer *jets = findNode::getClass<JetContainerv1>(topNode, "AntiKt_Tower_HIRecoSeedsRaw_r04");
+  JetContainer *jets = findNode::getClass<JetContainerv1>(topNode, "AntiKt_unsubtracted_r04");
 
   if(_debug > 2) cout << towers[0] << " " << towers[1] << " " << towers[2] << endl;
 
@@ -1007,7 +1095,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       _bbfqavec = 0;
       _elmbgvec = 0;
 
-      _bbfqavec = _rc->get_IntFlag("HasBeamBackground_StreakSidebandFilter") << 5;
+      _bbfqavec = _cutParams.get_int_param("HasBeamBackground_StreakSidebandFilter") << 5;
       if(_bbfqavec) cout << "bbfqavec: " << _bbfqavec <<  " and >> 5: " << (_bbfqavec >> 5) << endl;
 	  //}
       _maxTowDiff = _maxTowE - _subTowE;
@@ -1039,16 +1127,31 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       jet_ecc = eccentricity;
       jet_lfrac = maxEoverTot;
       failscut = (_bbfqavec >> 5) & 1;
-      bool dPhiCut = (_dphi < 3*M_PI/4 && _isdijet);
-      bool loETCut = ((_frcem < 0.1) && (_jet_ET > (50*_frcem+20))) && (dPhiCut || !_isdijet);
+      bool dPhiCut = (_dphi < 3*M_PI/4 || !_isdijet || _subjet_ET < 0.3*_jet_ET);
+      bool loETCut = _frcem > 0.9 || _frcem < 0.1 || _frcoh < 0.1 || _frcoh > 0.9 || (1.-_frcem-_frcoh) > 0.9;// ((_frcem < 0.1) && (_jet_ET > (50*_frcem+20))) && (dPhiCut || !_isdijet);
       bool hiETCut = ((_frcem > 0.9) && (_jet_ET > (-50*_frcem+70))) && (dPhiCut || !_isdijet);
       bool ihCut = (_frcem+_frcoh) < 0.65;
       bool fullCut = loETCut || hiETCut || ihCut || failscut || (_bbfqavec >> 5 & 0x1);
-      int failsall = fullCut?1:0;
-      
-      if(maxJetE > 45 && !fullCut)
+      int failsall = 0;//fullCut?1:0;
+      if(!loETCut && !dPhiCut)
 	{
-	  drawCalo(towers, _jet_et, _jet_eta, _jet_phi, _jet_n, jet_ecc, jet_lfrac, geom, zvtx, failsall);
+	  failsall = 2;
+	}
+      else if(!loETCut)
+	{
+	  failsall = 1;
+	}
+      else if(!dPhiCut)
+	{
+	  failsall = 0;
+	}
+      else
+	{
+	  failsall = -1;
+	}
+      if(maxJetE > 45 && (!loETCut || !dPhiCut))
+	{
+	  drawCalo(towers, _jet_et, _jet_eta, _jet_phi, _jet_n, jet_ecc, jet_lfrac, geom, zvtx, failsall, runnumber, evtnum, _frcoh, _frcem, maxLayerE[0], maxLayerE[1]);
 	  cout << "drew calo" << endl;
 	}
       

@@ -14,6 +14,7 @@
 #include <calobase/RawTowerGeomContainer.h>
 #include <phool/recoConsts.h>
 #include <phparameter/PHParameters.h>
+#include <globalvertex/GlobalVertex.h>
 class PHCompositeNode;
 class CentralityInfo;
 class Chi2checker : public SubsysReco
@@ -28,7 +29,7 @@ class Chi2checker : public SubsysReco
 
   float bintophi_hc(int phibin);
 
-  void drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet_et, float* jet_ph, int jet_n, float jet_ecc, float jet_lfrac, RawTowerGeomContainer** geom, float zvtx, int failscut);
+  void drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet_et, float* jet_ph, int jet_n, float jet_ecc, float jet_lfrac, RawTowerGeomContainer** geom, float zvtx, int failscut, int runnum, int evtnum, float frcoh, float frcem, float emtot, float ohtot);
   float getEtaFromBin(int binEta);
 
   float getPhiFromBin(int binPhi);
@@ -54,7 +55,7 @@ class Chi2checker : public SubsysReco
   bool _printedPhi = false;
   int cancount = 0;
   recoConsts* _rc;
-  //PHParameters _cutParams;
+  PHParameters _cutParams;
   TTree* jet_tree;
   TTree* mbtree;
   TH2D* h2_ecc_layer[3][6];
@@ -123,6 +124,7 @@ class Chi2checker : public SubsysReco
   int _nLayerOh;
   */
   int _n2pc;
+  GlobalVertex::VTXTYPE _vtxtype = GlobalVertex::MBD;
 };
 
 #endif // CHI2TREEMAKER
