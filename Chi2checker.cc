@@ -401,7 +401,6 @@ Chi2checker::Chi2checker(const std::string &filename, const std::string &name, c
   _debug = debug;
   _filename = filename;
   _f = new TFile(filename.c_str(), "RECREATE");
-  _rc = recoConsts::instance();
   jet_tree = new TTree("jet_tree","a persevering date tree");
 }
 

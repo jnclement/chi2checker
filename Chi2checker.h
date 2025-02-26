@@ -12,7 +12,6 @@
 #include "TFile.h"
 #include "TH2D.h"
 #include <calobase/RawTowerGeomContainer.h>
-#include <phool/recoConsts.h>
 #include <phparameter/PHParameters.h>
 #include <globalvertex/GlobalVertex.h>
 class PHCompositeNode;
@@ -54,7 +53,6 @@ class Chi2checker : public SubsysReco
  private:
   bool _printedPhi = false;
   int cancount = 0;
-  recoConsts* _rc;
   PHParameters _cutParams;
   TTree* jet_tree;
   TTree* mbtree;
