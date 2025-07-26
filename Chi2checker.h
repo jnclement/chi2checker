@@ -28,7 +28,7 @@ class Chi2checker : public SubsysReco
 
   float bintophi_hc(int phibin);
 
-  void drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet_et, float* jet_ph, int jet_n, float jet_ecc, float jet_lfrac, RawTowerGeomContainer** geom, float zvtx, int failscut, int runnum, int evtnum, float frcoh, float frcem, float emtot, float ohtot);
+  void drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet_et, float* jet_ph, int jet_n, float jet_ecc, float jet_lfrac, RawTowerGeomContainer** geom, float zvtx, int failscut, int runnum, int evtnum, float frcoh, float frcem, float emtot, float ohtot, float maxJetE);
   float getEtaFromBin(int binEta);
 
   float getPhiFromBin(int binPhi);
@@ -101,16 +101,23 @@ class Chi2checker : public SubsysReco
   unsigned int _elmbgvec;
   int _mbevt;
   int _jet_n;
-  float _jet_et[10];
-  float _jet_pt[10];
-  float _jet_eta[10];
-  float _jet_phi[10];
-  float _alljetfrcem[10];
-  float _alljetfrcoh[10];
+  int _failscut;
+  int _runnum;
+  int _evtnum;
+  float _jet_et[100];
+  float _jet_pt[100];
+  float _jet_eta[100];
+  float _jet_phi[100];
+  float _alljetfrcem[100];
+  float _alljetfrcoh[100];
+  float _emtow[96][256];
+  float _ihtow[24][64];
+  float _ohtow[24][64];
   float _dPhi2pc[1000];
   float _dEta2pc[1000];
   float _dPhiLayer[10];
   float _l2pcEta;
+  int _nprocessed;
   /*
   float _emLayerJetPhi[10];
   float _ohLayerJetPhi[10];
