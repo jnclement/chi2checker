@@ -1221,7 +1221,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		  int phi = towers[j]->getTowerPhiBin(key);
 		  if(j==0) _emtow[eta][phi] = tower->get_energy();
 		  else if(j==1) _ihtow[eta][phi] = tower->get_energy();
-		  else if(j==2) _ihtow[eta][phi] = tower->get_energy();
+		  else if(j==2) _ohtow[eta][phi] = tower->get_energy();
 		}
 	    }
 	  _failscut = failsall;

@@ -22,11 +22,23 @@ void sphenixtext(float xpos = 0.7, float ypos = 0.96, int ra = 0, float textsize
 {
   drawText("#bf{#it{sPHENIX}} Internal", xpos, ypos, ra, kBlack, textsize);
 }
-
-void drawCalo(float** towersem, float** towersih, float** towersoh, float* jet_e, float* jet_et, float* jet_ph, int jet_n, float zvtx, int failscut, int runnum, int evtnum, float frcoh, float frcem)
+int cancount = 0;
+void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24][64], float* jet_e, float* jet_et, float* jet_ph, int jet_n, float zvtx, int failscut, int runnum, int evtnum, float* frcoh, float* frcem)
 {
+
+  int maxindex = 0;
+  int maxE = 0;
+  for(int i=0; i<jet_n; ++i)
+    {
+      if(jet_e[i] > maxE)
+	{
+	  maxindex = i;
+	  maxE = jet_e[i];
+	}
+    }
+  
   std::stringstream full_stream;
-  full_stream << std::fixed << std::setprecision(3) << "Run " << runnum << ", event " << evtnum << ", EM fraction: " << frcem << ", OH fraction: " << frcoh << ", z_{vtx} = " <<  std::setprecision(1) << zvtx << " ";
+  full_stream << std::fixed << std::setprecision(3) << "Run " << runnum << ", event " << evtnum << ", EM fraction: " << frcem[maxindex] << ", OH fraction: " << frcoh[maxindex] << ", z_{vtx} = " <<  std::setprecision(1) << (zvtx==0?"nan":zvtx) << ". Tower energy scale maxes out at 25, but actual energies may be higher.";
   std::string full_string = full_stream.str();
 
   gStyle->SetOptStat(0);
@@ -104,9 +116,9 @@ void drawCalo(float** towersem, float** towersih, float** towersoh, float* jet_e
 	      if(j==0) energy = towersem[eta][phi];
 	      if(j==1) energy = towersih[eta][phi];
 	      if(j==2) energy = towersoh[eta][phi];
-	      event_disrt[j]->Fill(eta,phi,);
-	      if(j==0)event_sum->Fill(eta/4,phi/4,tower->get_energy());
-	      else event_sum->Fill(eta,phi,tower->get_energy());
+	      event_disrt[j]->Fill(eta,phi,energy);
+	      if(j==0)event_sum->Fill(eta/4,phi/4,energy);
+	      else event_sum->Fill(eta,phi,energy);
 	    }
 	}
 
@@ -148,10 +160,9 @@ void drawCalo(float** towersem, float** towersih, float** towersoh, float* jet_e
     }
   full_string += fails;
   
-  //drawText(fails.c_str(),0.7,0.95);
-  drawText(full_string.c_str(),0.05,0.95,0,kBlack,0.02);
+  drawText(full_string.c_str(),0.05,0.925,0,kBlack,0.02);
   c->cd(4);
-  maxJetE = 0;
+  float maxJetE = 0;
   for(int k=0; k<jet_n; ++k)
     {
       if(maxJetE < jet_e[k])
@@ -161,7 +172,7 @@ void drawCalo(float** towersem, float** towersih, float** towersoh, float* jet_e
       std::stringstream e_stream;
       e_stream << std::fixed << std::setprecision(2) << jet_e[k];
       std::string e_string = e_stream.str();
-      drawText((e_string+" GeV").c_str(),12,((jet_ph[k]/*+(jet_ph[k]+M_PI>3.84?-0.53:0.43)*/+(jet_ph[k]<0?2*M_PI:0))/(2*M_PI))*64,/*(jet_et[k]>0?1:*/0/*)*/,kBlack,0.04,42,false);
+      drawText((e_string+" GeV").c_str(),12,((jet_ph[k]+(jet_ph[k]<0?2*M_PI:0))/(2*M_PI))*64,0,kBlack,0.04,42,false);
 
     }
   //c->Update();
@@ -176,7 +187,7 @@ void drawCalo(float** towersem, float** towersih, float** towersoh, float* jet_e
     }
   if(maxJetE > 100) dirstring = "gr100";
       
-  c->SaveAs(("/sphenix/user/jocl/projects/run2024_earlydata/run/output/smg/candidate_"+dirstring+"_"+_name+"_"+whichcut+"_"+to_string(cancount)+".png").c_str());
+  c->SaveAs(("../images/candidate_"+dirstring+"_"+whichcut+"_"+to_string(cancount)+".png").c_str());
   cout << "Saved" << endl;
 
   for(int i=0; i<3; ++i)
@@ -190,7 +201,8 @@ void drawCalo(float** towersem, float** towersih, float** towersoh, float* jet_e
   gPad->SetLogz();
   event_sum->GetZaxis()->SetRangeUser(0.05,25);
   gPad->Update();
-  c->SaveAs(("/sphenix/user/jocl/projects/run2024_earlydata/run/output/smg/candidate_"+dirstring+"_"+_name+"_"+whichcut+"_"+to_string(cancount)+"_log.png").c_str());
+  c->SaveAs(("../images/candidate_"+dirstring+"_"+whichcut+"_"+to_string(cancount)+"_log.png").c_str());
+  ++cancount;
   if(c) delete c;
   if(event_disrt[0]) delete event_disrt[0];
   if(event_disrt[1]) delete event_disrt[1];
@@ -198,3 +210,49 @@ void drawCalo(float** towersem, float** towersih, float** towersoh, float* jet_e
   if(event_sum) delete event_sum;
   
 }
+
+
+int drawcalo()
+{
+  
+  TFile* evtfile = TFile::Open("../events/allevents.root","READ");
+  gStyle->SetPadTickX(1);
+  gStyle->SetPadTickY(1);
+  int jet_n, runnum, evtnum, failscut;
+  float frcem[100];
+  float frcoh[100];
+  float jet_et[100];
+  float jet_pt[100];
+  float jet_eta[100];
+  float jet_phi[100];
+  float emtow[96][256];
+  float ihtow[24][64];
+  float ohtow[24][64];
+  float zvtx;
+
+  TTree* jet_tree = (TTree*)evtfile->Get("jet_tree");
+
+  jet_tree->SetBranchAddress("jet_n",&jet_n);
+  jet_tree->SetBranchAddress("runnum",&runnum);
+  jet_tree->SetBranchAddress("evtnum",&evtnum);
+  jet_tree->SetBranchAddress("failscut",&failscut);
+  jet_tree->SetBranchAddress("alljetfrcem",frcem);
+  jet_tree->SetBranchAddress("alljetfrcoh",frcoh);
+  jet_tree->SetBranchAddress("jet_et",jet_et);
+  jet_tree->SetBranchAddress("jet_pt",jet_pt);
+  jet_tree->SetBranchAddress("jet_eta",jet_eta);
+  jet_tree->SetBranchAddress("jet_phi",jet_phi);
+  jet_tree->SetBranchAddress("emtow",emtow);
+  jet_tree->SetBranchAddress("ihtow",ihtow);
+  jet_tree->SetBranchAddress("ohtow",ohtow);
+  jet_tree->SetBranchAddress("zvtx",&zvtx);
+
+  for(int i=0; i<jet_tree->GetEntries(); ++i)
+    {
+      jet_tree->GetEntry(i);
+      drawCalo(emtow,ihtow,ohtow,jet_pt,jet_eta,jet_phi,jet_n,zvtx,failscut,runnum,evtnum,frcoh,frcem);
+    }
+
+  return 0;
+}
+      
