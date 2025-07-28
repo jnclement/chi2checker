@@ -1,3 +1,44 @@
+void Pal2()
+{   // for "black pixels"
+  const Int_t nstp = 2;
+  const Int_t ncol = 3;
+  Double_t stp[nstp] = { 0.0000, 1.0000 };
+  Double_t red[nstp] = { 0./255., 1./255. };
+  Double_t grn[nstp] = { 0./255., 1./255. };
+  Double_t blu[nstp] = { 0./255., 1./255. };
+  static Int_t colors[ncol];
+  static Bool_t initialized = kFALSE;
+  if (!initialized) {
+    Int_t FI = TColor::CreateGradientColorTable(nstp, stp, red, grn, blu, ncol);
+    for (int i = 0; i < ncol; i++)
+      colors[i] = FI + i;
+    initialized = kTRUE;
+    return;
+  }
+  gStyle->SetPalette(ncol, colors);
+}
+
+void Pal1()
+{
+  const int ncol = 50;
+  const int nstp = 3;
+  double red[nstp] = {0.,1.,1.};
+  double grn[nstp] = {0.,1.,0.};
+  double blu[nstp] = {1.,1.,0.};
+  double stp[nstp] = {0,2./27,1};
+  static Int_t colors[ncol];
+  static Bool_t initialized = kFALSE;
+  if (!initialized) {
+    Int_t FI = TColor::CreateGradientColorTable(nstp, stp, red, grn, blu, ncol);
+    for (int i = 0; i < ncol; i++)
+      colors[i] = FI + i;
+    initialized = kTRUE;
+    return;
+  }
+  gStyle->SetPalette(ncol, colors);
+}
+
+
 void drawText(const char *text, float xp, float yp, bool isRightAlign=0, int textColor=kBlack, double textSize=0.04, int textFont = 42, bool isNDC=true){
   // when textfont 42, textSize=0.04                                                                                                                         
   // when textfont 43, textSize=18                                                                                                                           
@@ -38,7 +79,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
     }
   
   std::stringstream full_stream;
-  full_stream << std::fixed << std::setprecision(3) << "Run " << runnum << ", event " << evtnum << ", EM fraction: " << frcem[maxindex] << ", OH fraction: " << frcoh[maxindex] << ", z_{vtx} = " <<  std::setprecision(1) << (zvtx==0?"nan":zvtx) << ". Tower energy scale maxes out at 25, but actual energies may be higher.";
+  full_stream << std::fixed << std::setprecision(3) << "Run " << runnum << ", event " << evtnum << ", EM fraction: " << frcem[maxindex] << ", OH fraction: " << frcoh[maxindex] << ", z_{vtx} = " <<  std::setprecision(1) << (zvtx==0?"nan":to_string(zvtx)) << ". Tower energy scale maxes out at 25, but actual energies may be higher. ";
   std::string full_string = full_stream.str();
 
   gStyle->SetOptStat(0);
@@ -59,14 +100,15 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   
   TH2D* event_sum = new TH2D("event_sum","Calorimeter Sum",24,-0.5,23.5,64,-0.5,63.5);
   TH2D* event_disrt[3];
+  TH2D* deads[3];
   for(int i=0; i<3; ++i)
     {
       int nbinx = (i==0?96:24);
       int nbiny = (i==0?256:64);
       event_disrt[i] = new TH2D(("event_display_rt"+to_string(i)).c_str(),"",nbinx,-0.5,nbinx-0.5,nbiny,-0.5,nbiny-0.5);
-
+      deads[i] = new TH2D(("deads"+to_string(i)).c_str(),"",nbinx,-0.5,nbinx-0.5,nbiny,-0.5,nbiny-0.5);
     }
-  TColor::CreateGradientColorTable(nstp, stp, red, grn, blu, ncol);
+  //TColor::CreateGradientColorTable(nstp, stp, red, grn, blu, ncol);
   event_disrt[0]->GetXaxis()->SetTitle("EMCal #eta Bin");
   event_disrt[0]->GetYaxis()->SetTitle("EMCal #phi Bin");
   event_disrt[1]->GetXaxis()->SetTitle("IHCal #eta Bin");
@@ -119,9 +161,10 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 	      event_disrt[j]->Fill(eta,phi,energy);
 	      if(j==0)event_sum->Fill(eta/4,phi/4,energy);
 	      else event_sum->Fill(eta,phi,energy);
+	      if(energy==0) deads[j]->Fill(eta,phi,1);
 	    }
 	}
-
+      deads[j]->SetMaximum(2);
       c->cd(j+1);
       gPad->SetLogz(0);
       gPad->SetRightMargin(0.2);
@@ -129,8 +172,18 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
       gPad->SetTopMargin(0.05);
       event_disrt[j]->SetContour(ncol);
       event_disrt[j]->Draw("COLZ");
-
+      TExec* ex1 = new TExec("ex1", "Pal1();");
+      ex1->Draw("same");
+      event_disrt[j]->Draw("colz same");
+      /*
+      deads[j]->Draw("col same0");
+      TExec* ex2 = new TExec("ex2","Pal2();");
+      ex2->Draw();
+      deads[j]->Draw("col same0");
+      */
     }
+
+  
   c->cd(4);
   gPad->SetLogz(0);            
   gPad->SetTopMargin(0.05);                                                       
@@ -187,7 +240,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
     }
   if(maxJetE > 100) dirstring = "gr100";
       
-  c->SaveAs(("../images/candidate_"+dirstring+"_"+whichcut+"_"+to_string(cancount)+".png").c_str());
+  c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(cancount)+".png").c_str());
   cout << "Saved" << endl;
 
   for(int i=0; i<3; ++i)
@@ -201,12 +254,15 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   gPad->SetLogz();
   event_sum->GetZaxis()->SetRangeUser(0.05,25);
   gPad->Update();
-  c->SaveAs(("../images/candidate_"+dirstring+"_"+whichcut+"_"+to_string(cancount)+"_log.png").c_str());
+  c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(cancount)+"_log.png").c_str());
   ++cancount;
   if(c) delete c;
   if(event_disrt[0]) delete event_disrt[0];
   if(event_disrt[1]) delete event_disrt[1];
   if(event_disrt[2]) delete event_disrt[2];
+  if(deads[0]) delete deads[0];
+  if(deads[1]) delete deads[1];
+  if(deads[2]) delete deads[2];
   if(event_sum) delete event_sum;
   
 }

@@ -391,7 +391,7 @@ void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet
     }
   if(maxJetE > 100) dirstring = "gr100";
       
-  c->SaveAs(("/sphenix/user/jocl/projects/run2024_earlydata/run/output/smg/candidate_"+dirstring+"_"+_name+"_"+whichcut+"_"+to_string(cancount)+".png").c_str());
+  c->SaveAs(("/sphenix/user/jocl/projects/run2024_earlydata/run/output/smg/candidate_"+to_string(runnum)+"_"+dirstring+"_"+_name+"_"+whichcut+"_"+to_string(cancount)+".png").c_str());
   cout << "Saved" << endl;
   cancount++;
 
@@ -406,7 +406,7 @@ void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet
   gPad->SetLogz();
   event_sum->GetZaxis()->SetRangeUser(0.05,25);
   gPad->Update();
-  c->SaveAs(("/sphenix/user/jocl/projects/run2024_earlydata/run/output/smg/candidate_"+dirstring+"_"+_name+"_"+whichcut+"_"+to_string(cancount)+"_log.png").c_str());
+  c->SaveAs(("/sphenix/user/jocl/projects/run2024_earlydata/run/output/smg/candidate_"+to_string(runnum)+"_"+dirstring+"_"+_name+"_"+whichcut+"_"+to_string(cancount)+"_log.png").c_str());
   /*
   delete c;
   delete event_sum;
@@ -484,6 +484,9 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("emtow",_emtow,"emtow[96][256]/F");
   jet_tree->Branch("ihtow",_ihtow,"ihtow[24][64]/F");
   jet_tree->Branch("ohtow",_ohtow,"ohtow[24][64]/F");
+  jet_tree->Branch("isbadem",_isbadem,"isbadem[96][256]/F");
+  jet_tree->Branch("isbadih",_isbadih,"isbadih[24][64]/F");
+  jet_tree->Branch("isbadoh",_isbadoh,"isbadoh[24][64]/F");
   //jet_tree->Branch("nLayerEm",&_nLayerEm,"nLayerEm/I");
   //jet_tree->Branch("nLayerOh",&_nLayerOh,"nLayerOh/I");
   /*
@@ -1219,9 +1222,22 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		  int key = towers[j]->encode_key(k);
 		  int eta = towers[j]->getTowerEtaBin(key);
 		  int phi = towers[j]->getTowerPhiBin(key);
-		  if(j==0) _emtow[eta][phi] = tower->get_energy();
-		  else if(j==1) _ihtow[eta][phi] = tower->get_energy();
-		  else if(j==2) _ohtow[eta][phi] = tower->get_energy();
+		  bool isbad = !tower->get_isGood();
+		  if(j==0)
+		    {
+		      _emtow[eta][phi] = tower->get_energy();
+		      _isbadem[eta][phi] = (isbad?1:0);
+		    }
+		  else if(j==1)
+		    {
+		      _ihtow[eta][phi] = tower->get_energy();
+		      _isbadih[eta][phi] = (isbad?1:0);
+		    }
+		  else if(j==2)
+		    {
+		      _ohtow[eta][phi] = tower->get_energy();
+		      _isbadoh[eta][phi] = (isbad?1:0);
+		    }
 		}
 	    }
 	  _failscut = failsall;
