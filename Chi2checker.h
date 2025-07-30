@@ -116,9 +116,15 @@ class Chi2checker : public SubsysReco
   int _isbadem[96][256];
   int _isbadih[24][64];
   int _isbadoh[24][64];
+  int _ishotem[96][256];
+  int _ishotih[24][64];
+  int _ishotoh[24][64];
+  int _nocalem[96][256];
+  int _nocalih[24][64];
+  int _nocaloh[24][64];
   float _dPhi2pc[1000];
   float _dEta2pc[1000];
-  float _dPhiLayer[10];
+  float _dPhiLayer[100];
   float _l2pcEta;
   int _nprocessed;
   /*

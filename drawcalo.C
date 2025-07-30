@@ -51,6 +51,7 @@ void drawText(const char *text, float xp, float yp, bool isRightAlign=0, int tex
   if(isNDC) tex->SetNDC();
   if(isRightAlign) tex->SetTextAlign(31);
   tex->Draw();
+  gPad->GetListOfPrimitives()->Add(tex);
   //delete tex;
 }
 
@@ -64,22 +65,31 @@ void sphenixtext(float xpos = 0.7, float ypos = 0.96, int ra = 0, float textsize
   drawText("#bf{#it{sPHENIX}} Internal", xpos, ypos, ra, kBlack, textsize);
 }
 int cancount = 0;
-void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24][64], float* jet_e, float* jet_et, float* jet_ph, int jet_n, float zvtx, int failscut, int runnum, int evtnum, float* frcoh, float* frcem)
+void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24][64], float* jet_pt, float* jet_et, float* jet_ph, int jet_n, float zvtx, int failscut, int runnum, int evtnum, float* frcoh, float* frcem, float* jet_e, int isbadem[96][256], int isbadih[24][64], int isbadoh[24][64])
 {
 
   int maxindex = 0;
   int maxE = 0;
+  int slE = 0;
+  int slindex = 0;
   for(int i=0; i<jet_n; ++i)
     {
-      if(jet_e[i] > maxE)
+      if(jet_pt[i] > maxE)
 	{
+	  slindex = maxindex;
+	  slE = maxE;
 	  maxindex = i;
-	  maxE = jet_e[i];
+	  maxE = jet_pt[i];
+	}
+      else if(jet_pt[i] > slE)
+	{
+	  slindex = i;
+	  slE = jet_pt[i];
 	}
     }
   
   std::stringstream full_stream;
-  full_stream << std::fixed << std::setprecision(3) << "Run " << runnum << ", event " << evtnum << ", EM fraction: " << frcem[maxindex] << ", OH fraction: " << frcoh[maxindex] << ", z_{vtx} = " <<  std::setprecision(1) << (zvtx==0?"nan":to_string(zvtx)) << ". Tower energy scale maxes out at 25, but actual energies may be higher. ";
+  full_stream << std::fixed << std::setprecision(3) << "Run " << runnum << ", event " << evtnum << ", Leading EM fraction: " << frcem[maxindex] << ", OH fraction: " << frcoh[maxindex] << ", z_{vtx} = " <<  std::setprecision(1) << (zvtx==0?NAN:zvtx) << std::setprecision(3) << " E_{sl}/E_{lead}=" << jet_e[slindex]/jet_e[maxindex] << ". Tower energy scale maxes out at 25, but actual energies may be higher. Values on plots are p_{T}^{jet}. ";
   std::string full_string = full_stream.str();
 
   gStyle->SetOptStat(0);
@@ -147,6 +157,8 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   event_sum->GetZaxis()->SetLabelSize(0.04);
   event_sum->GetXaxis()->SetLabelOffset(0.02);
   event_sum->Reset();
+  TExec* ex1 = new TExec("ex1", "Pal1();");
+  TExec* ex2 = new TExec("ex2","Pal2();");
   for(int j=0; j<3; ++j)
     {
       event_disrt[j]->Reset();
@@ -161,7 +173,9 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 	      event_disrt[j]->Fill(eta,phi,energy);
 	      if(j==0)event_sum->Fill(eta/4,phi/4,energy);
 	      else event_sum->Fill(eta,phi,energy);
-	      if(energy==0) deads[j]->Fill(eta,phi,1);
+	      if(j==0) deads[j]->Fill(eta,phi,isbadem[eta][phi]);
+	      if(j==1) deads[j]->Fill(eta,phi,isbadih[eta][phi]);
+	      if(j==2) deads[j]->Fill(eta,phi,isbadoh[eta][phi]);
 	    }
 	}
       deads[j]->SetMaximum(2);
@@ -172,18 +186,15 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
       gPad->SetTopMargin(0.05);
       event_disrt[j]->SetContour(ncol);
       event_disrt[j]->Draw("COLZ");
-      TExec* ex1 = new TExec("ex1", "Pal1();");
       ex1->Draw("same");
       event_disrt[j]->Draw("colz same");
-      /*
+      
       deads[j]->Draw("col same0");
-      TExec* ex2 = new TExec("ex2","Pal2();");
       ex2->Draw();
       deads[j]->Draw("col same0");
-      */
     }
 
-  
+  ex1->Draw("same");
   c->cd(4);
   gPad->SetLogz(0);            
   gPad->SetTopMargin(0.05);                                                       
@@ -206,10 +217,15 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
       fails = "Passes frac. cut";
       whichcut = "frac";
     }
-  else
+  else if(failscut==2)
     {
       fails = "Passes both";
       whichcut = "both";
+    }
+  else
+    {
+      fails = "Passes neither";
+      whichcut = "fail";
     }
   full_string += fails;
   
@@ -218,29 +234,30 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   float maxJetE = 0;
   for(int k=0; k<jet_n; ++k)
     {
-      if(maxJetE < jet_e[k])
+      if(maxJetE < jet_pt[k])
 	{
-	  maxJetE = jet_e[k];
+	  maxJetE = jet_pt[k];
 	}
+      if(jet_pt[k] < 4) continue;
       std::stringstream e_stream;
-      e_stream << std::fixed << std::setprecision(2) << jet_e[k];
+      e_stream << std::fixed << std::setprecision(2) << jet_pt[k];
       std::string e_string = e_stream.str();
       drawText((e_string+" GeV").c_str(),12,((jet_ph[k]+(jet_ph[k]<0?2*M_PI:0))/(2*M_PI))*64,0,kBlack,0.04,42,false);
 
     }
   //c->Update();
   string dirstring = "";
-  for(int i=46; i<101; ++i)
+  for(int i=60; i<130; i+=10)
     {
       if(maxJetE < i)
 	{
-	  dirstring = to_string(i-1)+"to"+to_string(i);
+	  dirstring = to_string(i-10)+"to"+to_string(i);
 	  break;
 	}
     }
-  if(maxJetE > 100) dirstring = "gr100";
+  if(maxJetE > 130) dirstring = "gr130";
       
-  c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(cancount)+".png").c_str());
+  if(maxJetE > 60) c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(cancount)+".png").c_str());
   cout << "Saved" << endl;
 
   for(int i=0; i<3; ++i)
@@ -254,7 +271,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   gPad->SetLogz();
   event_sum->GetZaxis()->SetRangeUser(0.05,25);
   gPad->Update();
-  c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(cancount)+"_log.png").c_str());
+  if(maxJetE > 60) c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(cancount)+"_log.png").c_str());
   ++cancount;
   if(c) delete c;
   if(event_disrt[0]) delete event_disrt[0];
@@ -264,7 +281,8 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   if(deads[1]) delete deads[1];
   if(deads[2]) delete deads[2];
   if(event_sum) delete event_sum;
-  
+  if(ex1) delete ex1;
+  if(ex2) delete ex2;
 }
 
 
@@ -277,7 +295,7 @@ int drawcalo()
   int jet_n, runnum, evtnum, failscut;
   float frcem[100];
   float frcoh[100];
-  float jet_et[100];
+  float jet_e[100];
   float jet_pt[100];
   float jet_eta[100];
   float jet_phi[100];
@@ -285,7 +303,10 @@ int drawcalo()
   float ihtow[24][64];
   float ohtow[24][64];
   float zvtx;
-
+  int isbadem[96][256] = {0};
+  int isbadih[24][64] = {0};
+  int isbadoh[24][64] = {0};
+  
   TTree* jet_tree = (TTree*)evtfile->Get("jet_tree");
 
   jet_tree->SetBranchAddress("jet_n",&jet_n);
@@ -294,7 +315,7 @@ int drawcalo()
   jet_tree->SetBranchAddress("failscut",&failscut);
   jet_tree->SetBranchAddress("alljetfrcem",frcem);
   jet_tree->SetBranchAddress("alljetfrcoh",frcoh);
-  jet_tree->SetBranchAddress("jet_et",jet_et);
+  jet_tree->SetBranchAddress("jet_et",jet_e);
   jet_tree->SetBranchAddress("jet_pt",jet_pt);
   jet_tree->SetBranchAddress("jet_eta",jet_eta);
   jet_tree->SetBranchAddress("jet_phi",jet_phi);
@@ -302,11 +323,15 @@ int drawcalo()
   jet_tree->SetBranchAddress("ihtow",ihtow);
   jet_tree->SetBranchAddress("ohtow",ohtow);
   jet_tree->SetBranchAddress("zvtx",&zvtx);
+  jet_tree->SetBranchAddress("isbadem",isbadem);
+  jet_tree->SetBranchAddress("isbadih",isbadih);
+  jet_tree->SetBranchAddress("isbadoh",isbadoh);
 
+  
   for(int i=0; i<jet_tree->GetEntries(); ++i)
     {
       jet_tree->GetEntry(i);
-      drawCalo(emtow,ihtow,ohtow,jet_pt,jet_eta,jet_phi,jet_n,zvtx,failscut,runnum,evtnum,frcoh,frcem);
+      drawCalo(emtow,ihtow,ohtow,jet_pt,jet_eta,jet_phi,jet_n,zvtx,failscut,runnum,evtnum,frcoh,frcem,jet_e,isbadem,isbadih,isbadoh);
     }
 
   return 0;

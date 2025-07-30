@@ -484,9 +484,15 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("emtow",_emtow,"emtow[96][256]/F");
   jet_tree->Branch("ihtow",_ihtow,"ihtow[24][64]/F");
   jet_tree->Branch("ohtow",_ohtow,"ohtow[24][64]/F");
-  jet_tree->Branch("isbadem",_isbadem,"isbadem[96][256]/F");
-  jet_tree->Branch("isbadih",_isbadih,"isbadih[24][64]/F");
-  jet_tree->Branch("isbadoh",_isbadoh,"isbadoh[24][64]/F");
+  jet_tree->Branch("isbadem",_isbadem,"isbadem[96][256]/I");
+  jet_tree->Branch("isbadih",_isbadih,"isbadih[24][64]/I");
+  jet_tree->Branch("isbadoh",_isbadoh,"isbadoh[24][64]/I");
+  jet_tree->Branch("ishotem",_ishotem,"ishotem[96][256]/I");
+  jet_tree->Branch("ishotih",_ishotih,"ishotih[24][64]/I");
+  jet_tree->Branch("ishotoh",_ishotoh,"ishotoh[24][64]/I");
+  jet_tree->Branch("nocalem",_nocalem,"nocalem[96][256]/I");
+  jet_tree->Branch("nocalih",_nocalih,"nocalih[24][64]/I");
+  jet_tree->Branch("nocaloh",_nocaloh,"nocaloh[24][64]/I");
   //jet_tree->Branch("nLayerEm",&_nLayerEm,"nLayerEm/I");
   //jet_tree->Branch("nLayerOh",&_nLayerOh,"nLayerOh/I");
   /*
@@ -870,17 +876,17 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
             {
 	      //float Etot = 0;
 	      if(_debug > 5) cout << "getting jet E/eta" << endl;
-	      float testJetE = jet->get_e();
+	      float testJetE = jet->get_pt();
 	      float testJetPhi = jet->get_phi();
 	      float sigEtaEta = 0;
 	      float sigEtaPhi = 0;
 	      float sigPhiPhi = 0;
 	      if(_debug > 5) cout << "jet E/eta: " << testJetE  << " " << jet->get_eta() << endl;
-	      if(jet->get_pt() < 4) continue;
+	      if(jet->get_pt() < 1) continue;
 	      if(_debug > 3) cout << "got a candidate jet" << endl;
 	      _alljetfrcem[_jet_n] = 0;
 	      _alljetfrcoh[_jet_n] = 0;
-	      _jet_et[_jet_n] = testJetE;
+	      _jet_et[_jet_n] = jet->get_e();
 	      _jet_eta[_jet_n] = jet->get_eta();
 	      //if(check_bad_jet_eta(_jet_eta[_jet_n],zvtx,0.4)) continue;
 	      _jet_pt[_jet_n] = jet->get_pt();
@@ -1135,7 +1141,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	      if(_dPhiLayer[_jet_n] > M_PI) _dPhiLayer[_jet_n] -= 2*M_PI;
 	      if(_dPhiLayer[_jet_n] < -M_PI) _dPhiLayer[_jet_n] += 2*M_PI;
 	      ++_jet_n;
-	      if(jet_n > 99) break;
+	      if(_jet_n > 98) break;
 	    }
 	  else
 	    {
@@ -1170,13 +1176,33 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       if(_debug > 3) cout << "assigning vars now" << endl;
       _eccentricity = eccentricity;
       _theta = theta;
-      _frcoh = maxLayerE[1]/maxJetE;
-      _frcem = maxLayerE[0]/maxJetE;
+      float maxEnergy = 0;
+      float maxpt = 0;
+      float subEnergy = 0;
+      float subpt = 0;
+      for(int k=0; k<_jet_n; ++k)
+	{
+	  if(_jet_pt[k] > maxpt)
+	    {
+	      subpt = maxpt;
+	      subEnergy = maxEnergy;
+	      maxpt = _jet_pt[k];
+	      maxEnergy = _jet_et[k];
+	    }
+	  else if(_jet_pt[k] > subpt)
+	    {
+	      subpt = _jet_pt[k];
+	      subEnergy = _jet_et[k];
+	    }
+	}
+	      
+      _frcoh = maxLayerE[1]/maxEnergy;
+      _frcem = maxLayerE[0]/maxEnergy;
       _eta = maxJetEta;
       _phi = maxJetPhi;
-      _jet_ET = maxJetE;
+      _jet_ET = maxEnergy;
       _dphi = dphi;
-      _subjet_ET = subJetE;
+      _subjet_ET = subEnergy;
       /*
       if(maxJetE > 4)
 	{
@@ -1193,7 +1219,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       bool hiETCut = ((_frcem > 0.9) && (_jet_ET > (-50*_frcem+70))) && (dPhiCut || !_isdijet);
       bool ihCut = (_frcem+_frcoh) < 0.65;
       //bool fullCut = loETCut || hiETCut || ihCut || failscut || (_bbfqavec >> 5 & 0x1);
-      int failsall = 0;//fullCut?1:0;
+      int failsall = -1;//fullCut?1:0;
       if(!loETCut && !dPhiCut)
 	{
 	  failsall = 2;
@@ -1206,12 +1232,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	{
 	  failsall = 0;
 	}
-      else
-	{
-	  failsall = -1;
-	}
-      maxJetE/=cosh(maxJetEta);
-      if(maxJetE > 55 && (!loETCut || !dPhiCut))
+      if((maxJetE > 55 && (!loETCut || !dPhiCut)) || maxJetE > 75)
 	{
 	  towers[0] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
 	  for(int j=0; j<3; ++j)
@@ -1222,28 +1243,36 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		  int key = towers[j]->encode_key(k);
 		  int eta = towers[j]->getTowerEtaBin(key);
 		  int phi = towers[j]->getTowerPhiBin(key);
-		  bool isbad = !tower->get_isGood();
+		  bool isbad = tower->get_isBadChi2();
+		  bool isnocal = tower->get_isNoCalib();
+		  bool ishot = tower->get_isHot();
 		  if(j==0)
 		    {
 		      _emtow[eta][phi] = tower->get_energy();
 		      _isbadem[eta][phi] = (isbad?1:0);
+		      _ishotem[eta][phi] = (ishot?1:0);
+		      _nocalem[eta][phi] = (isnocal?1:0);
 		    }
 		  else if(j==1)
 		    {
 		      _ihtow[eta][phi] = tower->get_energy();
 		      _isbadih[eta][phi] = (isbad?1:0);
+		      _ishotih[eta][phi] = (ishot?1:0);
+		      _nocalih[eta][phi] = (isnocal?1:0);
 		    }
 		  else if(j==2)
 		    {
 		      _ohtow[eta][phi] = tower->get_energy();
 		      _isbadoh[eta][phi] = (isbad?1:0);
+		      _ishotoh[eta][phi] = (ishot?1:0);
+		      _nocaloh[eta][phi] = (isnocal?1:0);
 		    }
 		}
 	    }
 	  _failscut = failsall;
 	  _runnum = runnumber;
 	  _evtnum = evtnum;
-	  drawCalo(towers, _jet_pt, _jet_eta, _jet_phi, _jet_n, jet_ecc, jet_lfrac, geom, zvtx, failsall, runnumber, evtnum, _frcoh, _frcem, maxLayerE[0], maxLayerE[1], maxJetE);
+	  //drawCalo(towers, _jet_pt, _jet_eta, _jet_phi, _jet_n, jet_ecc, jet_lfrac, geom, zvtx, failsall, runnumber, evtnum, _frcoh, _frcem, maxLayerE[0], maxLayerE[1], maxJetE);
 	  jet_tree->Fill();
 	  cout << "drew calo" << endl;
 	}
@@ -1286,17 +1315,23 @@ int Chi2checker::End(PHCompositeNode *topNode)
     {
       std::cout << "Chi2checker::End(PHCompositeNode *topNode) This is the End..." << std::endl;
     }
-  if(_debug > 1) cout << "ending run" << endl;
+  cout << "ending run" << endl;
   if(jet_tree->GetEntries() > 0)
     {
       _f = new TFile(_filename.c_str(), "RECREATE");
+      cout << "file created" << endl;
       _f->cd();
+      cout << "cded to file" << endl;
       jet_tree->SetDirectory(_f);
+      cout << "tree set to directory of file" << endl;
       jet_tree->Write();
+      cout << "tree written" << endl;
       _f->Write();
+      cout << "file written" << endl;
       _f->Close();
+      cout << "file closed" << endl;
     }
-  
+  cout << "file saved if necessary" << endl;
   //delete jet_tree;
   //delete _f;
   return Fun4AllReturnCodes::EVENT_OK;
