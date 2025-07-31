@@ -265,7 +265,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
     }
   if(maxJetE > 130) dirstring = "gr130";
       
-  if(maxJetE > 60) c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(cancount)+".png").c_str());
+  if(maxJetE > 60) c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(cancount)+"_"+(rainbow?"rainbow":"normal")+".png").c_str());
   cout << "Saved" << endl;
 
   for(int i=0; i<3; ++i)
@@ -279,7 +279,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   gPad->SetLogz();
   event_sum->GetZaxis()->SetRangeUser(0.05,25);
   gPad->Update();
-  if(maxJetE > 60) c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(cancount)+"_log.png").c_str());
+  if(maxJetE > 60) c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(cancount)+"_"+(rainbow?"rainbow":"normal")+"_log.png").c_str());
   ++cancount;
   if(c) delete c;
   if(event_disrt[0]) delete event_disrt[0];
