@@ -73,8 +73,8 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 {
 
   int maxindex = 0;
-  int maxE = 0;
-  int slE = 0;
+  float maxE = 0;
+  float slE = 0;
   int slindex = 0;
   for(int i=0; i<jet_n; ++i)
     {
@@ -238,6 +238,14 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   full_string += fails;
   
   drawText(full_string.c_str(),0.05,0.925,0,kBlack,0.02);
+
+  std::stringstream secondss;
+  secondss << std::fixed << std::setprecision(2) << "E_{lead}="<<jet_e[maxindex]<<", E_{sl}="<<jet_e[slindex]<<", p_{T}^{lead}=" << maxE << ", p_{T}^{sl}=" << slE;
+
+  std::string secondstring = secondss.str();
+  
+  drawText(secondstring.c_str(),0.05,0.9,0,kBlack,0.02);
+  
   c->cd(4);
   float maxJetE = 0;
   for(int k=0; k<jet_n; ++k)
@@ -265,7 +273,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
     }
   if(maxJetE > 130) dirstring = "gr130";
       
-  if(maxJetE > 60) c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(cancount)+"_"+(rainbow?"rainbow":"normal")+".png").c_str());
+  if(maxJetE > 60) c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(evtnum)+"_"+(rainbow?"rainbow":"normal")+".png").c_str());
   cout << "Saved" << endl;
 
   for(int i=0; i<3; ++i)
@@ -279,7 +287,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   gPad->SetLogz();
   event_sum->GetZaxis()->SetRangeUser(0.05,25);
   gPad->Update();
-  if(maxJetE > 60) c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(cancount)+"_"+(rainbow?"rainbow":"normal")+"_log.png").c_str());
+  if(maxJetE > 60) c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(evtnum)+"_"+(rainbow?"rainbow":"normal")+"_log.png").c_str());
   ++cancount;
   if(c) delete c;
   if(event_disrt[0]) delete event_disrt[0];
@@ -297,7 +305,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 
 int drawcalo(int lo, int hi, int rainbow = 0)
 {
-  
+  cancount = lo;
   TFile* evtfile = TFile::Open("../events/allevents.root","READ");
   gStyle->SetPadTickX(1);
   gStyle->SetPadTickY(1);

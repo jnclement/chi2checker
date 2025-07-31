@@ -8,5 +8,4 @@ while [ $IT -lt 50000 ]; do
     root -b -q -l "drawcalo.C(${IT},${UP},1)"
     IT=$(( $IT + 100 ))
     echo $IT
-    break
 done
