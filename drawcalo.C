@@ -1,3 +1,43 @@
+void Pal5()
+{   // for "magenta pixels"
+  const Int_t nstp = 2;
+  const Int_t ncol = 3;
+  Double_t stp[nstp] = { 0.0000, 1.0000 };
+  Double_t red[nstp] = { 0./255., 1./255. };
+  Double_t grn[nstp] = { 0./255., 1./255. };
+  Double_t blu[nstp] = { 0./255., 1./255. };
+  static Int_t colors[ncol];
+  static Bool_t initialized = kFALSE;
+  if (!initialized) {
+    Int_t FI = TColor::CreateGradientColorTable(nstp, stp, red, grn, blu, ncol);
+    for (int i = 0; i < ncol; i++)
+      colors[i] = FI + i;
+    initialized = kTRUE;
+    return;
+  }
+  gStyle->SetPalette(ncol, colors);
+}
+
+void Pal4()
+{   // for "brown pixels"
+  const Int_t nstp = 2;
+  const Int_t ncol = 3;
+  Double_t stp[nstp] = { 0.0000, 1.0000 };
+  Double_t red[nstp] = { 0./255., 66./255. };
+  Double_t grn[nstp] = { 0./255., 33./255. };
+  Double_t blu[nstp] = { 0./255., 0./255. };
+  static Int_t colors[ncol];
+  static Bool_t initialized = kFALSE;
+  if (!initialized) {
+    Int_t FI = TColor::CreateGradientColorTable(nstp, stp, red, grn, blu, ncol);
+    for (int i = 0; i < ncol; i++)
+      colors[i] = FI + i;
+    initialized = kTRUE;
+    return;
+  }
+  gStyle->SetPalette(ncol, colors);
+}
+
 void Pal2()
 {   // for "black pixels"
   const Int_t nstp = 2;
@@ -69,7 +109,7 @@ void sphenixtext(float xpos = 0.7, float ypos = 0.96, int ra = 0, float textsize
   drawText("#bf{#it{sPHENIX}} Internal", xpos, ypos, ra, kBlack, textsize);
 }
 int cancount = 0;
-void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24][64], float* jet_pt, float* jet_et, float* jet_ph, int jet_n, float zvtx, int failscut, int runnum, int evtnum, float* frcoh, float* frcem, float* jet_e, int isbadem[96][256], int isbadih[24][64], int isbadoh[24][64], bool rainbow = false)
+void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24][64], float* jet_pt, float* jet_et, float* jet_ph, int jet_n, float zvtx, int failscut, int runnum, int evtnum, float* frcoh, float* frcem, float* jet_e, int isbadem[96][256], int isbadih[24][64], int isbadoh[24][64], int ishotem[96][256], int ishotih[24][64], int ishotoh[24][64], int nocalem[96][256], int nocalih[24][64], int nocaloh[24][64], bool rainbow = false)
 {
 
   int maxindex = 0;
@@ -115,12 +155,16 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   TH2D* event_sum = new TH2D("event_sum","Calorimeter Sum",24,-0.5,23.5,64,-0.5,63.5);
   TH2D* event_disrt[3];
   TH2D* deads[3];
+  TH2D* chi2s[3];
+  TH2D* nocal[3];
   for(int i=0; i<3; ++i)
     {
       int nbinx = (i==0?96:24);
       int nbiny = (i==0?256:64);
       event_disrt[i] = new TH2D(("event_display_rt"+to_string(i)).c_str(),"",nbinx,-0.5,nbinx-0.5,nbiny,-0.5,nbiny-0.5);
       deads[i] = new TH2D(("deads"+to_string(i)).c_str(),"",nbinx,-0.5,nbinx-0.5,nbiny,-0.5,nbiny-0.5);
+      chi2s[i] = new TH2D(("chi2s"+to_string(i)).c_str(),"",nbinx,-0.5,nbinx-0.5,nbiny,-0.5,nbiny-0.5);
+      nocal[i] = new TH2D(("nocal"+to_string(i)).c_str(),"",nbinx,-0.5,nbinx-0.5,nbiny,-0.5,nbiny-0.5);
     }
   //TColor::CreateGradientColorTable(nstp, stp, red, grn, blu, ncol);
   event_disrt[0]->GetXaxis()->SetTitle("EMCal #eta Bin");
@@ -164,6 +208,8 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   TExec* ex1 = new TExec("ex1","Pal1();");
   TExec* ex2 = new TExec("ex2","Pal2();");
   TExec* ex3 = new TExec("ex3","Pal3();");
+  TExec* ex4 = new TExec("ex4","Pal4();");
+  TExec* ex5 = new TExec("ex5","Pal5();");
   for(int j=0; j<3; ++j)
     {
       event_disrt[j]->Reset();
@@ -178,12 +224,22 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 	      event_disrt[j]->Fill(eta,phi,energy);
 	      if(j==0)event_sum->Fill(eta/4,phi/4,energy);
 	      else event_sum->Fill(eta,phi,energy);
-	      if(j==0) deads[j]->Fill(eta,phi,isbadem[eta][phi]);
-	      if(j==1) deads[j]->Fill(eta,phi,isbadih[eta][phi]);
-	      if(j==2) deads[j]->Fill(eta,phi,isbadoh[eta][phi]);
+	      if(j==0) deads[j]->Fill(eta,phi,ishotem[eta][phi]);
+	      if(j==1) deads[j]->Fill(eta,phi,ishotih[eta][phi]);
+	      if(j==2) deads[j]->Fill(eta,phi,ishotoh[eta][phi]);
+
+	      if(j==0) chi2s[j]->Fill(eta,phi,isbadem[eta][phi]);
+	      if(j==1) chi2s[j]->Fill(eta,phi,isbadih[eta][phi]);
+	      if(j==2) chi2s[j]->Fill(eta,phi,isbadoh[eta][phi]);
+
+	      if(j==0) nocal[j]->Fill(eta,phi,nocalem[eta][phi]);
+	      if(j==1) nocal[j]->Fill(eta,phi,nocalih[eta][phi]);
+	      if(j==2) nocal[j]->Fill(eta,phi,nocaloh[eta][phi]);
 	    }
 	}
       deads[j]->SetMaximum(2);
+      chi2s[j]->SetMaximum(2);
+      nocal[j]->SetMaximum(2);
       c->cd(j+1);
       gPad->SetLogz(0);
       gPad->SetRightMargin(0.2);
@@ -194,6 +250,14 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
       rainbow?ex3->Draw("same"):ex1->Draw("same");
       event_disrt[j]->Draw("colz same");
       
+      chi2s[j]->Draw("col same0");
+      ex5->Draw();
+      chi2s[j]->Draw("col same0");
+
+      nocal[j]->Draw("col same0");
+      ex4->Draw();
+      nocal[j]->Draw("col same0");
+
       deads[j]->Draw("col same0");
       ex2->Draw();
       deads[j]->Draw("col same0");
@@ -273,8 +337,8 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
     }
   if(maxJetE > 130) dirstring = "gr130";
       
-  if(maxJetE > 60) c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(evtnum)+"_"+(rainbow?"rainbow":"normal")+".png").c_str());
-  cout << "Saved" << endl;
+  if(maxJetE > 60) c->SaveAs(("../images2/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(evtnum)+"_"+(rainbow?"rainbow":"normal")+".png").c_str());
+
 
   for(int i=0; i<3; ++i)
     {
@@ -287,8 +351,9 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   gPad->SetLogz();
   event_sum->GetZaxis()->SetRangeUser(0.05,25);
   gPad->Update();
-  if(maxJetE > 60) c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(evtnum)+"_"+(rainbow?"rainbow":"normal")+"_log.png").c_str());
+  if(maxJetE > 60) c->SaveAs(("../images2/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(evtnum)+"_"+(rainbow?"rainbow":"normal")+"_log.png").c_str());
   ++cancount;
+  cout << "Saved" << endl;
   if(c) delete c;
   if(event_disrt[0]) delete event_disrt[0];
   if(event_disrt[1]) delete event_disrt[1];
@@ -296,6 +361,12 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   if(deads[0]) delete deads[0];
   if(deads[1]) delete deads[1];
   if(deads[2]) delete deads[2];
+  if(chi2s[0]) delete chi2s[0];
+  if(chi2s[1]) delete chi2s[1];
+  if(chi2s[2]) delete chi2s[2];
+  if(nocal[0]) delete nocal[0];
+  if(nocal[1]) delete nocal[1];
+  if(nocal[2]) delete nocal[2];
   if(event_sum) delete event_sum;
   if(ex1) delete ex1;
   if(ex2) delete ex2;
@@ -306,7 +377,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 int drawcalo(int lo, int hi, int rainbow = 0)
 {
   cancount = lo;
-  TFile* evtfile = TFile::Open("../events/allevents.root","READ");
+  TFile* evtfile = TFile::Open("../events/allevents2.root","READ");
   gStyle->SetPadTickX(1);
   gStyle->SetPadTickY(1);
   int jet_n, runnum, evtnum, failscut;
@@ -323,6 +394,12 @@ int drawcalo(int lo, int hi, int rainbow = 0)
   int isbadem[96][256] = {0};
   int isbadih[24][64] = {0};
   int isbadoh[24][64] = {0};
+  int ishotem[96][256] = {0};
+  int ishotih[24][64] = {0};
+  int ishotoh[24][64] = {0};
+  int nocalem[96][256] = {0};
+  int nocalih[24][64] = {0};
+  int nocaloh[24][64] = {0};
   
   TTree* jet_tree = (TTree*)evtfile->Get("jet_tree");
 
@@ -343,12 +420,18 @@ int drawcalo(int lo, int hi, int rainbow = 0)
   jet_tree->SetBranchAddress("isbadem",isbadem);
   jet_tree->SetBranchAddress("isbadih",isbadih);
   jet_tree->SetBranchAddress("isbadoh",isbadoh);
+  jet_tree->SetBranchAddress("nocalem",nocalem);
+  jet_tree->SetBranchAddress("nocalih",nocalih);
+  jet_tree->SetBranchAddress("nocaloh",nocaloh);
+  jet_tree->SetBranchAddress("ishotem",ishotem);
+  jet_tree->SetBranchAddress("ishotih",ishotih);
+  jet_tree->SetBranchAddress("ishotoh",ishotoh);
 
   
   for(int i=lo; i<(hi>jet_tree->GetEntries()?jet_tree->GetEntries():hi); ++i)
     {
       jet_tree->GetEntry(i);
-      drawCalo(emtow,ihtow,ohtow,jet_pt,jet_eta,jet_phi,jet_n,zvtx,failscut,runnum,evtnum,frcoh,frcem,jet_e,isbadem,isbadih,isbadoh,rainbow?true:false);
+      drawCalo(emtow,ihtow,ohtow,jet_pt,jet_eta,jet_phi,jet_n,zvtx,failscut,runnum,evtnum,frcoh,frcem,jet_e,isbadem,isbadih,isbadoh,ishotem,ishotih,ishotoh,nocalem,nocalih,nocaloh,rainbow?true:false);
     }
 
   return 0;
