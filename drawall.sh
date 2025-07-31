@@ -2,10 +2,10 @@
 
 IT=0
 
-while [ $IT -lt 50000 ]; do
-    UP=$(( $IT + 100 ))
+while [ $IT -lt 25000 ]; do
+    UP=$(( $IT + 1000 ))
     root -b -q -l "drawcalo.C(${IT},${UP},0)"
     root -b -q -l "drawcalo.C(${IT},${UP},1)"
-    IT=$(( $IT + 100 ))
+    IT=$(( $IT + 1000 ))
     echo $IT
 done
