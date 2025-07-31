@@ -38,6 +38,10 @@ void Pal1()
   gStyle->SetPalette(ncol, colors);
 }
 
+void Pal3()
+{
+  gStyle->SetPalette(kRainbow);
+}
 
 void drawText(const char *text, float xp, float yp, bool isRightAlign=0, int textColor=kBlack, double textSize=0.04, int textFont = 42, bool isNDC=true){
   // when textfont 42, textSize=0.04                                                                                                                         
@@ -65,7 +69,7 @@ void sphenixtext(float xpos = 0.7, float ypos = 0.96, int ra = 0, float textsize
   drawText("#bf{#it{sPHENIX}} Internal", xpos, ypos, ra, kBlack, textsize);
 }
 int cancount = 0;
-void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24][64], float* jet_pt, float* jet_et, float* jet_ph, int jet_n, float zvtx, int failscut, int runnum, int evtnum, float* frcoh, float* frcem, float* jet_e, int isbadem[96][256], int isbadih[24][64], int isbadoh[24][64])
+void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24][64], float* jet_pt, float* jet_et, float* jet_ph, int jet_n, float zvtx, int failscut, int runnum, int evtnum, float* frcoh, float* frcem, float* jet_e, int isbadem[96][256], int isbadih[24][64], int isbadoh[24][64], bool rainbow = false)
 {
 
   int maxindex = 0;
@@ -157,8 +161,9 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   event_sum->GetZaxis()->SetLabelSize(0.04);
   event_sum->GetXaxis()->SetLabelOffset(0.02);
   event_sum->Reset();
-  TExec* ex1 = new TExec("ex1", "Pal1();");
+  TExec* ex1 = new TExec("ex1","Pal1();");
   TExec* ex2 = new TExec("ex2","Pal2();");
+  TExec* ex3 = new TExec("ex3","Pal3();");
   for(int j=0; j<3; ++j)
     {
       event_disrt[j]->Reset();
@@ -186,7 +191,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
       gPad->SetTopMargin(0.05);
       event_disrt[j]->SetContour(ncol);
       event_disrt[j]->Draw("COLZ");
-      ex1->Draw("same");
+      rainbow?ex3->Draw("same"):ex1->Draw("same");
       event_disrt[j]->Draw("colz same");
       
       deads[j]->Draw("col same0");
@@ -194,14 +199,17 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
       deads[j]->Draw("col same0");
     }
 
-  ex1->Draw("same");
   c->cd(4);
+
   gPad->SetLogz(0);            
   gPad->SetTopMargin(0.05);                                                       
   gPad->SetRightMargin(0.2);
   gPad->SetLeftMargin(0.2);
   event_sum->SetContour(ncol);
+  
   event_sum->Draw("COLZ");
+  rainbow?ex3->Draw("same"):ex1->Draw("same");
+  event_sum->Draw("colz same");
   c->cd(0);
   sphenixtext(0.96,0.96,1,0.04);
   
@@ -247,7 +255,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
     }
   //c->Update();
   string dirstring = "";
-  for(int i=60; i<130; i+=10)
+  for(int i=60; i<131; i+=10)
     {
       if(maxJetE < i)
 	{
@@ -283,10 +291,11 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   if(event_sum) delete event_sum;
   if(ex1) delete ex1;
   if(ex2) delete ex2;
+  if(ex3) delete ex3;
 }
 
 
-int drawcalo()
+int drawcalo(int lo, int hi, int rainbow = 0)
 {
   
   TFile* evtfile = TFile::Open("../events/allevents.root","READ");
@@ -328,10 +337,10 @@ int drawcalo()
   jet_tree->SetBranchAddress("isbadoh",isbadoh);
 
   
-  for(int i=0; i<jet_tree->GetEntries(); ++i)
+  for(int i=lo; i<(hi>jet_tree->GetEntries()?jet_tree->GetEntries():hi); ++i)
     {
       jet_tree->GetEntry(i);
-      drawCalo(emtow,ihtow,ohtow,jet_pt,jet_eta,jet_phi,jet_n,zvtx,failscut,runnum,evtnum,frcoh,frcem,jet_e,isbadem,isbadih,isbadoh);
+      drawCalo(emtow,ihtow,ohtow,jet_pt,jet_eta,jet_phi,jet_n,zvtx,failscut,runnum,evtnum,frcoh,frcem,jet_e,isbadem,isbadih,isbadoh,rainbow?true:false);
     }
 
   return 0;
