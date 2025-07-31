@@ -1,17 +1,17 @@
 void Pal5()
 {   // for "magenta pixels"
   const Int_t nstp = 2;
-  const Int_t ncol = 3;
+  const Int_t ncol = 2;
   Double_t stp[nstp] = { 0.0000, 1.0000 };
-  Double_t red[nstp] = { 0./255., 1./255. };
-  Double_t grn[nstp] = { 0./255., 1./255. };
-  Double_t blu[nstp] = { 0./255., 1./255. };
+  Double_t red[nstp] = { 255./255., 1. };
+  Double_t grn[nstp] = { 0./255., 0. };
+  Double_t blu[nstp] = { 255./255., 1. };
   static Int_t colors[ncol];
   static Bool_t initialized = kFALSE;
   if (!initialized) {
     Int_t FI = TColor::CreateGradientColorTable(nstp, stp, red, grn, blu, ncol);
     for (int i = 0; i < ncol; i++)
-      colors[i] = FI + i;
+      colors[i] = FI;
     initialized = kTRUE;
     return;
   }
@@ -21,17 +21,17 @@ void Pal5()
 void Pal4()
 {   // for "brown pixels"
   const Int_t nstp = 2;
-  const Int_t ncol = 3;
+  const Int_t ncol = 2;
   Double_t stp[nstp] = { 0.0000, 1.0000 };
-  Double_t red[nstp] = { 0./255., 66./255. };
-  Double_t grn[nstp] = { 0./255., 33./255. };
+  Double_t red[nstp] = { 120./255., 120./255. };
+  Double_t grn[nstp] = { 60./255., 60./255. };
   Double_t blu[nstp] = { 0./255., 0./255. };
   static Int_t colors[ncol];
   static Bool_t initialized = kFALSE;
   if (!initialized) {
     Int_t FI = TColor::CreateGradientColorTable(nstp, stp, red, grn, blu, ncol);
     for (int i = 0; i < ncol; i++)
-      colors[i] = FI + i;
+      colors[i] = FI;
     initialized = kTRUE;
     return;
   }
@@ -224,17 +224,17 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 	      event_disrt[j]->Fill(eta,phi,energy);
 	      if(j==0)event_sum->Fill(eta/4,phi/4,energy);
 	      else event_sum->Fill(eta,phi,energy);
-	      if(j==0) deads[j]->Fill(eta,phi,ishotem[eta][phi]);
-	      if(j==1) deads[j]->Fill(eta,phi,ishotih[eta][phi]);
-	      if(j==2) deads[j]->Fill(eta,phi,ishotoh[eta][phi]);
+	      if(j==0) deads[j]->Fill(eta,phi,10*ishotem[eta][phi]);
+	      if(j==1) deads[j]->Fill(eta,phi,10*ishotih[eta][phi]);
+	      if(j==2) deads[j]->Fill(eta,phi,10*ishotoh[eta][phi]);
 
-	      if(j==0) chi2s[j]->Fill(eta,phi,isbadem[eta][phi]);
-	      if(j==1) chi2s[j]->Fill(eta,phi,isbadih[eta][phi]);
-	      if(j==2) chi2s[j]->Fill(eta,phi,isbadoh[eta][phi]);
+	      if(j==0) chi2s[j]->Fill(eta,phi,10*isbadem[eta][phi]);
+	      if(j==1) chi2s[j]->Fill(eta,phi,10*isbadih[eta][phi]);
+	      if(j==2) chi2s[j]->Fill(eta,phi,10*isbadoh[eta][phi]);
 
-	      if(j==0) nocal[j]->Fill(eta,phi,nocalem[eta][phi]);
-	      if(j==1) nocal[j]->Fill(eta,phi,nocalih[eta][phi]);
-	      if(j==2) nocal[j]->Fill(eta,phi,nocaloh[eta][phi]);
+	      if(j==0) nocal[j]->Fill(eta,phi,10*nocalem[eta][phi]);
+	      if(j==1) nocal[j]->Fill(eta,phi,10*nocalih[eta][phi]);
+	      if(j==2) nocal[j]->Fill(eta,phi,10*nocaloh[eta][phi]);
 	    }
 	}
       deads[j]->SetMaximum(2);
