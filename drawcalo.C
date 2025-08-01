@@ -431,7 +431,7 @@ int drawcalo(int lo, int hi, int rainbow = 0)
   for(int i=lo; i<(hi>jet_tree->GetEntries()?jet_tree->GetEntries():hi); ++i)
     {
       jet_tree->GetEntry(i);
-      if(failscut > 2 || failscut < 0) continue;
+      if((failscut > 2 || failscut < 0) && i % 20 != 0) continue;
       drawCalo(emtow,ihtow,ohtow,jet_pt,jet_eta,jet_phi,jet_n,zvtx,failscut,runnum,evtnum,frcoh,frcem,jet_e,isbadem,isbadih,isbadoh,ishotem,ishotih,ishotoh,nocalem,nocalih,nocaloh,rainbow?true:false);
     }
 

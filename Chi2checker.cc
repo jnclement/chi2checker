@@ -493,6 +493,10 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("nocalem",_nocalem,"nocalem[96][256]/I");
   jet_tree->Branch("nocalih",_nocalih,"nocalih[24][64]/I");
   jet_tree->Branch("nocaloh",_nocaloh,"nocaloh[24][64]/I");
+  jet_tree->Branch("jconem",_jconem,"jconem[24][64]/I");
+  jet_tree->Branch("jconih",_jconih,"jconih[24][64]/I");
+  jet_tree->Branch("jconoh",_jconoh,"jconoh[24][64]/I");
+
   //jet_tree->Branch("nLayerEm",&_nLayerEm,"nLayerEm/I");
   //jet_tree->Branch("nLayerOh",&_nLayerOh,"nLayerOh/I");
   /*
@@ -855,6 +859,15 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   _jet_n = 0;
   float jet_ecc = -1;
   float jet_lfrac = -1;
+  for(int i=0; i<24; ++i)
+    {
+      for(int j=0; j<64; ++j)
+	{
+	  _jconem[i][j] = 0;
+	  _jconih[i][j] = 0;
+	  _jconoh[i][j] = 0;
+	}
+    }
   //float Etot = 0;
   //bool isPerimeter[nx][ny] = {0};
   //float calE[3][nx][ny] = {0};
@@ -961,6 +974,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		      //Etot += towerE;
 		      int key = towers[1]->encode_key(channel);
 		      const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, towers[1]->getTowerEtaBin(key), towers[1]->getTowerPhiBin(key));
+		      _jconih[towers[1]->getTowerEtaBin(key)][towers[1]->getTowerPhiBin(key)] = 1;
 		      if(_debug > 6) cout << "encoding tower geom" << endl;
 		      RawTowerGeom *tower_geom = geom[1]->get_tower_geometry(geomkey); //encode tower geometry
 		      float radius = tower_geom->get_center_radius();
@@ -1012,6 +1026,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		      //Etot += towerE;
 		      int key = towers[2]->encode_key(channel);
 		      const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, towers[2]->getTowerEtaBin(key), towers[2]->getTowerPhiBin(key));
+		      _jconoh[towers[2]->getTowerEtaBin(key)][towers[2]->getTowerPhiBin(key)] = 1;
 		      RawTowerGeom *tower_geom = geom[2]->get_tower_geometry(geomkey); //encode tower geometry
 		      
 		      float radius = tower_geom->get_center_radius();
@@ -1067,6 +1082,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		      //fracEM += towerE;
 		      int key = towers[0]->encode_key(channel);
 		      const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, towers[0]->getTowerEtaBin(key), towers[0]->getTowerPhiBin(key));
+		      _jconem[towers[0]->getTowerEtaBin(key)][towers[0]->getTowerPhiBin(key)] = 1;
 		      RawTowerGeom *tower_geom = geom[1]->get_tower_geometry(geomkey); //encode tower geometry
 		      
 		      float radius = 93.5;//tower_geom->get_center_radius();
