@@ -122,9 +122,9 @@ class Chi2checker : public SubsysReco
   int _nocalem[96][256];
   int _nocalih[24][64];
   int _nocaloh[24][64];
-  int _jconem[24][64];
-  int _jconih[24][64];
-  int _jconoh[24][64];
+  float _jconem[24][64];
+  float _jconih[24][64];
+  float _jconoh[24][64];
   float _dPhi2pc[1000];
   float _dEta2pc[1000];
   float _dPhiLayer[100];
