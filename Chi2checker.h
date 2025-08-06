@@ -130,6 +130,11 @@ class Chi2checker : public SubsysReco
   float _dPhiLayer[100];
   float _l2pcEta;
   int _nprocessed;
+  long long unsigned int _prevraw22;
+  long long unsigned int _prevraw18;
+  long long unsigned int _prevlive22;
+  long long unsigned int _prevlive18;
+  int _isbadlive;
   /*
   float _emLayerJetPhi[10];
   float _ohLayerJetPhi[10];

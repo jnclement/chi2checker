@@ -129,7 +129,7 @@ void sphenixtext(float xpos = 0.7, float ypos = 0.96, int ra = 0, float textsize
   drawText("#bf{#it{sPHENIX}} Internal", xpos, ypos, ra, kBlack, textsize);
 }
 int cancount = 0;
-void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24][64], float* jet_pt, float* jet_et, float* jet_ph, int jet_n, float zvtx, int failscut, int runnum, int evtnum, float* frcoh, float* frcem, float* jet_e, int isbadem[96][256], int isbadih[24][64], int isbadoh[24][64], int ishotem[96][256], int ishotih[24][64], int ishotoh[24][64], int nocalem[96][256], int nocalih[24][64], int nocaloh[24][64], int jconem[24][64], int jconih[24][64], int jconoh[24][64], bool rainbow = false)
+void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24][64], float* jet_pt, float* jet_et, float* jet_ph, int jet_n, float zvtx, int failscut, int runnum, int evtnum, float* frcoh, float* frcem, float* jet_e, int isbadem[96][256], int isbadih[24][64], int isbadoh[24][64], int ishotem[96][256], int ishotih[24][64], int ishotoh[24][64], int nocalem[96][256], int nocalih[24][64], int nocaloh[24][64], float jconem[24][64], float jconih[24][64], float jconoh[24][64], int isblt, float jetcut, bool rainbow = false)
 {
 
   int maxindex = 0;
@@ -257,10 +257,10 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 	      if(j==0) nocal[j]->Fill(eta,phi,10*nocalem[eta][phi]);
 	      if(j==1) nocal[j]->Fill(eta,phi,10*nocalih[eta][phi]);
 	      if(j==2) nocal[j]->Fill(eta,phi,10*nocaloh[eta][phi]);
-
-	      if(j==0 && eta < 24 && phi < 64) jcons[j]->Fill(eta,phi,10*jconem[eta][phi]);
-	      if(j==1) jcons[j]->Fill(eta,phi,10*jconih[eta][phi]);
-	      if(j==2) jcons[j]->Fill(eta,phi,10*jconoh[eta][phi]);
+	      
+	      if(j==0 && eta < 24 && phi < 64 && jconem[eta][phi] > jetcut) jcons[j]->Fill(eta,phi,10*jconem[eta][phi]);
+	      if(j==1 && jconih[eta][phi] > jetcut) jcons[j]->Fill(eta,phi,10*jconih[eta][phi]);
+	      if(j==2 && jconoh[eta][phi] > jetcut) jcons[j]->Fill(eta,phi,10*jconoh[eta][phi]);
 	    }
 	}
       deads[j]->SetMaximum(2);
@@ -330,7 +330,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   drawText(full_string.c_str(),0.05,0.925,0,kBlack,0.02);
 
   std::stringstream secondss;
-  secondss << std::fixed << std::setprecision(2) << "E_{lead}="<<jet_e[maxindex]<<", E_{sl}="<<jet_e[slindex]<<", p_{T}^{lead}=" << maxE << ", p_{T}^{sl}=" << slE;
+  secondss << std::fixed << std::setprecision(2) << "E_{lead}="<<jet_e[maxindex]<<", E_{sl}="<<jet_e[slindex]<<", p_{T}^{lead}=" << maxE << ", p_{T}^{sl}=" << slE << ". " << (isblt?"Bad livetime region.":"Good livetime region.");
 
   std::string secondstring = secondss.str();
   
@@ -344,7 +344,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 	{
 	  maxJetE = jet_pt[k];
 	}
-      if(jet_pt[k] < 4) continue;
+      if(jet_pt[k] < jetcut) continue;
       std::stringstream e_stream;
       e_stream << std::fixed << std::setprecision(2) << jet_pt[k];
       std::string e_string = e_stream.str();
@@ -363,7 +363,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
     }
   if(maxJetE > 130) dirstring = "gr130";
       
-  if(maxJetE > 60) c->SaveAs(("../images3/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(evtnum)+"_"+(rainbow?"rainbow":"normal")+".png").c_str());
+  if(maxJetE > 60) c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(evtnum)+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+".png").c_str());
 
 
   for(int i=0; i<3; ++i)
@@ -377,7 +377,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   gPad->SetLogz();
   event_sum->GetZaxis()->SetRangeUser(0.05,25);
   gPad->Update();
-  if(maxJetE > 60) c->SaveAs(("../images3/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(evtnum)+"_"+(rainbow?"rainbow":"normal")+"_log.png").c_str());
+  if(maxJetE > 60) c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(evtnum)+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+"_log.png").c_str());
   ++cancount;
   cout << "Saved" << endl;
 
@@ -396,7 +396,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   c->cd(4);
   event_sum->GetZaxis()->SetRangeUser(-2,25);
   gPad->SetLogz(0);
-  if(maxJetE > 60 && !rainbow) c->SaveAs(("../images3/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(evtnum)+"_jetcon.png").c_str());
+  if(maxJetE > 60 && !rainbow) c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(evtnum)+"_"+(isblt?"blt":"glt")+"_jetcon.png").c_str());
   
   if(c) delete c;
   if(event_disrt[0]) delete event_disrt[0];
@@ -449,9 +449,10 @@ int drawcalo(int lo, int hi, int rainbow = 0)
   int nocalem[96][256] = {0};
   int nocalih[24][64] = {0};
   int nocaloh[24][64] = {0};
-  int jconem[24][64];
-  int jconih[24][64];
-  int jconoh[24][64];
+  float jconem[24][64];
+  float jconih[24][64];
+  float jconoh[24][64];
+  int isblt;
   
   TTree* jet_tree = (TTree*)evtfile->Get("jet_tree");
 
@@ -481,13 +482,13 @@ int drawcalo(int lo, int hi, int rainbow = 0)
   jet_tree->SetBranchAddress("jconem",jconem);
   jet_tree->SetBranchAddress("jconih",jconih);
   jet_tree->SetBranchAddress("jconoh",jconoh);
-
-  
+  jet_tree->SetBranchAddress("isblt",&isblt);
+  float jetcut = 4;
   for(int i=lo; i<(hi>jet_tree->GetEntries()?jet_tree->GetEntries():hi); ++i)
     {
       jet_tree->GetEntry(i);
-      //if((failscut > 2 || failscut < 0) && i % 20 != 0) continue;
-      drawCalo(emtow,ihtow,ohtow,jet_pt,jet_eta,jet_phi,jet_n,zvtx,failscut,runnum,evtnum,frcoh,frcem,jet_e,isbadem,isbadih,isbadoh,ishotem,ishotih,ishotoh,nocalem,nocalih,nocaloh,jconem,jconih,jconoh,rainbow?true:false);
+      if((failscut > 2 || failscut < 0) && i % 20 != 0) continue;
+      drawCalo(emtow,ihtow,ohtow,jet_pt,jet_eta,jet_phi,jet_n,zvtx,failscut,runnum,evtnum,frcoh,frcem,jet_e,isbadem,isbadih,isbadoh,ishotem,ishotih,ishotoh,nocalem,nocalih,nocaloh,jconem,jconih,jconoh,isblt,jetcut,rainbow?true:false);
     }
 
   return 0;

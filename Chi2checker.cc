@@ -496,7 +496,7 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("jconem",_jconem,"jconem[24][64]/F");
   jet_tree->Branch("jconih",_jconih,"jconih[24][64]/F");
   jet_tree->Branch("jconoh",_jconoh,"jconoh[24][64]/F");
-
+  jet_tree->Branch("isblt",&_isbadlive,"isblt/I");
   //jet_tree->Branch("nLayerEm",&_nLayerEm,"nLayerEm/I");
   //jet_tree->Branch("nLayerOh",&_nLayerOh,"nLayerOh/I");
   /*
@@ -562,7 +562,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 
   if(_debug > 1) cout << endl << endl << endl << "Chi2checker: Beginning event processing" << endl;
   if(_nprocessed % 1000 == 0) cout << "processing event " << _nprocessed << endl;
-  ++_nprocessed;
+  
   Gl1Packetv2* gl1 = findNode::getClass<Gl1Packetv2>(topNode, "GL1Packet");
   if(!gl1)
     {
@@ -572,22 +572,58 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   if(_debug > 1) cout << "Chi2checker: Getting gl1 trigger vector from: " << gl1 << endl;
   _triggervec = gl1->getScaledVector();
 
-  int isjettrig = (_triggervec >> 22 || _triggervec >> 18) & 1;
-  int ismbtrig = (_triggervec >> 10) & 1;
-  if(_debug > 2) cout << _triggervec << " " << isjettrig << " " << ismbtrig << endl;
+  int isjettrig = (_triggervec >> 22) & 1;
+  int isjmbtrig = (_triggervec >> 18) & 1;
+  //int ismbtrig = (_triggervec >> 10) & 1;
+  //if(_debug > 2) cout << _triggervec << " " << isjettrig << " " << ismbtrig << endl;
 
-  if(!isjettrig && !ismbtrig)
+  if(!isjettrig && !isjmbtrig)// && !ismbtrig)
     {
       if(_debug > 1) cout << "no jet trigger" << endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
+  if(_nprocessed == 0)
+    {
+      _prevraw18 = gl1->lValue(18,0);
+      _prevraw22 = gl1->lValue(22,0);
+      _prevlive18 = gl1->lValue(18,1);
+      _prevlive22 = gl1->lValue(22,1);
+      _isbadlive = 0;
+    }
+  long long unsigned int currentlive18, currentlive22, currentraw18, currentraw22;
+  currentlive18 = gl1->lValue(18,1);
+  currentlive22 = gl1->lValue(22,1);
+  currentraw18 = gl1->lValue(18,0);
+  currentraw22 = gl1->lValue(22,0);
+  long long unsigned int live18diff = currentlive18 - _prevlive18;
+  long long unsigned int live22diff = currentlive22 - _prevlive22;
+  long long unsigned int raw18diff = currentraw18 - _prevraw18;
+  long long unsigned int raw22diff = currentraw22 - _prevraw22;
+  if(_nprocessed != 0)
+    {
+      if(isjettrig && (((float)live22diff)/raw22diff < 0.1 || ((float)live18diff)/raw18diff < 0.1)) _isbadlive = 1;
+      else _isbadlive = 0;
+    }
+  else
+    {
+      _isbadlive = 0;
+    }
+
+  _prevraw18 = currentraw18;
+  _prevraw22 = currentraw22;
+  _prevlive18 = currentlive18;
+  _prevlive22 = currentlive22;
+  
+  ++_nprocessed;
+  /*
   if(ismbtrig)
     {
       if(_debug > 2) cout << "mb triggered" << endl;
       _mbevt++;
       if(!isjettrig) return Fun4AllReturnCodes::ABORTEVENT;
     }
+  */
   int runnumber = 0;
   int evtnum = 0;
   EventHeader *runheader = findNode::getClass<EventHeader>(topNode, "EventHeader");
@@ -1219,6 +1255,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       _jet_ET = maxEnergy;
       _dphi = dphi;
       _subjet_ET = subEnergy;
+      if(_debug > 7) cout << "vars assigned" << endl;
       /*
       if(maxJetE > 4)
 	{
@@ -1248,17 +1285,21 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	{
 	  failsall = 0;
 	}
+      if(_debug > 7) cout << "cuts set" << endl;
       if((maxJetE > 55 && (!loETCut || !dPhiCut)) || maxJetE > 75)
 	{
 	  towers[0] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
+	  if(_debug > 1) cout << "adding to tree. towers: " << towers[0] << endl;
 	  for(int j=0; j<3; ++j)
 	    {
 	      for(int k=0; k<(j==0?24576:1536); ++k)
 		{
 		  TowerInfo* tower = towers[j]->get_tower_at_channel(k);
+		  if(_debug > 9) cout << "tower: " << tower << endl;
 		  int key = towers[j]->encode_key(k);
 		  int eta = towers[j]->getTowerEtaBin(key);
 		  int phi = towers[j]->getTowerPhiBin(key);
+		  if(_debug > 9) cout << "got ket, eta, phi" << key << " " << eta << " " << phi << endl;
 		  bool isbad = tower->get_isBadChi2();
 		  bool isnocal = tower->get_isNoCalib();
 		  bool ishot = tower->get_isHot();
@@ -1284,11 +1325,13 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		      _nocaloh[eta][phi] = (isnocal?1:0);
 		    }
 		}
+	      if(_debug > 3) cout << "did towers["<<j<<"]" << endl;
 	    }
 	  _failscut = failsall;
 	  _runnum = runnumber;
 	  _evtnum = evtnum;
 	  //drawCalo(towers, _jet_pt, _jet_eta, _jet_phi, _jet_n, jet_ecc, jet_lfrac, geom, zvtx, failsall, runnumber, evtnum, _frcoh, _frcem, maxLayerE[0], maxLayerE[1], maxJetE);
+	  cout << "jet_tree = " << jet_tree << endl;
 	  jet_tree->Fill();
 	  cout << "drew calo" << endl;
 	}
