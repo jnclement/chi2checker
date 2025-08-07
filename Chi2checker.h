@@ -20,7 +20,7 @@ class Chi2checker : public SubsysReco
 {
  public:
 
-  Chi2checker(const std::string &filename = "/sphenix/user/jocl/projects/run2024_earlydata/run/output/temphists/debug.root", const std::string &name = "Chi2checker", const int debug = 0);
+  Chi2checker(const std::string &filename = "/sphenix/user/jocl/projects/run2024_earlydata/run/output/temphists/debug.root", const std::string &name = "Chi2checker", const int debug = 0, const std::string &wfilename = "", const int dowf = 0);
 
   virtual ~Chi2checker();
 
@@ -125,6 +125,9 @@ class Chi2checker : public SubsysReco
   float _jconem[24][64];
   float _jconih[24][64];
   float _jconoh[24][64];
+  float _chi2em[96][256];
+  float _chi2ih[24][64];
+  float _chi2oh[24][64];
   float _dPhi2pc[1000];
   float _dEta2pc[1000];
   float _dPhiLayer[100];
@@ -147,6 +150,14 @@ class Chi2checker : public SubsysReco
   */
   int _n2pc;
   GlobalVertex::VTXTYPE _vtxtype = GlobalVertex::MBD;
+
+  int _dowf;
+  std::string _wfilename;
+  TTree* _wft;
+  TFile* _wff;
+  unsigned int _emwf[96][256][12];
+  unsigned int _ihwf[24][64][12];
+  unsigned int _ohwf[24][64][12];
 };
 
 #endif // CHI2TREEMAKER

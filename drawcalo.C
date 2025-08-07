@@ -129,7 +129,7 @@ void sphenixtext(float xpos = 0.7, float ypos = 0.96, int ra = 0, float textsize
   drawText("#bf{#it{sPHENIX}} Internal", xpos, ypos, ra, kBlack, textsize);
 }
 int cancount = 0;
-void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24][64], float* jet_pt, float* jet_et, float* jet_ph, int jet_n, float zvtx, int failscut, int runnum, int evtnum, float* frcoh, float* frcem, float* jet_e, int isbadem[96][256], int isbadih[24][64], int isbadoh[24][64], int ishotem[96][256], int ishotih[24][64], int ishotoh[24][64], int nocalem[96][256], int nocalih[24][64], int nocaloh[24][64], float jconem[24][64], float jconih[24][64], float jconoh[24][64], int isblt, float jetcut, bool rainbow = false)
+void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24][64], float* jet_pt, float* jet_et, float* jet_ph, int jet_n, float zvtx, int failscut, int runnum, int evtnum, float* frcoh, float* frcem, float* jet_e, int isbadem[96][256], int isbadih[24][64], int isbadoh[24][64], int ishotem[96][256], int ishotih[24][64], int ishotoh[24][64], int nocalem[96][256], int nocalih[24][64], int nocaloh[24][64], float jconem[24][64], float jconih[24][64], float jconoh[24][64], int isblt, float jetcut, float chi2em[96][256], float chi2ih[24][64], float chi2oh[24][64],  bool rainbow = false)
 {
 
   int maxindex = 0;
@@ -175,18 +175,20 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   TH2D* event_sum = new TH2D("event_sum","Calorimeter Sum",24,-0.5,23.5,64,-0.5,63.5);
   TH2D* event_disrt[3];
   TH2D* deads[3];
-  TH2D* chi2s[3];
+  TH2D* bchi2[3];
   TH2D* nocal[3];
   TH2D* jcons[3];
+  TH2D* chi2s[3];
   for(int i=0; i<3; ++i)
     {
       int nbinx = (i==0?96:24);
       int nbiny = (i==0?256:64);
       event_disrt[i] = new TH2D(("event_display_rt"+to_string(i)).c_str(),"",nbinx,-0.5,nbinx-0.5,nbiny,-0.5,nbiny-0.5);
       deads[i] = new TH2D(("deads"+to_string(i)).c_str(),"",nbinx,-0.5,nbinx-0.5,nbiny,-0.5,nbiny-0.5);
-      chi2s[i] = new TH2D(("chi2s"+to_string(i)).c_str(),"",nbinx,-0.5,nbinx-0.5,nbiny,-0.5,nbiny-0.5);
+      bchi2[i] = new TH2D(("bchi2"+to_string(i)).c_str(),"",nbinx,-0.5,nbinx-0.5,nbiny,-0.5,nbiny-0.5);
       nocal[i] = new TH2D(("nocal"+to_string(i)).c_str(),"",nbinx,-0.5,nbinx-0.5,nbiny,-0.5,nbiny-0.5);
       jcons[i] = new TH2D(("jcons"+to_string(i)).c_str(),"",24,-0.5,23.5,64,-0.5,63.5);
+      chi2s[i] = new TH2D(("chi2s"+to_string(i)).c_str(),"",nbinx,-0.5,nbinx-0.5,nbiny,-0.5,nbiny-0.5);
     }
   //TColor::CreateGradientColorTable(nstp, stp, red, grn, blu, ncol);
   event_disrt[0]->GetXaxis()->SetTitle("EMCal #eta Bin");
@@ -250,9 +252,9 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 	      if(j==1) deads[j]->Fill(eta,phi,10*ishotih[eta][phi]);
 	      if(j==2) deads[j]->Fill(eta,phi,10*ishotoh[eta][phi]);
 
-	      if(j==0) chi2s[j]->Fill(eta,phi,10*isbadem[eta][phi]);
-	      if(j==1) chi2s[j]->Fill(eta,phi,10*isbadih[eta][phi]);
-	      if(j==2) chi2s[j]->Fill(eta,phi,10*isbadoh[eta][phi]);
+	      if(j==0) bchi2[j]->Fill(eta,phi,10*isbadem[eta][phi]);
+	      if(j==1) bchi2[j]->Fill(eta,phi,10*isbadih[eta][phi]);
+	      if(j==2) bchi2[j]->Fill(eta,phi,10*isbadoh[eta][phi]);
 
 	      if(j==0) nocal[j]->Fill(eta,phi,10*nocalem[eta][phi]);
 	      if(j==1) nocal[j]->Fill(eta,phi,10*nocalih[eta][phi]);
@@ -261,10 +263,14 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 	      if(j==0 && eta < 24 && phi < 64 && jconem[eta][phi] > jetcut) jcons[j]->Fill(eta,phi,10*jconem[eta][phi]);
 	      if(j==1 && jconih[eta][phi] > jetcut) jcons[j]->Fill(eta,phi,10*jconih[eta][phi]);
 	      if(j==2 && jconoh[eta][phi] > jetcut) jcons[j]->Fill(eta,phi,10*jconoh[eta][phi]);
+
+	      if(j==0) chi2s[j]->Fill(eta,phi,chi2em[eta][phi]);
+	      if(j==1) chi2s[j]->Fill(eta,phi,chi2ih[eta][phi]);
+	      if(j==2) chi2s[j]->Fill(eta,phi,chi2oh[eta][phi]);
 	    }
 	}
       deads[j]->SetMaximum(2);
-      chi2s[j]->SetMaximum(2);
+      bchi2[j]->SetMaximum(2);
       nocal[j]->SetMaximum(2);
       c->cd(j+1);
       gPad->SetLogz(0);
@@ -276,9 +282,9 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
       rainbow?ex3->Draw("same"):ex1->Draw("same");
       event_disrt[j]->Draw("colz same");
       
-      chi2s[j]->Draw("col same0");
+      bchi2[j]->Draw("col same0");
       ex5->Draw();
-      chi2s[j]->Draw("col same0");
+      bchi2[j]->Draw("col same0");
 
       nocal[j]->Draw("col same0");
       ex4->Draw();
@@ -381,6 +387,21 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   ++cancount;
   cout << "Saved" << endl;
 
+  for(int i=0; i<3; ++i)
+    {
+      c->cd(i+1);
+      chi2s[i]->GetYaxis()->SetTitle("Tower #phi Bin");
+      chi2s[i]->GetXaxis()->SetTitle("Tower #eta Bin");
+      chi2s[i]->GetZaxis()->SetTitle("#chi^{2}");
+      chi2s[i]->GetZaxis()->SetRangeUser(0.1,1e8);
+      chi2s[i]->Draw("COLZ");
+    }
+  c->cd(4);
+  event_sum->GetZaxis()->SetRangeUser(-2,25);
+  gPad->SetLogz(0);
+  if(maxJetE > 60 && !rainbow) c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(evtnum)+"_"+(isblt?"blt":"glt")+"_chi2.png").c_str());
+
+  
   //gStyle->SetPalette(2,kBird);
   for(int i=0; i<3; ++i)
     {
@@ -405,15 +426,19 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   if(deads[0]) delete deads[0];
   if(deads[1]) delete deads[1];
   if(deads[2]) delete deads[2];
-  if(chi2s[0]) delete chi2s[0];
-  if(chi2s[1]) delete chi2s[1];
-  if(chi2s[2]) delete chi2s[2];
+  if(bchi2[0]) delete bchi2[0];
+  if(bchi2[1]) delete bchi2[1];
+  if(bchi2[2]) delete bchi2[2];
   if(nocal[0]) delete nocal[0];
   if(nocal[1]) delete nocal[1];
   if(nocal[2]) delete nocal[2];
   if(jcons[0]) delete jcons[0];
   if(jcons[1]) delete jcons[1];
   if(jcons[2]) delete jcons[2];
+  for(int i=0; i<3; ++i)
+    {
+      if(chi2s[i]) delete chi2s[i];
+    }
   if(event_sum) delete event_sum;
   if(ex1) delete ex1;
   if(ex2) delete ex2;
@@ -453,6 +478,9 @@ int drawcalo(int lo, int hi, int rainbow = 0)
   float jconih[24][64];
   float jconoh[24][64];
   int isblt;
+  float chi2em[96][256];
+  float chi2ih[24][64];
+  float chi2oh[24][64];
   
   TTree* jet_tree = (TTree*)evtfile->Get("jet_tree");
 
@@ -483,12 +511,15 @@ int drawcalo(int lo, int hi, int rainbow = 0)
   jet_tree->SetBranchAddress("jconih",jconih);
   jet_tree->SetBranchAddress("jconoh",jconoh);
   jet_tree->SetBranchAddress("isblt",&isblt);
+  jet_tree->SetBranchAddress("chi2em",chi2em);
+  jet_tree->SetBranchAddress("chi2ih",chi2ih);
+  jet_tree->SetBranchAddress("chi2oh",chi2oh);
   float jetcut = 4;
   for(int i=lo; i<(hi>jet_tree->GetEntries()?jet_tree->GetEntries():hi); ++i)
     {
       jet_tree->GetEntry(i);
-      if((failscut > 2 || failscut < 0) && i % 20 != 0) continue;
-      drawCalo(emtow,ihtow,ohtow,jet_pt,jet_eta,jet_phi,jet_n,zvtx,failscut,runnum,evtnum,frcoh,frcem,jet_e,isbadem,isbadih,isbadoh,ishotem,ishotih,ishotoh,nocalem,nocalih,nocaloh,jconem,jconih,jconoh,isblt,jetcut,rainbow?true:false);
+      if((failscut > 2 || failscut < 0) && i % 50 != 0) continue;
+      drawCalo(emtow,ihtow,ohtow,jet_pt,jet_eta,jet_phi,jet_n,zvtx,failscut,runnum,evtnum,frcoh,frcem,jet_e,isbadem,isbadih,isbadoh,ishotem,ishotih,ishotoh,nocalem,nocalih,nocaloh,jconem,jconih,jconoh,isblt,jetcut,chi2em,chi2ih,chi2oh,rainbow?true:false);
     }
 
   return 0;
