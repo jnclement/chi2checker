@@ -1,3 +1,5 @@
+#include <cmath>
+
 void Pal6()
 {   // for "magenta pixels"
   const Int_t nstp = 2;
@@ -264,9 +266,9 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 	      if(j==1 && jconih[eta][phi] > jetcut) jcons[j]->Fill(eta,phi,10*jconih[eta][phi]);
 	      if(j==2 && jconoh[eta][phi] > jetcut) jcons[j]->Fill(eta,phi,10*jconoh[eta][phi]);
 
-	      if(j==0) chi2s[j]->Fill(eta,phi,chi2em[eta][phi]);
-	      if(j==1) chi2s[j]->Fill(eta,phi,chi2ih[eta][phi]);
-	      if(j==2) chi2s[j]->Fill(eta,phi,chi2oh[eta][phi]);
+	      if(j==0 && !std::isnan(chi2em[eta][phi])) chi2s[j]->Fill(eta,phi,chi2em[eta][phi]);
+	      if(j==1 && !std::isnan(chi2ih[eta][phi])) chi2s[j]->Fill(eta,phi,chi2ih[eta][phi]);
+	      if(j==2 && !std::isnan(chi2oh[eta][phi])) chi2s[j]->Fill(eta,phi,chi2oh[eta][phi]);
 	    }
 	}
       deads[j]->SetMaximum(2);
