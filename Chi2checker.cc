@@ -1399,13 +1399,24 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		    {
 		      int etabin = get_bindex(p,c,"eta");
 		      int phibin = get_bindex(p,c,"phi");
-		      for(int s=0; s<packet->getNrSamples(); ++s)
+		      int ns = packet->getNrSamples();
+		      if(ns==12)
 			{
-			  if(s>11)
+			  for(int s=0; s<ns; ++s)
 			    {
-			      cout << "too many samples in " << p << " " << c  << endl;
+			      if(s>11)
+				{
+				  cout << "too many samples in " << p << " " << c  << endl;
+				}
+			      _emwf[etabin][phibin][s] = packet->iValue(c,s);
 			    }
-			  _emwf[etabin][phibin][s] = packet->iValue(c,s);
+			}
+		      else
+			{
+			  for(int s=0; s<12; ++s)
+			    {
+			      _emwf[etabin][phibin][s] = 0;
+			    }
 			}
 		    }
 		}
@@ -1418,13 +1429,24 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		    {
 		      int etabin = get_bindex(p,c,"eta");
 		      int phibin = get_bindex(p,c,"phi");
-		      for(int s=0; s<packet->getNrSamples(); ++s)
-			{
-			  if(s>11)
+		      int ns = packet->getNrSamples();
+		      if(ns==12)
+			{	      
+			  for(int s=0; s<ns; ++s)
 			    {
-			      cout << "too many samples in " << p << " " << c  << endl;
+			      if(s>11)
+				{
+				  cout << "too many samples in " << p << " " << c  << endl;
+				}
+			      _ihwf[etabin][phibin][s] = packet->iValue(c,s);
 			    }
-			  _ihwf[etabin][phibin][s] = packet->iValue(c,s);
+			}
+		      else
+			{
+			  for(int s=0; s<12; ++s)
+			    {
+			      _ihwf[etabin][phibin][s] = 0;
+			    }
 			}
 		    }
 		}
@@ -1438,13 +1460,24 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		    {
 		      int etabin = get_bindex(p,c,"eta");
 		      int phibin = get_bindex(p,c,"phi");
-		      for(int s=0; s<packet->getNrSamples(); ++s)
+		      int ns = packet->getNrSamples();
+		      if(ns==12)
 			{
-			  if(s>11)
+			  for(int s=0; s<ns; ++s)
 			    {
-			      cout << "too many samples in " << p << " " << c  << endl;
+			      if(s>11)
+				{
+				  cout << "too many samples in " << p << " " << c  << endl;
+				}
+			      _ohwf[etabin][phibin][s] = packet->iValue(c,s);
 			    }
-			  _ohwf[etabin][phibin][s] = packet->iValue(c,s);
+			}
+		      else
+			{
+			  for(int s=0; s<12; ++s)
+			    {
+			      _ohwf[etabin][phibin][s] = 0;
+			    }
 			}
 		    }
 		}
