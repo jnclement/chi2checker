@@ -57,7 +57,7 @@
 #include <calotrigger/MinimumBiasInfo.h>
 #include <calotrigger/MinimumBiasInfov1.h>
 #include <calotrigger/MinimumBiasClassifier.h>
-#include <ffarawobjects/Gl1Packetv2.h>
+#include <ffarawobjects/Gl1Packetv3.h>
 #include <TLorentzVector.h>
 #include <ffaobjects/EventHeader.h>
 #include <pdbcalbase/PdbParameterMap.h>
@@ -603,7 +603,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   if(_debug > 1) cout << endl << endl << endl << "Chi2checker: Beginning event processing" << endl;
   if(_nprocessed % 1000 == 0) cout << "processing event " << _nprocessed << endl;
   
-  Gl1Packetv2* gl1 = findNode::getClass<Gl1Packetv2>(topNode, "GL1Packet");
+  Gl1Packetv3* gl1 = findNode::getClass<Gl1Packetv3>(topNode, "14001");
   if(!gl1)
     {
       cout << "No trigger info!" << endl;
