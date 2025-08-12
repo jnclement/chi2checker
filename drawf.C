@@ -4,7 +4,7 @@ int drawf(int runnumdraw = -1, int evtdraw = -1)
 
   gStyle->SetPadTickX(1);
   gStyle->SetPadTickY(1);
-
+  gStyle->SetOptStat(0);
   int runnum, evtnum;
   unsigned int emwf[96][256][12];
   unsigned int ihwf[24][64][12];
@@ -32,9 +32,9 @@ int drawf(int runnumdraw = -1, int evtdraw = -1)
   c->SetLeftMargin(0.15);
   c->SetBottomMargin(0.15);
 
-  string texts[3] = {"#bf{#it{sPHENIX}} Internal","#sqrt{s} = 200 GeV","Run " + to_string(evtnum) + ", Event " + to_string(evtnum)};
+  string texts[3] = {"#bf{#it{sPHENIX}} Internal","#sqrt{s} = 200 GeV",""};
   TLatex* tex[3];
-  float ycoord[3] = {0.975,0.925,0.875};
+  float ycoord[3] = {0.96,0.91,0.86};
   for(int i=0; i<3; ++i)
     {
       tex[i] = new TLatex(0.7,ycoord[i],texts[i].c_str());
@@ -56,6 +56,7 @@ int drawf(int runnumdraw = -1, int evtdraw = -1)
 	      if(evtnum != evtdraw) continue;
 	    }
 	}
+      texts[2] = "Run " + to_string(evtnum) + ", Event " + to_string(evtnum);
       for(int j=0; j<3; ++j)
 	{
 	  if(j==0)
@@ -106,7 +107,7 @@ int drawf(int runnumdraw = -1, int evtdraw = -1)
 	    {
 	      tex[k]->Draw();
 	    }
-	  gPad->SaveAs((to_string(runnum)+"_"+to_string(evtnum)+"_"+calo[j]+"_wf.png").c_str());
+	  gPad->SaveAs(("../images/"+to_string(runnum)+"_"+to_string(evtnum)+"_"+calo[j]+"_wf.png").c_str());
 	  h2_wf[j]->Reset();
 	}
     }

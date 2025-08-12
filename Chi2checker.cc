@@ -508,9 +508,10 @@ int Chi2checker::Init(PHCompositeNode *topNode)
 
   _wft->Branch("runnum",&_runnum,"runnum/I");
   _wft->Branch("evtnum",&_evtnum,"evtnum/I");
-  _wft->Branch("emwf",_emwf,"emwf/i");
-  _wft->Branch("ihwf",_ihwf,"ihwf/i");
-  _wft->Branch("ohwf",_ohwf,"ohwf/i");
+  _wft->Branch("emwf",_emwf,"emwf[96][256]/i");
+  _wft->Branch("ihwf",_ihwf,"ihwf[24][64]/i");
+  _wft->Branch("ohwf",_ohwf,"ohwf[24][64]/i");
+  _wft->Branch("failscut",&_failscut,"failscut/I");
   //jet_tree->Branch("nLayerEm",&_nLayerEm,"nLayerEm/I");
   //jet_tree->Branch("nLayerOh",&_nLayerOh,"nLayerOh/I");
   /*
@@ -978,15 +979,15 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
           if(jet)
             {
 	      //float Etot = 0;
-	      if(_debug > 5) cout << "getting jet E/eta" << endl;
+	      //if(_debug > 5) cout << "getting jet E/eta" << endl;
 	      float testJetE = jet->get_pt();
 	      float testJetPhi = jet->get_phi();
 	      float sigEtaEta = 0;
 	      float sigEtaPhi = 0;
 	      float sigPhiPhi = 0;
-	      if(_debug > 5) cout << "jet E/eta: " << testJetE  << " " << jet->get_eta() << endl;
+	      //if(_debug > 5) cout << "jet E/eta: " << testJetE  << " " << jet->get_eta() << endl;
 	      if(jet->get_pt() < 1) continue;
-	      if(_debug > 3) cout << "got a candidate jet" << endl;
+	      //if(_debug > 3) cout << "got a candidate jet" << endl;
 	      _alljetfrcem[_jet_n] = 0;
 	      _alljetfrcoh[_jet_n] = 0;
 	      _jet_et[_jet_n] = jet->get_e();
@@ -1032,7 +1033,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		  maxJetPhi = jet->get_phi();//(jet->get_phi()>0?jet->get_phi():jet->get_phi()+2*M_PI);
 		}
 	
-	      if(_debug > 3) cout << "getting comp vec" << endl;
+	      //if(_debug > 3) cout << "getting comp vec" << endl;
 	      
 	      for(int i=0; i<3; ++i)
 		{
@@ -1065,7 +1066,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		      int key = towers[1]->encode_key(channel);
 		      const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, towers[1]->getTowerEtaBin(key), towers[1]->getTowerPhiBin(key));
 		      _jconih[towers[1]->getTowerEtaBin(key)][towers[1]->getTowerPhiBin(key)] = testJetE;
-		      if(_debug > 6) cout << "encoding tower geom" << endl;
+		      //if(_debug > 6) cout << "encoding tower geom" << endl;
 		      RawTowerGeom *tower_geom = geom[1]->get_tower_geometry(geomkey); //encode tower geometry
 		      float radius = tower_geom->get_center_radius();
 		      float newz = tower_geom->get_center_z() - zvtx;
@@ -1092,8 +1093,8 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		      if(dPhi > M_PI) dPhi -= 2*M_PI;
 		      if(dPhi < -M_PI) dPhi += 2*M_PI;
 		      float dEta = towerEta - maxJetEta;
-		      if(_debug > 4) cout << "IHCal" << endl;
-		      if(_debug > 4) print_debug(maxJetEta, maxJetPhi, towerEta, towerPhi, dPhi, dEta);
+		      //if(_debug > 4) cout << "IHCal" << endl;
+		      //if(_debug > 4) print_debug(maxJetEta, maxJetPhi, towerEta, towerPhi, dPhi, dEta);
 		      if(newMaxJetET)
 			{
 			  sigEtaEta += towerE*dEta*dEta;
@@ -1149,8 +1150,8 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		      if(dPhi > M_PI) dPhi -= 2*M_PI;
 		      if(dPhi < -M_PI) dPhi += 2*M_PI;
 		      float dEta = towerEta - maxJetEta;
-		      if(_debug > 4) cout << "OHCal" << endl;
-		      if(_debug > 4) print_debug(maxJetEta, maxJetPhi, towerEta, towerPhi, dPhi, dEta);
+		      //if(_debug > 4) cout << "OHCal" << endl;
+		      //if(_debug > 4) print_debug(maxJetEta, maxJetPhi, towerEta, towerPhi, dPhi, dEta);
 		      if(newMaxJetET)
 			{
 			  sigEtaEta += towerE*dEta*dEta;
@@ -1208,8 +1209,8 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		      if(dPhi > M_PI) dPhi -= 2*M_PI;
 		      if(dPhi < -M_PI) dPhi += 2*M_PI;
 		      float dEta = towerEta - maxJetEta;
-		      if(_debug > 4) cout << "EMCal" << endl;
-		      if(_debug > 4) print_debug(maxJetEta, maxJetPhi, towerEta, towerPhi, dPhi, dEta);
+		      //if(_debug > 4) cout << "EMCal" << endl;
+		      //if(_debug > 4) print_debug(maxJetEta, maxJetPhi, towerEta, towerPhi, dPhi, dEta);
 		      if(newMaxJetET)
 			{
 			  sigEtaEta += towerE*dEta*dEta;
@@ -1235,10 +1236,10 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		  v2 /= ncomp;
 		  maxEoverTot = (maxLayerE[0] > maxLayerE[1]?maxLayerE[0]:maxLayerE[1])/maxJetE;
 		
-		  if(_debug > 3 && (lam1 < 0 || lam2 < 0)) cout << "lam1 or lam2 < 0, printing:" << lam1 << " " << lam2 << endl;
+		  //if(_debug > 3 && (lam1 < 0 || lam2 < 0)) cout << "lam1 or lam2 < 0, printing:" << lam1 << " " << lam2 << endl;
 		  if(lam1 > lam2) eccentricity = 1-lam2/lam1;
 		  else eccentricity = 1-lam1/lam2;
-		  if(_debug > 3) cout << "ecc/layer: " << eccentricity << " " << maxEoverTot << endl;
+		  //if(_debug > 3) cout << "ecc/layer: " << eccentricity << " " << maxEoverTot << endl;
 		}
 	      //if(_debug > 3) cout << "ecc entries: " << h2_ecc_layer->GetEntries() << endl;
 	      _alljetfrcoh[_jet_n] /= _jet_et[_jet_n];
@@ -1349,11 +1350,11 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	      for(int k=0; k<(j==0?24576:1536); ++k)
 		{
 		  TowerInfo* tower = towers[j]->get_tower_at_channel(k);
-		  if(_debug > 9) cout << "tower: " << tower << endl;
+		  //if(_debug > 9) cout << "tower: " << tower << endl;
 		  int key = towers[j]->encode_key(k);
 		  int eta = towers[j]->getTowerEtaBin(key);
 		  int phi = towers[j]->getTowerPhiBin(key);
-		  if(_debug > 9) cout << "got key, eta, phi" << key << " " << eta << " " << phi << endl;
+		  //if(_debug > 9) cout << "got key, eta, phi" << key << " " << eta << " " << phi << endl;
 		  bool isbad = tower->get_isBadChi2();
 		  bool isnocal = tower->get_isNoCalib();
 		  bool ishot = tower->get_isHot();
@@ -1393,94 +1394,111 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	    {
 	      for(int p=6001; p<6129; ++p)
 		{
+		  if(_debug > 6) cout << "entered packet " << p << endl;
 		  CaloPacketv1* packet = findNode::getClass<CaloPacketv1>(topNode,to_string(p));
 		  if(!packet) continue;
 		  for(int c=0; c<packet->getNrChannels(); ++c)
-		    {
+		    {		      
 		      int etabin = get_bindex(p,c,"eta");
 		      int phibin = get_bindex(p,c,"phi");
 		      int ns = packet->getNrSamples();
+		      if(_debug > 10)cout << "entered packet " << p << " channel " << c << " eta/phi " << etabin << " " << phibin << endl;
 		      if(ns==12)
 			{
 			  for(int s=0; s<ns; ++s)
 			    {
+			      if(_debug > 12) cout << s << " ";
 			      if(s>11)
 				{
 				  cout << "too many samples in " << p << " " << c  << endl;
 				}
-			      _emwf[etabin][phibin][s] = packet->iValue(c,s);
+			      _emwf[etabin][phibin][s] = packet->getSample(c,s);
 			    }
 			}
 		      else
 			{
 			  for(int s=0; s<12; ++s)
 			    {
+			      if(_debug > 12) cout << s << " ";
 			      _emwf[etabin][phibin][s] = 0;
 			    }
 			}
+		      cout << endl;
 		    }
 		}
 	      
 	      for(int p=7001; p<7009; ++p)
 		{
+		  if(_debug > 6) cout << "entered packet " << p << endl;
 		  CaloPacketv1* packet = findNode::getClass<CaloPacketv1>(topNode,to_string(p));
 		  if(!packet) continue;
 		  for(int c=0; c<packet->getNrChannels(); ++c)
 		    {
+		      
 		      int etabin = get_bindex(p,c,"eta");
 		      int phibin = get_bindex(p,c,"phi");
 		      int ns = packet->getNrSamples();
+		      if(_debug > 10) cout << "entered packet " << p << " channel " << c  << " eta/phi " << etabin << " " << phibin << endl;
 		      if(ns==12)
 			{	      
 			  for(int s=0; s<ns; ++s)
 			    {
+			      if(_debug > 12) cout << s << " ";
 			      if(s>11)
 				{
 				  cout << "too many samples in " << p << " " << c  << endl;
 				}
-			      _ihwf[etabin][phibin][s] = packet->iValue(c,s);
+			      _ihwf[etabin][phibin][s] = packet->getSample(c,s);
 			    }
 			}
 		      else
 			{
 			  for(int s=0; s<12; ++s)
 			    {
+			      if(_debug > 12) cout << s << " ";
 			      _ihwf[etabin][phibin][s] = 0;
 			    }
 			}
+		      cout << endl;
 		    }
 		}
 	      
 	      
 	      for(int p=8001; p<8009; ++p)
 		{
+		  if(_debug > 6) cout << "entered packet " << p << endl;
 		  CaloPacketv1* packet = findNode::getClass<CaloPacketv1>(topNode,to_string(p));
 		  if(!packet) continue;
 		  for(int c=0; c<packet->getNrChannels(); ++c)
-		    {
+		    {		      
 		      int etabin = get_bindex(p,c,"eta");
 		      int phibin = get_bindex(p,c,"phi");
+		      if(_debug > 10) cout << "entered packet " << p << " channel " << c << " eta/phi " << etabin << " " << phibin << endl;
 		      int ns = packet->getNrSamples();
-		      if(ns==12)
-			{
+		      if(ns==12 && !packet->getSuppressed(c))
+			{			
 			  for(int s=0; s<ns; ++s)
 			    {
+			      if(_debug > 12) cout << s << " ";
 			      if(s>11)
 				{
 				  cout << "too many samples in " << p << " " << c  << endl;
 				}
-			      _ohwf[etabin][phibin][s] = packet->iValue(c,s);
+			      _ohwf[etabin][phibin][s] = packet->getSample(c,s);
 			    }
 			}
 		      else
 			{
 			  for(int s=0; s<12; ++s)
 			    {
+			      if(_debug > 12) cout << s << " ";
 			      _ohwf[etabin][phibin][s] = 0;
 			    }
 			}
+		      cout << endl;
 		    }
 		}
+	      cout << "done writing to arrays" << endl;
 	      _wft->Fill();
 	    }
 	  jet_tree->Fill();
