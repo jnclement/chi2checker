@@ -5,7 +5,7 @@ int drawf(int runnumdraw = -1, int evtdraw = -1)
   gStyle->SetPadTickX(1);
   gStyle->SetPadTickY(1);
   gStyle->SetOptStat(0);
-  int runnum, evtnum;
+  int runnum, evtnum, failscut;
   unsigned int emwf[96][256][12];
   unsigned int ihwf[24][64][12];
   unsigned int ohwf[24][64][12];
@@ -17,8 +17,10 @@ int drawf(int runnumdraw = -1, int evtdraw = -1)
   wft->SetBranchAddress("emwf",emwf);
   wft->SetBranchAddress("ihwf",ihwf);
   wft->SetBranchAddress("ohwf",ohwf);
-
+  wft->SetBranchAddress("failscut",&failscut);
+  
   string calo[3] = {"EMCal","IHCal","OHCal"};
+  string ct[4] = {"fails","dijet","frac","both"};
   
   TH2D* h2_wf[3];
   for(int i=0; i<3; ++i)
@@ -48,6 +50,7 @@ int drawf(int runnumdraw = -1, int evtdraw = -1)
   for(int i=0; i<wft->GetEntries(); ++i)
     {
       wft->GetEntry(i);
+      if(failscut < 0 && i%100 != 0) continue;
       if(runnumdraw >= 0)
 	{
 	  if(runnum != runnumdraw) continue;
@@ -107,7 +110,7 @@ int drawf(int runnumdraw = -1, int evtdraw = -1)
 	    {
 	      tex[k]->Draw();
 	    }
-	  gPad->SaveAs(("../images/"+to_string(runnum)+"_"+to_string(evtnum)+"_"+calo[j]+"_wf.png").c_str());
+	  gPad->SaveAs(("../images/"+to_string(runnum)+"_"+to_string(evtnum)+"_"+calo[j]+"_"+ct[failscut+1]+"_wf.png").c_str());
 	  h2_wf[j]->Reset();
 	}
     }
