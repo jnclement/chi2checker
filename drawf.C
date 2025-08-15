@@ -10,14 +10,14 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
   unsigned int emwf[96][256][12];
   unsigned int ihwf[24][64][12];
   unsigned int ohwf[24][64][12];
-  float jconem[96][256];
+  float jconem[24][64];
   float jconih[24][64];
   float jconoh[24][64];
   
   TTree* wft = (TTree*) evtfile->Get("wft");
   TTree* jt = (TTree*) othfile->Get("jet_tree");
 
-  const float jetcut = -1;
+  const float jetcut = 10;
 
   jt->SetBranchAddress("jconem",jconem);
   jt->SetBranchAddress("jconih",jconih);
@@ -34,6 +34,8 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
   
   string calo[3] = {"EMCal","IHCal","OHCal"};
   string ct[4] = {"fails","dijet","frac","both"};
+
+  TH1D* singlewf = new TH1D("singlwf",";Sample;ADC Value",12,-0.5,11.5);
   
   TH2D* h2_wf[3];
   for(int i=0; i<3; ++i)
@@ -47,12 +49,12 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
   c->SetLeftMargin(0.15);
   c->SetBottomMargin(0.15);
 
-  string texts[4] = {"#bf{#it{sPHENIX}} Internal","#sqrt{s} = 200 GeV","","Waveforms from jets E_{T}>10 GeV"};
-  TLatex* tex[4];
-  float ycoord[4] = {0.96,0.91,0.86,0.96};
+  string texts[5] = {"#bf{#it{sPHENIX}} Internal","#sqrt{s} = 200 GeV","","Waveforms from jets E_{T}>10 GeV",""};
+  TLatex* tex[5];
+  float ycoord[5] = {0.96,0.91,0.86,0.96,0.91};
   for(int i=0; i<4; ++i)
     {
-      tex[i] = new TLatex(i==3?0.1:0.7,ycoord[i],texts[i].c_str());
+      tex[i] = new TLatex((i>2)?0.1:0.7,ycoord[i],texts[i].c_str());
       tex[i]->SetTextFont(42);
       tex[i]->SetTextSize(0.04);
       tex[i]->SetTextColor(kBlack);
@@ -102,10 +104,33 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 		{
 		  for(int l=0; l<256; ++l)
 		    {
-		      if(jconem[k][l] < jetcut) continue;
+		      //cout << k << " " << l << " " << jconem[k/4][l/4] << endl;
+		      //cout << k/4 << " " << l/4 << endl;
+		      //continue;
+		      if(jconem[k/4][l/4] < jetcut) continue;		      		  
 		      for(int m=0; m<12; ++m)
 			{
 			  if (emwf[k][l][m] > 0) h2_wf[j]->Fill(m,emwf[k][l][m]);
+			  if(runnumdraw > -1 && evtdraw > -1)
+			    {
+			      singlewf->Fill(m,emwf[k][l][m]);
+			    }
+			}
+		      if(runnumdraw > -1 && evtdraw > -1)
+			{
+			  singlewf->Draw("HIST");
+			  texts[4] = "#eta bin " + to_string(k) + ", #phi bin " + to_string(l);
+			  tex[4] = new TLatex(0.1,ycoord[4],texts[4].c_str());
+			  tex[4]->SetTextFont(42);
+			  tex[4]->SetTextSize(0.04);
+			  tex[4]->SetLineWidth(1);
+			  tex[4]->SetNDC();
+			  for(int m=0; m<5; ++m)
+			    {
+			      tex[m]->Draw();
+			    }
+			  gPad->SaveAs(("../images/"+to_string(runnum)+"_"+to_string(evtnum)+"_"+to_string(k)+"_"+to_string(l)+"_singlewf_"+ct[failscut+1]+".png").c_str());
+			  singlewf->Reset();
 			}
 		    }
 		}
