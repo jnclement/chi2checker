@@ -371,7 +371,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
     }
   if(maxJetE > 130) dirstring = "gr130";
       
-  if(maxJetE > 60) c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(evtnum)+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+".png").c_str());
+  if(maxJetE > 60) c->SaveAs(("../images/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+".png").c_str());
 
 
   for(int i=0; i<3; ++i)
@@ -385,7 +385,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   gPad->SetLogz();
   event_sum->GetZaxis()->SetRangeUser(0.05,25);
   gPad->Update();
-  if(maxJetE > 60) c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(evtnum)+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+"_log.png").c_str());
+  if(maxJetE > 60) c->SaveAs(("../images/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+"_log.png").c_str());
   ++cancount;
   cout << "Saved" << endl;
 
@@ -394,14 +394,14 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
       c->cd(i+1);
       chi2s[i]->GetYaxis()->SetTitle("Tower #phi Bin");
       chi2s[i]->GetXaxis()->SetTitle("Tower #eta Bin");
-      chi2s[i]->GetZaxis()->SetTitle("#chi^{2}");
+      chi2s[i]->GetZaxis()->SetTitle("#chi^{2} Value");
       chi2s[i]->GetZaxis()->SetRangeUser(0.1,1e8);
       chi2s[i]->Draw("COLZ");
     }
   c->cd(4);
   event_sum->GetZaxis()->SetRangeUser(-2,25);
   gPad->SetLogz(0);
-  if(maxJetE > 60 && !rainbow) c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(evtnum)+"_"+(isblt?"blt":"glt")+"_chi2.png").c_str());
+  if(maxJetE > 60 && !rainbow) c->SaveAs(("../images/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_chi2.png").c_str());
 
   
   //gStyle->SetPalette(2,kBird);
@@ -419,7 +419,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   c->cd(4);
   event_sum->GetZaxis()->SetRangeUser(-2,25);
   gPad->SetLogz(0);
-  if(maxJetE > 60 && !rainbow) c->SaveAs(("../images/candidate_"+dirstring+"_"+to_string(runnum)+"_"+whichcut+"_"+to_string(evtnum)+"_"+(isblt?"blt":"glt")+"_jetcon.png").c_str());
+  if(maxJetE > 60 && !rainbow) c->SaveAs(("../images/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_jetcon.png").c_str());
   
   if(c) delete c;
   if(event_disrt[0]) delete event_disrt[0];
@@ -453,7 +453,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 int drawcalo(int lo, int hi, int rainbow = 0)
 {
   cancount = lo;
-  TFile* evtfile = TFile::Open("../events/allevents.root","READ");
+  TFile* evtfile = TFile::Open("../events/allevents_20250815.root","READ");
   gStyle->SetPadTickX(1);
   gStyle->SetPadTickY(1);
   int jet_n, runnum, evtnum, failscut;
@@ -520,7 +520,7 @@ int drawcalo(int lo, int hi, int rainbow = 0)
   for(int i=lo; i<(hi>jet_tree->GetEntries()?jet_tree->GetEntries():hi); ++i)
     {
       jet_tree->GetEntry(i);
-      if((failscut > 2 || failscut < 0) && i % 50 != 0) continue;
+      if((failscut > 2 || failscut < 0) && i % 100 != 0) continue;
       drawCalo(emtow,ihtow,ohtow,jet_pt,jet_eta,jet_phi,jet_n,zvtx,failscut,runnum,evtnum,frcoh,frcem,jet_e,isbadem,isbadih,isbadoh,ishotem,ishotih,ishotoh,nocalem,nocalih,nocaloh,jconem,jconih,jconoh,isblt,jetcut,chi2em,chi2ih,chi2oh,rainbow?true:false);
     }
 

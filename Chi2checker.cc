@@ -508,9 +508,9 @@ int Chi2checker::Init(PHCompositeNode *topNode)
 
   _wft->Branch("runnum",&_runnum,"runnum/I");
   _wft->Branch("evtnum",&_evtnum,"evtnum/I");
-  _wft->Branch("emwf",_emwf,"emwf[96][256]/i");
-  _wft->Branch("ihwf",_ihwf,"ihwf[24][64]/i");
-  _wft->Branch("ohwf",_ohwf,"ohwf[24][64]/i");
+  _wft->Branch("emwf",_emwf,"emwf[96][256][12]/i");
+  _wft->Branch("ihwf",_ihwf,"ihwf[24][64][12]/i");
+  _wft->Branch("ohwf",_ohwf,"ohwf[24][64][12]/i");
   _wft->Branch("failscut",&_failscut,"failscut/I");
   //jet_tree->Branch("nLayerEm",&_nLayerEm,"nLayerEm/I");
   //jet_tree->Branch("nLayerOh",&_nLayerOh,"nLayerOh/I");
