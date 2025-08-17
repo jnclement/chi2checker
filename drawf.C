@@ -1,3 +1,13 @@
+int max(int a, int b)
+{
+  return (a>b?a:b);
+}
+
+int min(int a, int b)
+{
+  return (a>b?b:a);
+}
+
 int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 {
   TFile* evtfile = TFile::Open("../events/allwf.root","READ");
@@ -107,19 +117,21 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 		      //cout << k << " " << l << " " << jconem[k/4][l/4] << endl;
 		      //cout << k/4 << " " << l/4 << endl;
 		      //continue;
-		      if(jconem[k/4][l/4] < jetcut) continue;		      		  
+		      if(jconem[k/4][l/4] < jetcut) continue;
+		      int minval = 99999999;
+		      int maxval = -9999999;
 		      for(int m=0; m<12; ++m)
 			{
 			  if (emwf[k][l][m] > 0) h2_wf[j]->Fill(m,emwf[k][l][m]);
-			  if(runnumdraw > -1 && evtdraw > -1)
-			    {
-			      singlewf->Fill(m,emwf[k][l][m]);
-			    }
+			  if(runnumdraw > -1 && evtdraw > -1) singlewf->Fill(m,emwf[k][l][m]);
+			  minval = min(minval,emwf[k][l][m]);
+			  maxval = max(maxval,emwf[k][l][m]);
 			}
-		      if(runnumdraw > -1 && evtdraw > -1)
+		      if(runnumdraw > -1 && evtdraw > -1 && (maxval - minval > 30))
 			{
+			  singlewf->GetYaxis()->SetRangeUser(0,17000);
 			  singlewf->Draw("HIST");
-			  texts[4] = "#eta bin " + to_string(k) + ", #phi bin " + to_string(l);
+			  texts[4] = "EMCal #eta bin " + to_string(k) + ", #phi bin " + to_string(l);
 			  tex[4] = new TLatex(0.1,ycoord[4],texts[4].c_str());
 			  tex[4]->SetTextFont(42);
 			  tex[4]->SetTextSize(0.04);
@@ -129,9 +141,10 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 			    {
 			      tex[m]->Draw();
 			    }
-			  gPad->SaveAs(("../images/"+to_string(runnum)+"_"+to_string(evtnum)+"_"+to_string(k)+"_"+to_string(l)+"_singlewf_"+ct[failscut+1]+".png").c_str());
-			  singlewf->Reset();
+			  gPad->SaveAs(("../images/emwf/"+to_string(runnum)+"_"+to_string(evtnum)+"_"+to_string(k)+"_"+to_string(l)+"_emsinglewf_"+ct[failscut+1]+".png").c_str());
+			  
 			}
+		      singlewf->Reset();
 		    }
 		}
 	    }
@@ -142,10 +155,32 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 		  for(int l=0; l<64; ++l)
 		    {
 		      if(jconih[k][l] < jetcut) continue;
+		      int minval = 9999999;
+		      int maxval = -999999;
 		      for(int m=0; m<12; ++m)
 			{
 			  if(ihwf[k][l][m] > 0) h2_wf[j]->Fill(m,ihwf[k][l][m]);
+			  if(runnumdraw > -1 && evtdraw > -1) singlewf->Fill(m,ihwf[k][l][m]);
+			  minval = min(minval,ihwf[k][l][m]);
+			  maxval = max(maxval,ihwf[k][l][m]);
 			}
+		      if(runnumdraw > -1 && evtdraw > -1 && maxval-minval>10)
+			{
+			  singlewf->Draw("HIST");
+			  texts[4] = "IHCal #eta bin " + to_string(k) + ", #phi bin " + to_string(l);
+			  tex[4] = new TLatex(0.1,ycoord[4],texts[4].c_str());
+			  tex[4]->SetTextFont(42);
+			  tex[4]->SetTextSize(0.04);
+			  tex[4]->SetLineWidth(1);
+			  tex[4]->SetNDC();
+			  for(int m=0; m<5; ++m)
+			    {
+			      tex[m]->Draw();
+			    }
+			  gPad->SaveAs(("../images/ihwf/"+to_string(runnum)+"_"+to_string(evtnum)+"_"+to_string(k)+"_"+to_string(l)+"_ihsinglewf_"+ct[failscut+1]+".png").c_str());
+			  
+			}
+		      singlewf->Reset();
 		    }
 		}
 	    }
@@ -155,12 +190,35 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 		{
 		  for(int l=0; l<64; ++l)
 		    {
-		      if(jconoh[k][l] < jetcut) continue;
+		      //if(jconoh[k][l] < jetcut) continue;
+		      int minval = 9999999;
+		      int maxval = -999999;
 		      for(int m=0; m<12; ++m)
 			{
 			  //cout << ohwf[k][l][m] << endl;
 			  if(ohwf[k][l][m] > 0) h2_wf[j]->Fill(m,ohwf[k][l][m]);
+			  if(runnumdraw > -1 && evtdraw > -1) singlewf->Fill(m,ohwf[k][l][m]);
+			  minval = min(minval,ohwf[k][l][m]);
+			  maxval = max(maxval,ohwf[k][l][m]);
 			}
+		      //cout << maxval << endl;
+		      if(runnumdraw > -1 && evtdraw > -1 && maxval-minval>30)
+			{
+			  singlewf->Draw("HIST");
+			  texts[4] = "OHCal #eta bin " + to_string(k) + ", #phi bin " + to_string(l);
+			  tex[4] = new TLatex(0.1,ycoord[4],texts[4].c_str());
+			  tex[4]->SetTextFont(42);
+			  tex[4]->SetTextSize(0.04);
+			  tex[4]->SetLineWidth(1);
+			  tex[4]->SetNDC();
+			  for(int m=0; m<5; ++m)
+			    {
+			      tex[m]->Draw();
+			    }
+			  gPad->SaveAs(("../images/ohwf/"+to_string(runnum)+"_"+to_string(evtnum)+"_"+to_string(k)+"_"+to_string(l)+"_ohsinglewf_"+ct[failscut+1]+".png").c_str());
+			  
+			}
+		      singlewf->Reset();
 		    }
 		}
 	    }
@@ -169,7 +227,7 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
       for(int j=0; j<3; ++j)
 	{
 	  h2_wf[j]->Draw("COLZ");
-	  for(int k=0; k<3; ++k)
+	  for(int k=0; k<4; ++k)
 	    {
 	      tex[k]->Draw();
 	    }
