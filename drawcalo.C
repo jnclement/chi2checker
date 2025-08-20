@@ -450,7 +450,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 }
 
 
-int drawcalo(int lo, int hi, int rainbow = 0)
+int drawcalo(int lo, int hi, int rainbow = 0, int rundraw = -1, int evtdraw = -1)
 {
   cancount = lo;
   TFile* evtfile = TFile::Open("../events/allevents_20250815.root","READ");
@@ -519,8 +519,10 @@ int drawcalo(int lo, int hi, int rainbow = 0)
   float jetcut = 4;
   for(int i=lo; i<(hi>jet_tree->GetEntries()?jet_tree->GetEntries():hi); ++i)
     {
+      if(!(i%100)) cout << i << endl;
       jet_tree->GetEntry(i);
-      if((failscut > 2 || failscut < 0) && i % 100 != 0) continue;
+      if((failscut > 2 || failscut < 0) && i % 100 != 0 && evtdraw < 0) continue;
+      if((evtnum != evtdraw || runnum != rundraw) && evtnum > -1 && rundraw > -1) continue;
       drawCalo(emtow,ihtow,ohtow,jet_pt,jet_eta,jet_phi,jet_n,zvtx,failscut,runnum,evtnum,frcoh,frcem,jet_e,isbadem,isbadih,isbadoh,ishotem,ishotih,ishotoh,nocalem,nocalih,nocaloh,jconem,jconih,jconoh,isblt,jetcut,chi2em,chi2ih,chi2oh,rainbow?true:false);
     }
 

@@ -158,6 +158,10 @@ class Chi2checker : public SubsysReco
   unsigned int _emwf[96][256][12];
   unsigned int _ihwf[24][64][12];
   unsigned int _ohwf[24][64][12];
+
+  unsigned int _emadcfit[96][256];
+  unsigned int _ihadcfit[24][64];
+  unsigned int _ohadcfit[24][64];
 };
 
 #endif // CHI2TREEMAKER

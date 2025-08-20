@@ -511,6 +511,11 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   _wft->Branch("emwf",_emwf,"emwf[96][256][12]/i");
   _wft->Branch("ihwf",_ihwf,"ihwf[24][64][12]/i");
   _wft->Branch("ohwf",_ohwf,"ohwf[24][64][12]/i");
+
+  _wft->Branch("emadcfit",_emadcfit,"emadcfit[96][256]/i");
+  _wft->Branch("ihadcfit",_ihadcfit,"ihadcfit[24][64]/i");
+  _wft->Branch("ohadcfit",_ohadcfit,"ohadcfit[24][64]/i");
+  
   _wft->Branch("failscut",&_failscut,"failscut/I");
   //jet_tree->Branch("nLayerEm",&_nLayerEm,"nLayerEm/I");
   //jet_tree->Branch("nLayerOh",&_nLayerOh,"nLayerOh/I");
@@ -617,13 +622,13 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   int isjmbtrig = (_triggervec >> 18) & 1;
   //int ismbtrig = (_triggervec >> 10) & 1;
   //if(_debug > 2) cout << _triggervec << " " << isjettrig << " " << ismbtrig << endl;
-
+  /*
   if(!isjettrig && !isjmbtrig)// && !ismbtrig)
     {
       if(_debug > 1) cout << "no jet trigger" << endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-
+  */
   if(_nprocessed == 0)
     {
       _prevraw18 = gl1->lValue(18,0);
@@ -781,6 +786,10 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   towers[0] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
   towers[1] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
   towers[2] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
+  TowerInfoContainer *regtows[3];
+  regtows[0] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_CEMC");
+  regtows[1] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_HCALIN");
+  regtows[2] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_HCALOUT");
   JetContainer *jets = findNode::getClass<JetContainerv1>(topNode, "AntiKt_Tower_HIRecoSeedsRaw_r04");//"AntiKt_unsubtracted_r04");
   if(!jets) jets = findNode::getClass<JetContainerv1>(topNode, "AntiKt_unsubtracted_r04");
 
@@ -1350,6 +1359,9 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	      for(int k=0; k<(j==0?24576:1536); ++k)
 		{
 		  TowerInfo* tower = towers[j]->get_tower_at_channel(k);
+		  TowerInfo* regtow;
+		  if(regtows[j]) regtow = regtows[j]->get_tower_at_channel(k);
+		  else regtow=NULL;
 		  //if(_debug > 9) cout << "tower: " << tower << endl;
 		  int key = towers[j]->encode_key(k);
 		  int eta = towers[j]->getTowerEtaBin(key);
@@ -1361,6 +1373,8 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		  if(j==0)
 		    {
 		      _emtow[eta][phi] = tower->get_energy();
+		      if(regtow) _emadcfit[eta][phi] = regtow->get_energy();
+		      else _emadcfit[eta][phi] = -1;
 		      _isbadem[eta][phi] = (isbad?1:0);
 		      _ishotem[eta][phi] = (ishot?1:0);
 		      _nocalem[eta][phi] = (isnocal?1:0);
@@ -1369,6 +1383,8 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		  else if(j==1)
 		    {
 		      _ihtow[eta][phi] = tower->get_energy();
+		      if(regtow) _ihadcfit[eta][phi] = regtow->get_energy();
+		      else _ihadcfit[eta][phi] = -1;
 		      _isbadih[eta][phi] = (isbad?1:0);
 		      _ishotih[eta][phi] = (ishot?1:0);
 		      _nocalih[eta][phi] = (isnocal?1:0);
@@ -1377,6 +1393,8 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		  else if(j==2)
 		    {
 		      _ohtow[eta][phi] = tower->get_energy();
+		      if(regtow) _ohadcfit[eta][phi] = regtow->get_energy();
+		      else _ohadcfit[eta][phi] = -1;
 		      _isbadoh[eta][phi] = (isbad?1:0);
 		      _ishotoh[eta][phi] = (ishot?1:0);
 		      _nocaloh[eta][phi] = (isnocal?1:0);

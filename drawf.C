@@ -10,6 +10,9 @@ int min(int a, int b)
 
 int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 {
+
+
+  gROOT->ProcessLine("gErrorIgnoreLevel = kWarning;");
   TFile* evtfile = TFile::Open("../events/allwf.root","READ");
   TFile* othfile = TFile::Open("../events/allevents_20250815.root","READ");
   
@@ -23,17 +26,25 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
   float jconem[24][64];
   float jconih[24][64];
   float jconoh[24][64];
+  float emtow[96][256];
+  float ihtow[24][64];
+  float ohtow[24][64];
   
   TTree* wft = (TTree*) evtfile->Get("wft");
   TTree* jt = (TTree*) othfile->Get("jet_tree");
 
-  const float jetcut = 10;
+  const float jetcut = 100;
 
+  float jetsum[3] = {0};
+  
   jt->SetBranchAddress("jconem",jconem);
   jt->SetBranchAddress("jconih",jconih);
   jt->SetBranchAddress("jconoh",jconoh);
   jt->SetBranchAddress("runnum",&rnj);
   jt->SetBranchAddress("evtnum",&enj);
+  jt->SetBranchAddress("emtow",emtow);
+  jt->SetBranchAddress("ihtow",ihtow);
+  jt->SetBranchAddress("ohtow",ohtow);
   
   wft->SetBranchAddress("runnum",&runnum);
   wft->SetBranchAddress("evtnum",&evtnum);
@@ -76,6 +87,7 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
   
   for(int i=lo; i<(hi>wft->GetEntries()?wft->GetEntries():hi); ++i)
     {
+      if(i%100==0) cout << i << endl;
       wft->GetEntry(i);
       jt->GetEntry(jte);
       int flag = 0;
@@ -127,7 +139,12 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 			  minval = min(minval,emwf[k][l][m]);
 			  maxval = max(maxval,emwf[k][l][m]);
 			}
-		      if(runnumdraw > -1 && evtdraw > -1 && (maxval - minval > 30))
+		      if(emtow[k][l] > 0)
+			{
+			  jetsum[j] += emtow[k][l];
+			  cout << emtow[k][l] << " " << jetsum[j] << " " << (maxval-minval)/emtow[k][l] << endl;
+			}
+		      if(runnumdraw > -1 && evtdraw > -1 && (maxval-minval > 30))
 			{
 			  singlewf->GetYaxis()->SetRangeUser(0,17000);
 			  singlewf->Draw("HIST");
@@ -141,6 +158,14 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 			    {
 			      tex[m]->Draw();
 			    }
+			  TLatex* Etex = new TLatex(0.1,0.86,("Tower E="+to_string(emtow[k][l])+" GeV").c_str());
+			  Etex->SetTextFont(42);
+			  Etex->SetTextSize(0.04);
+			  Etex->SetTextColor(kBlack);
+			  Etex->SetLineWidth(1);
+			  Etex->SetNDC();
+			  Etex->Draw();
+			  
 			  gPad->SaveAs(("../images/emwf/"+to_string(runnum)+"_"+to_string(evtnum)+"_"+to_string(k)+"_"+to_string(l)+"_emsinglewf_"+ct[failscut+1]+".png").c_str());
 			  
 			}
@@ -164,6 +189,11 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 			  minval = min(minval,ihwf[k][l][m]);
 			  maxval = max(maxval,ihwf[k][l][m]);
 			}
+		      if(ihtow[k][l] > 0)
+			{
+			  jetsum[j] += ihtow[k][l];
+			  cout << ihtow[k][l] << " " << jetsum[j] << " " << (maxval-minval)/ihtow[k][l] << endl;
+			}
 		      if(runnumdraw > -1 && evtdraw > -1 && maxval-minval>10)
 			{
 			  singlewf->Draw("HIST");
@@ -177,6 +207,14 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 			    {
 			      tex[m]->Draw();
 			    }
+			  TLatex* Etex = new TLatex(0.1,0.86,("Tower E="+to_string(ihtow[k][l])+" GeV").c_str());
+			  Etex->SetTextFont(42);
+			  Etex->SetTextSize(0.04);
+			  Etex->SetTextColor(kBlack);
+			  Etex->SetLineWidth(1);
+			  Etex->SetNDC();
+			  Etex->Draw();
+			  
 			  gPad->SaveAs(("../images/ihwf/"+to_string(runnum)+"_"+to_string(evtnum)+"_"+to_string(k)+"_"+to_string(l)+"_ihsinglewf_"+ct[failscut+1]+".png").c_str());
 			  
 			}
@@ -190,7 +228,8 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 		{
 		  for(int l=0; l<64; ++l)
 		    {
-		      //if(jconoh[k][l] < jetcut) continue;
+		      if(jconoh[k][l] < jetcut) continue;
+		      
 		      int minval = 9999999;
 		      int maxval = -999999;
 		      for(int m=0; m<12; ++m)
@@ -200,6 +239,11 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 			  if(runnumdraw > -1 && evtdraw > -1) singlewf->Fill(m,ohwf[k][l][m]);
 			  minval = min(minval,ohwf[k][l][m]);
 			  maxval = max(maxval,ohwf[k][l][m]);
+			}
+		      if(ohtow[k][l] > 0)
+			{		       
+			  jetsum[j] += ohtow[k][l];
+			  cout << ohtow[k][l] << " " << jetsum[j] << " " << (maxval-minval)/ohtow[k][l] << endl;
 			}
 		      //cout << maxval << endl;
 		      if(runnumdraw > -1 && evtdraw > -1 && maxval-minval>30)
@@ -215,6 +259,14 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 			    {
 			      tex[m]->Draw();
 			    }
+			  TLatex* Etex = new TLatex(0.1,0.86,("Tower E="+to_string(ohtow[k][l])+" GeV").c_str());
+			  Etex->SetTextFont(42);
+			  Etex->SetTextSize(0.04);
+			  Etex->SetTextColor(kBlack);
+			  Etex->SetLineWidth(1);
+			  Etex->SetNDC();
+			  Etex->Draw();
+			  
 			  gPad->SaveAs(("../images/ohwf/"+to_string(runnum)+"_"+to_string(evtnum)+"_"+to_string(k)+"_"+to_string(l)+"_ohsinglewf_"+ct[failscut+1]+".png").c_str());
 			  
 			}
@@ -235,6 +287,10 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 	  h2_wf[j]->Reset();
 	}
       delete tex[2];
+    }
+  for(int i=0; i<3; ++i)
+    {
+      cout << jetsum[i] << endl;
     }
   return 0;
 }
