@@ -420,7 +420,7 @@ void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet
 }
 
 //____________________________________________________________________________..
-Chi2checker::Chi2checker(const std::string &filename, const std::string &name, const int debug, const std::string &wfilename, const int dowf):
+Chi2checker::Chi2checker(const std::string &filename, const std::string &name, const int debug, const std::string &wfilename, const int dowf, const int doall60):
   SubsysReco(name), _cutParams(name)
 {
   _name = name;
@@ -431,6 +431,13 @@ Chi2checker::Chi2checker(const std::string &filename, const std::string &name, c
   _dowf = dowf;
   jet_tree = new TTree("jet_tree","a persevering date tree");
   _wft = new TTree("wft","a stupid waveform tree");
+  _doall60 = doall60;
+  if(_doall60) _wff = new TFile(_wfilename.c_str(),"RECREATE");
+  if(_doall60) _wff->cd();
+  if(_doall60) _wft->SetDirectory(_wff);
+  if(_doall60) _f = new TFile(_filename.c_str(), "RECREATE");
+  if(_doall60) _f->cd();
+  if(_doall60) jet_tree->SetDirectory(_f);
 }
 
 //____________________________________________________________________________..
@@ -512,9 +519,9 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   _wft->Branch("ihwf",_ihwf,"ihwf[24][64][12]/i");
   _wft->Branch("ohwf",_ohwf,"ohwf[24][64][12]/i");
 
-  _wft->Branch("emadcfit",_emadcfit,"emadcfit[96][256]/i");
-  _wft->Branch("ihadcfit",_ihadcfit,"ihadcfit[24][64]/i");
-  _wft->Branch("ohadcfit",_ohadcfit,"ohadcfit[24][64]/i");
+  _wft->Branch("emadcfit",_emadcfit,"emadcfit[96][256]/F");
+  _wft->Branch("ihadcfit",_ihadcfit,"ihadcfit[24][64]/F");
+  _wft->Branch("ohadcfit",_ohadcfit,"ohadcfit[24][64]/F");
   
   _wft->Branch("failscut",&_failscut,"failscut/I");
   //jet_tree->Branch("nLayerEm",&_nLayerEm,"nLayerEm/I");
@@ -1350,8 +1357,33 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	  failsall = 0;
 	}
       if(_debug > 7) cout << "cuts set" << endl;
-      if((maxJetE > 55 && (!loETCut || !dPhiCut)) || maxJetE > 75)
+
+
+      
+      
+      
+      if((maxJetE > 55 && (!loETCut || !dPhiCut)) || maxJetE > 75 || _doall60)
 	{
+
+	  for(int j=0; j<12; ++j)
+	    {
+	      for(int k=0; k<96; ++k)
+		{
+		  for(int l=0; l<256; ++l)
+		    {
+		      _emwf[k][l][j] = 0;
+		    }
+		}
+	      for(int k=0; k<24; ++k)
+		{
+		  for(int l=0; l<64; ++l)
+		    {
+		      _ihwf[k][l][j] = 0;
+		      _ohwf[k][l][j] = 0;
+		    }
+		}
+	    }
+	  
 	  towers[0] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
 	  if(_debug > 1) cout << "adding to tree. towers: " << towers[0] << endl;
 	  for(int j=0; j<3; ++j)
@@ -1564,11 +1596,11 @@ int Chi2checker::End(PHCompositeNode *topNode)
   cout << "ending run" << endl;
   if(jet_tree->GetEntries() > 0)
     {
-      _f = new TFile(_filename.c_str(), "RECREATE");
+      if(!_doall60) _f = new TFile(_filename.c_str(), "RECREATE");
       cout << "file created" << endl;
-      _f->cd();
+      if(!_doall60) _f->cd();
       cout << "cded to file" << endl;
-      jet_tree->SetDirectory(_f);
+      if(!_doall60) jet_tree->SetDirectory(_f);
       cout << "tree set to directory of file" << endl;
       jet_tree->Write();
       cout << "tree written" << endl;
@@ -1579,9 +1611,9 @@ int Chi2checker::End(PHCompositeNode *topNode)
     }
   if(_wft->GetEntries() > 0)
     {
-      _wff = new TFile(_wfilename.c_str(),"RECREATE");
-      _wff->cd();
-      _wft->SetDirectory(_wff);
+      if(!_doall60) _wff = new TFile(_wfilename.c_str(),"RECREATE");
+      if(!_doall60) _wff->cd();
+      if(!_doall60) _wft->SetDirectory(_wff);
       _wft->Write();
       _wff->Write();
       _wff->Close();

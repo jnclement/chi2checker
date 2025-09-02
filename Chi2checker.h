@@ -20,7 +20,7 @@ class Chi2checker : public SubsysReco
 {
  public:
 
-  Chi2checker(const std::string &filename = "/sphenix/user/jocl/projects/run2024_earlydata/run/output/temphists/debug.root", const std::string &name = "Chi2checker", const int debug = 0, const std::string &wfilename = "", const int dowf = 0);
+  Chi2checker(const std::string &filename = "/sphenix/user/jocl/projects/run2024_earlydata/run/output/temphists/debug.root", const std::string &name = "Chi2checker", const int debug = 0, const std::string &wfilename = "", const int dowf = 0, const int doall60 = 1);
 
   virtual ~Chi2checker();
 
@@ -51,6 +51,7 @@ class Chi2checker : public SubsysReco
 
  
  private:
+  int _doall60;
   bool _printedPhi = false;
   int cancount = 0;
   PHParameters _cutParams;
@@ -159,9 +160,9 @@ class Chi2checker : public SubsysReco
   unsigned int _ihwf[24][64][12];
   unsigned int _ohwf[24][64][12];
 
-  unsigned int _emadcfit[96][256];
-  unsigned int _ihadcfit[24][64];
-  unsigned int _ohadcfit[24][64];
+  float _emadcfit[96][256];
+  float _ihadcfit[24][64];
+  float _ohadcfit[24][64];
 };
 
 #endif // CHI2TREEMAKER

@@ -13,8 +13,8 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 
 
   gROOT->ProcessLine("gErrorIgnoreLevel = kWarning;");
-  TFile* evtfile = TFile::Open("../events/allwf.root","READ");
-  TFile* othfile = TFile::Open("../events/allevents_20250815.root","READ");
+  TFile* evtfile = TFile::Open("../chi2_jbc/events_jbc_20250827_47289_1_1000_waveforms.root");//events/allwf.root","READ");
+  TFile* othfile = TFile::Open("../chi2_jbc/events_jbc_20250827_47289_1_1000_chi2file.root");//events/allevents_20250815.root","READ");
   
   gStyle->SetPadTickX(1);
   gStyle->SetPadTickY(1);
@@ -33,7 +33,7 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
   TTree* wft = (TTree*) evtfile->Get("wft");
   TTree* jt = (TTree*) othfile->Get("jet_tree");
 
-  const float jetcut = 100;
+  const float jetcut = 1;
 
   float jetsum[3] = {0};
   
@@ -97,12 +97,13 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 	  if(jte == jt->GetEntries())
 	    {
 	      flag = 1;
+	      jte = 0;
 	      break;
 	    }
 	  jt->GetEntry(jte);
 	}
       if(flag) continue;
-      if((failscut < 0 || failscut > 2) && i%100 != 0) continue;
+      //if((failscut < 0 || failscut > 2) && i%100 != 0) continue;
       if(runnumdraw >= 0)
 	{
 	  if(runnum != runnumdraw) continue;
@@ -142,7 +143,7 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 		      if(emtow[k][l] > 0)
 			{
 			  jetsum[j] += emtow[k][l];
-			  cout << emtow[k][l] << " " << jetsum[j] << " " << (maxval-minval)/emtow[k][l] << endl;
+			  //cout << emtow[k][l] << " " << jetsum[j] << " " << (maxval-minval)/emtow[k][l] << endl;
 			}
 		      if(runnumdraw > -1 && evtdraw > -1 && (maxval-minval > 30))
 			{
@@ -192,7 +193,7 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 		      if(ihtow[k][l] > 0)
 			{
 			  jetsum[j] += ihtow[k][l];
-			  cout << ihtow[k][l] << " " << jetsum[j] << " " << (maxval-minval)/ihtow[k][l] << endl;
+			  //cout << ihtow[k][l] << " " << jetsum[j] << " " << (maxval-minval)/ihtow[k][l] << endl;
 			}
 		      if(runnumdraw > -1 && evtdraw > -1 && maxval-minval>10)
 			{
@@ -243,7 +244,7 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 		      if(ohtow[k][l] > 0)
 			{		       
 			  jetsum[j] += ohtow[k][l];
-			  cout << ohtow[k][l] << " " << jetsum[j] << " " << (maxval-minval)/ohtow[k][l] << endl;
+			  //cout << ohtow[k][l] << " " << jetsum[j] << " " << (maxval-minval)/ohtow[k][l] << endl;
 			}
 		      //cout << maxval << endl;
 		      if(runnumdraw > -1 && evtdraw > -1 && maxval-minval>30)
