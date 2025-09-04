@@ -420,6 +420,14 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   event_sum->GetZaxis()->SetRangeUser(-2,25);
   gPad->SetLogz(0);
   if(maxJetE > 60 && !rainbow) c->SaveAs(("../images/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_jetcon.png").c_str());
+
+  event_sum->SetName(("event_sum_"+to_string(runnum)+"_"+to_string(evtnum)).c_str());
+  event_disrt[0]->SetName(("emcal_"+to_string(runnum)+"_"+to_string(evtnum)).c_str());
+  event_disrt[1]->SetName(("ihcal_"+to_string(runnum)+"_"+to_string(evtnum)).c_str());
+  event_disrt[2]->SetName(("ohcal_"+to_string(runnum)+"_"+to_string(evtnum)).c_str());
+
+  event_sum->Write();
+  for(int i=0; i<3; ++i) event_disrt[i]->Write();
   
   if(c) delete c;
   if(event_disrt[0]) delete event_disrt[0];
@@ -450,10 +458,27 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 }
 
 
-int drawcalo(int lo, int hi, int rainbow = 0, int rundraw = -1, int evtdraw = -1)
+int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, int evtdraw = -1)
 {
   cancount = lo;
-  TFile* evtfile = TFile::Open("../events/allevents_20250815.root","READ");
+  TFile* evtfile = TFile::Open("../chi2/hadded_chi2file_20250902.root","READ");
+
+  TFile* outf;
+  if(dosave) outf = TFile::Open("../savedhists_20250902.root","RECREATE");
+  TTree* outt;
+  if(dosave) outt = new TTree("outt","an output tree");
+  if(dosave) outt->SetDirectory(outf);
+  int passfrac, passdijet, outevt, outrun, outnjet;
+  float jetkin[100][4];
+  if(dosave)
+    {
+      outt->Branch("passfrac",&passfrac,"passfrac/I");
+      outt->Branch("passdijet",&passdijet,"passdijet/I");
+      outt->Branch("evt",&outevt,"evt/I");
+      outt->Branch("run",&outrun,"run/I");
+      outt->Branch("njet",&outnjet,"njet/I");
+      outt->Branch("jetkin",jetkin,"jetkin[njet][4]/F");
+    }
   gStyle->SetPadTickX(1);
   gStyle->SetPadTickY(1);
   int jet_n, runnum, evtnum, failscut;
@@ -517,15 +542,48 @@ int drawcalo(int lo, int hi, int rainbow = 0, int rundraw = -1, int evtdraw = -1
   jet_tree->SetBranchAddress("chi2ih",chi2ih);
   jet_tree->SetBranchAddress("chi2oh",chi2oh);
   float jetcut = 4;
+  outf->cd();
   for(int i=lo; i<(hi>jet_tree->GetEntries()?jet_tree->GetEntries():hi); ++i)
     {
       if(!(i%100)) cout << i << endl;
       jet_tree->GetEntry(i);
-      if((failscut > 2 || failscut < 0) && i % 100 != 0 && evtdraw < 0) continue;
+      
+      if((failscut > 2 || failscut < 0)) continue; // && i % 100 != 0 && evtdraw < 0) continue;
+      if(dosave && failscut <= 2 && failscut >= 0)
+	{
+	  outevt = evtnum;
+	  outrun = runnum;
+	  outnjet = jet_n;
+	  if(failscut == 2 || failscut == 0)
+	    {
+	      passdijet = 1;
+	    }
+	  else
+	    {
+	      passdijet = 0;
+	    }
+	  if(failscut > 0)
+	    {
+	      passfrac = 1;
+	    }
+	  else
+	    {
+	      passfrac = 0;
+	    }
+	  for(int j=0; j<jet_n; ++j)
+	    {
+	      jetkin[j][0] = jet_pt[j];
+	      jetkin[j][1] = jet_eta[j];
+	      jetkin[j][2] = jet_phi[j];
+	      jetkin[j][3] = jet_e[j];
+	    }
+	  outt->Fill();
+	}
       if((evtnum != evtdraw || runnum != rundraw) && evtnum > -1 && rundraw > -1) continue;
       drawCalo(emtow,ihtow,ohtow,jet_pt,jet_eta,jet_phi,jet_n,zvtx,failscut,runnum,evtnum,frcoh,frcem,jet_e,isbadem,isbadih,isbadoh,ishotem,ishotih,ishotoh,nocalem,nocalih,nocaloh,jconem,jconih,jconoh,isblt,jetcut,chi2em,chi2ih,chi2oh,rainbow?true:false);
     }
-
+  if(dosave) outf->Write();
+  
   return 0;
 }
       
