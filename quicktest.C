@@ -2,9 +2,9 @@ int quicktest()
 {
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
-  TFile* file = TFile::Open("hadded_waveform_20250902.root");
+  TFile* file = TFile::Open("../events/hadded_waveform_20250902.root");
   TTree* tree = (TTree*)file->Get("wft");
-  TFile* afile = TFile::Open("hadded_chi2file_20250902.root");
+  TFile* afile = TFile::Open("../events/hadded_chi2file_20250902.root");
   TTree* atree = (TTree*)afile->Get("jet_tree");
 
   float emadcfit[96][256];
@@ -125,7 +125,9 @@ int quicktest()
 	    }
 	}
     }
+  TFile* outhistfile = TFile::Open("../images/out3dhist.root","RECREATE");
 
+  outhistfile->cd();
   for(int i=0; i<3; ++i)
     {
       h3_fit_wfd_cte[i]->Project3D("yx")->Draw("COLZ");
@@ -141,6 +143,13 @@ int quicktest()
       for(int j=0; j<3; ++j) tex[j]->Draw();
       c->SaveAs((calo[i]+"ctewfd.png").c_str());
       delete line;
+
+      h3_fit_wfd_cte[i]->SetDirectory(outhistfile);
+      h3_fit_wfd_cte[i]->Write();
     }
+
+  outhistfile->Write();
+
+  
   return 0;
 }

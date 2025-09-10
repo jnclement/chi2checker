@@ -14,6 +14,7 @@
 #include <globalvertex/GlobalVertexMapv1.h>
 #include <globalvertex/GlobalVertex.h>
 #include <mbd/MbdPmtContainer.h>
+#include <mbd/MbdPmtContainerV1.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHRandomSeed.h>
@@ -524,6 +525,10 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   _wft->Branch("ohadcfit",_ohadcfit,"ohadcfit[24][64]/F");
   
   _wft->Branch("failscut",&_failscut,"failscut/I");
+
+  _wft->Branch("mbdavgt",_mbdavgt,"mbdavgt[2]/F");
+  
+  _wft->Branch("mbdhit",&_mbdhit,"mbdhit[2]/i");
   //jet_tree->Branch("nLayerEm",&_nLayerEm,"nLayerEm/I");
   //jet_tree->Branch("nLayerOh",&_nLayerOh,"nLayerOh/I");
   /*
@@ -808,9 +813,35 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   geom[2] = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
 
 
+  MbdPmtContainer* mbdpmt = findNode::getClass<MbdPmtContainerV1>(topNode,"MbdPmtContainer");
 
 
-
+  _mbdavgt[0] = 0;
+  _mbdavgt[1] = 0;
+  _mbdhit[0] = 0;
+  _mbdhit[1] = 0;
+  if(mbdpmt)
+    {
+      for(int i=0; i<128; ++i)
+	{
+	  MbdPmtHit* pmt = mbdpmt->get_pmt(i);
+	  if(pmt)
+	    {
+	      if(pmt->get_q() > 0.4)
+		{
+		  ++_mbdhit[i/64];
+		  _mbdavgt[i/64] += pmt->get_time();
+		}
+	    }
+	}
+      _mbdavgt[0]/=_mbdhit[0];
+      _mbdavgt[1]/=_mbdhit[1];
+    }
+  else
+    {
+      cout << "no MBD PMTs!!!" << endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
 
   
 
@@ -1362,7 +1393,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       
       
       
-      if((maxJetE > 55 && (!loETCut || !dPhiCut)) || maxJetE > 75 || _doall60)
+      if((maxJetE > 40 && (!loETCut || !dPhiCut)) || maxJetE > 75 || _doall60)
 	{
 
 	  for(int j=0; j<12; ++j)

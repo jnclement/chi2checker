@@ -160,6 +160,9 @@ class Chi2checker : public SubsysReco
   unsigned int _ihwf[24][64][12];
   unsigned int _ohwf[24][64][12];
 
+  unsigned int _mbdhit[2];
+  float _mbdavgt[2];
+
   float _emadcfit[96][256];
   float _ihadcfit[24][64];
   float _ohadcfit[24][64];

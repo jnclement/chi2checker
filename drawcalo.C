@@ -461,15 +461,18 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, int evtdraw = -1)
 {
   cancount = lo;
-  TFile* evtfile = TFile::Open("../chi2/hadded_chi2file_20250902.root","READ");
+  //TFile* evtfile = TFile::Open("../chi2/hadded_chi2file_20250902.root","READ");
 
   TFile* outf;
-  if(dosave) outf = TFile::Open("../savedhists_20250902.root","RECREATE");
+  if(dosave) outf = TFile::Open("../savedhists_20250909.root","RECREATE");
   TTree* outt;
   if(dosave) outt = new TTree("outt","an output tree");
   if(dosave) outt->SetDirectory(outf);
   int passfrac, passdijet, outevt, outrun, outnjet;
+  unsigned int outmbdhit[2];
   float jetkin[100][4];
+  float outz;
+  float outtime[2];
   if(dosave)
     {
       outt->Branch("passfrac",&passfrac,"passfrac/I");
@@ -478,6 +481,9 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
       outt->Branch("run",&outrun,"run/I");
       outt->Branch("njet",&outnjet,"njet/I");
       outt->Branch("jetkin",jetkin,"jetkin[njet][4]/F");
+      outt->Branch("zvtx",&outz,"zvtx/F");
+      outt->Branch("mbdhit",outmbdhit,"mbdhit[2]/i");
+      outt->Branch("avgt",&outtime,"avgt[2]/F");
     }
   gStyle->SetPadTickX(1);
   gStyle->SetPadTickY(1);
@@ -509,7 +515,32 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
   float chi2ih[24][64];
   float chi2oh[24][64];
   
-  TTree* jet_tree = (TTree*)evtfile->Get("jet_tree");
+  float avgt[2];
+  unsigned int mbdhit[2];
+  int rnwf, enwf;
+  
+  
+  TChain* jet_tree = new TChain("jet_tree");
+  TChain* wft = new TChain("wft");
+  
+  string tempinfilename;
+  ifstream chi2list("chi2files.txt");
+  
+  
+  while(std::getline(chi2list,tempinfilename))
+    {
+      cout << "Read: " << tempinfilename << endl;
+      jet_tree->Add(tempinfilename.c_str());
+    }
+
+  ifstream wflist("wavefiles.txt");
+  while(std::getline(wflist,tempinfilename))
+    {
+      cout << "Read: " << tempinfilename << endl;
+      wft->Add(tempinfilename.c_str());
+    }
+  
+  //TTree* jet_tree = (TTree*)evtfile->Get("jet_tree");
 
   jet_tree->SetBranchAddress("jet_n",&jet_n);
   jet_tree->SetBranchAddress("runnum",&runnum);
@@ -541,19 +572,45 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
   jet_tree->SetBranchAddress("chi2em",chi2em);
   jet_tree->SetBranchAddress("chi2ih",chi2ih);
   jet_tree->SetBranchAddress("chi2oh",chi2oh);
+  wft->SetBranchAddress("mbdavgt",avgt);
+  wft->SetBranchAddress("mbdhit",mbdhit);
+  wft->SetBranchAddress("runnum",&rnwf);
+  wft->SetBranchAddress("evtnum",&enwf);
+  
   float jetcut = 4;
   outf->cd();
+  cout << "test" << endl;
+  int wfte = lo;
   for(int i=lo; i<(hi>jet_tree->GetEntries()?jet_tree->GetEntries():hi); ++i)
     {
       if(!(i%100)) cout << i << endl;
       jet_tree->GetEntry(i);
-      
       if((failscut > 2 || failscut < 0)) continue; // && i % 100 != 0 && evtdraw < 0) continue;
+      wft->GetEntry(wfte);
+      int flag = 0;
+      while(rnwf != runnum || enwf != evtnum)
+	{
+	  ++wfte;
+	  if(wfte == wft->GetEntries())
+	    {
+	      flag = 1;
+	      wfte = 0;
+	      break;
+	    }
+	  wft->GetEntry(wfte);
+	}
+      if(flag) continue;
+      
       if(dosave && failscut <= 2 && failscut >= 0)
 	{
+	  outmbdhit[0] = mbdhit[0];
+	  outmbdhit[1] = mbdhit[1];
+	  outtime[0] = avgt[0];
+	  outtime[1] = avgt[1];
 	  outevt = evtnum;
 	  outrun = runnum;
 	  outnjet = jet_n;
+	  outz = zvtx;
 	  if(failscut == 2 || failscut == 0)
 	    {
 	      passdijet = 1;
@@ -570,10 +627,20 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
 	    {
 	      passfrac = 0;
 	    }
+	  float radem = 93.5;
+	  float radoh = 225.87;
 	  for(int j=0; j<jet_n; ++j)
 	    {
 	      jetkin[j][0] = jet_pt[j];
-	      jetkin[j][1] = jet_eta[j];
+	      float radius;
+	      if(frcem[j] > 0.6) radius = radem;
+	      else if(frcoh[j] > 0.6) radius = radoh;
+	      else radius = (radem + radoh)/2;
+	      float jetz = radius/(tan(2*atan(exp(-jet_eta[j]))));
+	      float newz = jetz + zvtx;
+	      float newtheta = atan2(radius,newz);
+	      float neweta = -log(tan(0.5*newtheta));
+	      jetkin[j][1] = neweta;
 	      jetkin[j][2] = jet_phi[j];
 	      jetkin[j][3] = jet_e[j];
 	    }
