@@ -1369,8 +1369,8 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       jet_ecc = eccentricity;
       jet_lfrac = maxEoverTot;
       failscut = (_bbfqavec >> 5) & 1;
-      bool dPhiCut = (_dphi < 3*M_PI/4 || !_isdijet || _subjet_ET < 0.3*_jet_ET);
-      bool loETCut = _frcem > 0.9 || _frcem < 0.1 || _frcoh < 0.1 || _frcoh > 0.9 || (1.-_frcem-_frcoh) > 0.9;// ((_frcem < 0.1) && (_jet_ET > (50*_frcem+20))) && (dPhiCut || !_isdijet);
+      bool dPhiCut = (_dphi < 3*M_PI/4 || !_isdijet || maxJetE < 0.2*subJetE);
+      bool loETCut = _frcem > 0.9 || _frcem < 0.1 || _frcoh < 0.1 || _frcoh > 0.9 || (1.-_frcem-_frcoh) > 0.5;// ((_frcem < 0.1) && (_jet_ET > (50*_frcem+20))) && (dPhiCut || !_isdijet);
       bool hiETCut = ((_frcem > 0.9) && (_jet_ET > (-50*_frcem+70))) && (dPhiCut || !_isdijet);
       bool ihCut = (_frcem+_frcoh) < 0.65;
       //bool fullCut = loETCut || hiETCut || ihCut || failscut || (_bbfqavec >> 5 & 0x1);
@@ -1393,7 +1393,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       
       
       
-      if((maxJetE > 40 && (!loETCut || !dPhiCut)) || maxJetE > 75 || _doall60)
+      if((maxJetE > 30 && (!loETCut || !dPhiCut)) || maxJetE > 75 || _doall60)
 	{
 
 	  for(int j=0; j<12; ++j)

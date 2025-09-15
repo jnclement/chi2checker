@@ -464,7 +464,7 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
   //TFile* evtfile = TFile::Open("../chi2/hadded_chi2file_20250902.root","READ");
 
   TFile* outf;
-  if(dosave) outf = TFile::Open("../savedhists_20250909.root","RECREATE");
+  if(dosave) outf = TFile::Open(("../savedhists_20250909_"+to_string(lo)+"_"+to_string(hi)+".root").c_str(),"RECREATE");
   TTree* outt;
   if(dosave) outt = new TTree("outt","an output tree");
   if(dosave) outt->SetDirectory(outf);
@@ -525,19 +525,39 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
   
   string tempinfilename;
   ifstream chi2list("chi2files.txt");
-  
-  
+
+  for(int i=0; i<lo; ++i)
+    {
+      std::getline(chi2list,tempinfilename);
+    }
+  int counter = lo;
+  cout << hi << endl;
   while(std::getline(chi2list,tempinfilename))
     {
       cout << "Read: " << tempinfilename << endl;
       jet_tree->Add(tempinfilename.c_str());
+      ++counter;
+      if(counter >= hi)
+	{
+	  cout << counter << endl;
+	  break;
+	}
     }
 
+
+  
   ifstream wflist("wavefiles.txt");
+  for(int i=0; i<lo; ++i)
+    {
+      std::getline(wflist,tempinfilename);
+    }
+  int wfcounter = lo;
   while(std::getline(wflist,tempinfilename))
     {
       cout << "Read: " << tempinfilename << endl;
       wft->Add(tempinfilename.c_str());
+      ++wfcounter;
+      if(wfcounter >= hi) break;
     }
   
   //TTree* jet_tree = (TTree*)evtfile->Get("jet_tree");
@@ -576,22 +596,25 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
   wft->SetBranchAddress("mbdhit",mbdhit);
   wft->SetBranchAddress("runnum",&rnwf);
   wft->SetBranchAddress("evtnum",&enwf);
+
+  int nhist = 0;
   
   float jetcut = 4;
   outf->cd();
   cout << "test" << endl;
-  int wfte = lo;
-  for(int i=lo; i<(hi>jet_tree->GetEntries()?jet_tree->GetEntries():hi); ++i)
+  int wfte = 0;
+  for(int i=0; i<jet_tree->GetEntries(); ++i)
     {
       if(!(i%100)) cout << i << endl;
       jet_tree->GetEntry(i);
-      if((failscut > 2 || failscut < 0)) continue; // && i % 100 != 0 && evtdraw < 0) continue;
       wft->GetEntry(wfte);
       int flag = 0;
+      cout << rnwf << " " << runnum << " " << enwf << " " << evtnum << endl;
       while(rnwf != runnum || enwf != evtnum)
 	{
+	  cout << "no match" << endl;
 	  ++wfte;
-	  if(wfte == wft->GetEntries())
+	  if(wfte >= wft->GetEntries())
 	    {
 	      flag = 1;
 	      wfte = 0;
@@ -600,7 +623,9 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
 	  wft->GetEntry(wfte);
 	}
       if(flag) continue;
-      
+      ++wfte;
+      if((failscut > 2 || failscut < 0)) continue; // && i % 100 != 0 && evtdraw < 0) continue;
+      ++nhist;
       if(dosave && failscut <= 2 && failscut >= 0)
 	{
 	  outmbdhit[0] = mbdhit[0];
@@ -651,6 +676,6 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
     }
   if(dosave) outf->Write();
   
-  return 0;
+  return nhist;
 }
       
