@@ -481,7 +481,9 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("maxETowIsZS",&_maxETowIsZS,"maxETowIsZS/I");
   jet_tree->Branch("maxETowChi2Det",&_maxETowChi2Det,"maxETowChi2Det/I");
   jet_tree->Branch("triggervec",&_triggervec,"triggervec/g");
+  */
   jet_tree->Branch("bbfqavec",&_bbfqavec,"bbfqavec/i");
+  /*
   jet_tree->Branch("elmbgvec",&_elmbgvec,"elmbgvec/i");
   */
   jet_tree->Branch("jet_n",&_jet_n,"jet_n/I");
@@ -696,25 +698,25 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   runnumber = runheader->get_RunNumber();
   evtnum = runheader->get_EvtSequence();
 
-  //PHNodeIterator itNode(topNode);
-  //PHCompositeNode* parNode = dynamic_cast<PHCompositeNode*>(itNode.findFirst("PHCompositeNode","PAR"));
-  //PdbParameterMap* flagNode;
-  /*
+  PHNodeIterator itNode(topNode);
+  PHCompositeNode* parNode = dynamic_cast<PHCompositeNode*>(itNode.findFirst("PHCompositeNode","PAR"));
+  PdbParameterMap* flagNode;
+  
   if(parNode) flagNode = findNode::getClass<PdbParameterMap>(parNode, "HasBeamBackground");
   else
     {
       cout << "No parNode! Abort run." << endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
-  */
-  /*
+  
+  
   if(flagNode) _cutParams.FillFrom(flagNode);
   else
     {
       cout << "No flagNode - abort run" << endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
-  */
+
   MbdVertexMap* mbdvtxmap = findNode::getClass<MbdVertexMapv1>(topNode, "MbdVertexMap");
   //GlobalVertexMap* gvtxmap = NULL; //findNode::getClass<GlobalVertexMapv1>(topNode, "GlobalVertexMap");
 
@@ -1313,7 +1315,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       _bbfqavec = 0;
       _elmbgvec = 0;
 
-      //_bbfqavec = _cutParams.get_int_param("HasBeamBackground_StreakSidebandFilter") << 5;
+      _bbfqavec = _cutParams.get_int_param("HasBeamBackground_StreakSidebandFilter") << 5;
       //if(_bbfqavec) cout << "bbfqavec: " << _bbfqavec <<  " and >> 5: " << (_bbfqavec >> 5) << endl;
 	  //}
       _maxTowDiff = _maxTowE - _subTowE;
