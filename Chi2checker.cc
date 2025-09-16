@@ -523,6 +523,9 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   _wft->Branch("emadcfit",_emadcfit,"emadcfit[96][256]/F");
   _wft->Branch("ihadcfit",_ihadcfit,"ihadcfit[24][64]/F");
   _wft->Branch("ohadcfit",_ohadcfit,"ohadcfit[24][64]/F");
+  _wft->Branch("emt",_emt,"emt[96][256]/F");
+  _wft->Branch("iht",_iht,"iht[24][64]/F");
+  _wft->Branch("oht",_oht,"oht[24][64]/F");
   
   _wft->Branch("failscut",&_failscut,"failscut/I");
 
@@ -1435,6 +1438,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		  bool ishot = tower->get_isHot();
 		  if(j==0)
 		    {
+		      _emt[eta][phi] = regtow->get_time();
 		      _emtow[eta][phi] = tower->get_energy();
 		      if(regtow) _emadcfit[eta][phi] = regtow->get_energy();
 		      else _emadcfit[eta][phi] = -1;
@@ -1445,6 +1449,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		    }
 		  else if(j==1)
 		    {
+		      _iht[eta][phi] = regtow->get_time();
 		      _ihtow[eta][phi] = tower->get_energy();
 		      if(regtow) _ihadcfit[eta][phi] = regtow->get_energy();
 		      else _ihadcfit[eta][phi] = -1;
@@ -1455,6 +1460,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		    }
 		  else if(j==2)
 		    {
+		      _oht[eta][phi] = regtow->get_time();
 		      _ohtow[eta][phi] = tower->get_energy();
 		      if(regtow) _ohadcfit[eta][phi] = regtow->get_energy();
 		      else _ohadcfit[eta][phi] = -1;
