@@ -385,7 +385,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
     }
   if(maxJetE > 130) dirstring = "gr130";
       
-  if(maxJetE > 60) c->SaveAs(("../images/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+".png").c_str());
+  if(maxJetE > 60) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+".png").c_str());
 
 
   for(int i=0; i<3; ++i)
@@ -399,7 +399,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   gPad->SetLogz();
   event_sum->GetZaxis()->SetRangeUser(0.05,25);
   gPad->Update();
-  if(maxJetE > 60) c->SaveAs(("../images/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+"_log.png").c_str());
+  if(maxJetE > 60) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+"_log.png").c_str());
   ++cancount;
   cout << "Saved" << endl;
 
@@ -415,7 +415,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   c->cd(4);
   event_sum->GetZaxis()->SetRangeUser(-2,25);
   gPad->SetLogz(0);
-  if(maxJetE > 60 && !rainbow) c->SaveAs(("../images/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_chi2.png").c_str());
+  if(maxJetE > 60 && !rainbow) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_chi2.png").c_str());
 
   
   //gStyle->SetPalette(2,kBird);
@@ -433,7 +433,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   c->cd(4);
   event_sum->GetZaxis()->SetRangeUser(-2,25);
   gPad->SetLogz(0);
-  if(maxJetE > 60 && !rainbow) c->SaveAs(("../images/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_jetcon.png").c_str());
+  if(maxJetE > 60 && !rainbow) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_jetcon.png").c_str());
 
   gStyle->SetPalette(kBird);
   for(int i=0; i<3; ++i)
@@ -445,7 +445,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
       times[i]->GetZaxis()->SetTitle("Tower Fitted Time");
       times[i]->Draw("COLZ");
     }
-  if(maxJetE > 60 && !rainbow) c->SaveAs(("../images/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_times.png").c_str());
+  if(maxJetE > 60 && !rainbow) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_times.png").c_str());
 
   event_sum->SetName(("event_sum_"+to_string(runnum)+"_"+to_string(evtnum)).c_str());
   event_disrt[0]->SetName(("emcal_"+to_string(runnum)+"_"+to_string(evtnum)).c_str());
@@ -474,6 +474,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   for(int i=0; i<3; ++i)
     {
       if(chi2s[i]) delete chi2s[i];
+      if(times[i]) delete times[i];
     }
   if(event_sum) delete event_sum;
   if(ex1) delete ex1;
@@ -490,7 +491,7 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
   //TFile* evtfile = TFile::Open("../chi2/hadded_chi2file_20250902.root","READ");
 
   TFile* outf;
-  if(dosave) outf = TFile::Open(("../savedhists_20250909_"+to_string(lo)+"_"+to_string(hi)+".root").c_str(),"RECREATE");
+  if(dosave) outf = TFile::Open(("../savedhists_20250916_"+to_string(lo)+"_"+to_string(hi)+".root").c_str(),"RECREATE");
   TTree* outt;
   if(dosave) outt = new TTree("outt","an output tree");
   if(dosave) outt->SetDirectory(outf);

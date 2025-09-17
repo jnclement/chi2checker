@@ -13,9 +13,6 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 
 
   gROOT->ProcessLine("gErrorIgnoreLevel = kWarning;");
-  TFile* evtfile = TFile::Open("../chi2_jbc/events_jbc_20250827_47289_1_1000_waveforms.root");//events/allwf.root","READ");
-  TFile* othfile = TFile::Open("../chi2_jbc/events_jbc_20250827_47289_1_1000_chi2file.root");//events/allevents_20250815.root","READ");
-  
   gStyle->SetPadTickX(1);
   gStyle->SetPadTickY(1);
   gStyle->SetOptStat(0);
@@ -32,13 +29,46 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
   float jet_e[100];
   int jet_n;
   
-  TTree* wft = (TTree*) evtfile->Get("wft");
-  TTree* jt = (TTree*) othfile->Get("jet_tree");
+  TChain* wft = new TChain("wft");
+  TChain* jt = new TChain("jet_tree");
 
-  const float jetcut = 1;
+  const float jetcut = 30;
 
   float jetsum[3] = {0};
   
+  
+  string calo[3] = {"EMCal","IHCal","OHCal"};
+  string ct[4] = {"fails","dijet","frac","both"};
+
+
+  string tempinfilename;
+  ifstream chi2list("chi2files.txt");
+  for(int i=0; i<lo; ++i)
+    {
+      std::getline(chi2list,tempinfilename);
+    }
+  int counter = lo;
+  while(std::getline(chi2list,tempinfilename))
+    {
+      jt->Add(tempinfilename.c_str());
+      ++counter;
+      if(counter >= hi) break;
+    }
+
+  ifstream wflist("wavefiles.txt");
+  for(int i=0; i<lo; ++i)
+    {
+      std::getline(wflist,tempinfilename);
+    }
+  counter = lo;
+  while(std::getline(wflist,tempinfilename))
+    {
+      wft->Add(tempinfilename.c_str());
+      ++counter;
+      if(counter >= hi) break;
+    }
+
+
   jt->SetBranchAddress("jconem",jconem);
   jt->SetBranchAddress("jconih",jconih);
   jt->SetBranchAddress("jconoh",jconoh);
@@ -56,10 +86,8 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
   wft->SetBranchAddress("ihwf",ihwf);
   wft->SetBranchAddress("ohwf",ohwf);
   wft->SetBranchAddress("failscut",&failscut);
-  
-  string calo[3] = {"EMCal","IHCal","OHCal"};
-  string ct[4] = {"fails","dijet","frac","both"};
 
+  
   TH1D* singlewf = new TH1D("singlwf",";Sample;ADC Value",12,-0.5,11.5);
   
   TH2D* h2_wf[3];
@@ -87,9 +115,9 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
       tex[i]->SetNDC();
     }
   delete tex[2];
-  int jte = lo;
+  int jte = 0;
   
-  for(int i=lo; i<(hi>wft->GetEntries()?wft->GetEntries():hi); ++i)
+  for(int i=0; i<wft->GetEntries(); ++i)
     {
       if(i%100==0) cout << i << endl;
       wft->GetEntry(i);
@@ -177,7 +205,7 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 			  Etex->SetNDC();
 			  Etex->Draw();
 			  
-			  gPad->SaveAs(("../images/emwf/"+to_string(runnum)+"_"+to_string(evtnum)+"_"+to_string(k)+"_"+to_string(l)+"_emsinglewf_"+ct[failscut+1]+".png").c_str());
+			  gPad->SaveAs(("../images/wf/emwf/"+to_string(runnum)+"_"+to_string(evtnum)+"_"+to_string(k)+"_"+to_string(l)+"_emsinglewf_"+ct[failscut+1]+".png").c_str());
 			  
 			}
 		      singlewf->Reset();
@@ -226,7 +254,7 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 			  Etex->SetNDC();
 			  Etex->Draw();
 			  
-			  gPad->SaveAs(("../images/ihwf/"+to_string(runnum)+"_"+to_string(evtnum)+"_"+to_string(k)+"_"+to_string(l)+"_ihsinglewf_"+ct[failscut+1]+".png").c_str());
+			  gPad->SaveAs(("../images/wf/ihwf/"+to_string(runnum)+"_"+to_string(evtnum)+"_"+to_string(k)+"_"+to_string(l)+"_ihsinglewf_"+ct[failscut+1]+".png").c_str());
 			  
 			}
 		      singlewf->Reset();
@@ -278,7 +306,7 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 			  Etex->SetNDC();
 			  Etex->Draw();
 			  
-			  gPad->SaveAs(("../images/ohwf/"+to_string(runnum)+"_"+to_string(evtnum)+"_"+to_string(k)+"_"+to_string(l)+"_ohsinglewf_"+ct[failscut+1]+".png").c_str());
+			  gPad->SaveAs(("../images/wf/ohwf/"+to_string(runnum)+"_"+to_string(evtnum)+"_"+to_string(k)+"_"+to_string(l)+"_ohsinglewf_"+ct[failscut+1]+".png").c_str());
 			  
 			}
 		      singlewf->Reset();
@@ -294,7 +322,7 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 	    {
 	      tex[k]->Draw();
 	    }
-	  gPad->SaveAs(("../images/"+to_string(runnum)+"_"+to_string(evtnum)+"_"+calo[j]+"_"+ct[failscut+1]+"_wf.png").c_str());
+	  gPad->SaveAs(("../images/wf/"+to_string(runnum)+"_"+to_string(evtnum)+"_"+calo[j]+"_"+ct[failscut+1]+"_wf.png").c_str());
 	  h2_wf[j]->Reset();
 	}
       delete tex[2];
