@@ -29,6 +29,8 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
   float emtow[96][256];
   float ihtow[24][64];
   float ohtow[24][64];
+  float jet_e[100];
+  int jet_n;
   
   TTree* wft = (TTree*) evtfile->Get("wft");
   TTree* jt = (TTree*) othfile->Get("jet_tree");
@@ -45,6 +47,8 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
   jt->SetBranchAddress("emtow",emtow);
   jt->SetBranchAddress("ihtow",ihtow);
   jt->SetBranchAddress("ohtow",ohtow);
+  jt->SetBranchAddress("jet_n",&jet_n);
+  jt->SetBranchAddress("jet_et",jet_e);
   
   wft->SetBranchAddress("runnum",&runnum);
   wft->SetBranchAddress("evtnum",&evtnum);
@@ -103,7 +107,12 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 	  jt->GetEntry(jte);
 	}
       if(flag) continue;
-      //if((failscut < 0 || failscut > 2) && i%100 != 0) continue;
+      if((failscut < 0 || failscut > 2)) continue;
+      float maxE = 0;
+      for(int j=0; j<jet_n; ++j)
+	{
+	  if(jet_e[j] > maxE) maxE = jet_e[j];
+	}
       if(runnumdraw >= 0)
 	{
 	  if(runnum != runnumdraw) continue;
@@ -112,6 +121,7 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 	      if(evtnum != evtdraw) continue;
 	    }
 	}
+      if(maxE < 60) continue;
       texts[2] = "Run " + to_string(runnum) + ", Event " + to_string(evtnum);
       tex[2] = new TLatex(0.5,ycoord[2],texts[2].c_str());
       tex[2]->SetTextFont(42);
@@ -136,7 +146,7 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 		      for(int m=0; m<12; ++m)
 			{
 			  if (emwf[k][l][m] > 0) h2_wf[j]->Fill(m,emwf[k][l][m]);
-			  if(runnumdraw > -1 && evtdraw > -1) singlewf->Fill(m,emwf[k][l][m]);
+			  singlewf->Fill(m,emwf[k][l][m]);//if(runnumdraw > -1 && evtdraw > -1)
 			  minval = min(minval,emwf[k][l][m]);
 			  maxval = max(maxval,emwf[k][l][m]);
 			}
@@ -145,7 +155,7 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 			  jetsum[j] += emtow[k][l];
 			  //cout << emtow[k][l] << " " << jetsum[j] << " " << (maxval-minval)/emtow[k][l] << endl;
 			}
-		      if(runnumdraw > -1 && evtdraw > -1 && (maxval-minval > 30))
+		      //if(runnumdraw > -1 && evtdraw > -1 && (maxval-minval > 30))
 			{
 			  singlewf->GetYaxis()->SetRangeUser(0,17000);
 			  singlewf->Draw("HIST");

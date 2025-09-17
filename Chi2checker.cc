@@ -1440,7 +1440,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		  bool ishot = tower->get_isHot();
 		  if(j==0)
 		    {
-		      _emt[eta][phi] = regtow->get_time();
+		      if(regtow) _emt[eta][phi] = regtow->get_time();
 		      _emtow[eta][phi] = tower->get_energy();
 		      if(regtow) _emadcfit[eta][phi] = regtow->get_energy();
 		      else _emadcfit[eta][phi] = -1;
@@ -1451,7 +1451,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		    }
 		  else if(j==1)
 		    {
-		      _iht[eta][phi] = regtow->get_time();
+		      if(regtow) _iht[eta][phi] = regtow->get_time();
 		      _ihtow[eta][phi] = tower->get_energy();
 		      if(regtow) _ihadcfit[eta][phi] = regtow->get_energy();
 		      else _ihadcfit[eta][phi] = -1;
@@ -1462,7 +1462,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		    }
 		  else if(j==2)
 		    {
-		      _oht[eta][phi] = regtow->get_time();
+		      if(regtow) _oht[eta][phi] = regtow->get_time();
 		      _ohtow[eta][phi] = tower->get_energy();
 		      if(regtow) _ohadcfit[eta][phi] = regtow->get_energy();
 		      else _ohadcfit[eta][phi] = -1;
