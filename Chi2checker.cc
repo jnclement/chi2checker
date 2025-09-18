@@ -522,6 +522,20 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   _wft->Branch("ihwf",_ihwf,"ihwf[24][64][12]/i");
   _wft->Branch("ohwf",_ohwf,"ohwf[24][64][12]/i");
 
+  _wft->Branch("emieta",_emieta,"emieta[96][256]/I");
+  _wft->Branch("ihieta",_ihieta,"ihieta[24][64]/I");
+  _wft->Branch("ohieta",_ohieta,"ohieta[24][64]/I");
+  _wft->Branch("emiphi",_emiphi,"emiphi[96][256]/I");
+  _wft->Branch("ihiphi",_ihiphi,"ihiphi[24][64]/I");
+  _wft->Branch("ohiphi",_ohiphi,"ohiphi[24][64]/I");
+
+  jet_tree->Branch("emieta",_emieta,"emieta[96][256]/I");
+  jet_tree->Branch("ihieta",_ihieta,"ihieta[24][64]/I");
+  jet_tree->Branch("ohieta",_ohieta,"ohieta[24][64]/I");
+  jet_tree->Branch("emiphi",_emiphi,"emiphi[96][256]/I");
+  jet_tree->Branch("ihiphi",_ihiphi,"ihiphi[24][64]/I");
+  jet_tree->Branch("ohiphi",_ohiphi,"ohiphi[24][64]/I");
+
   _wft->Branch("emadcfit",_emadcfit,"emadcfit[96][256]/F");
   _wft->Branch("ihadcfit",_ihadcfit,"ihadcfit[24][64]/F");
   _wft->Branch("ohadcfit",_ohadcfit,"ohadcfit[24][64]/F");
@@ -534,6 +548,22 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   _wft->Branch("mbdavgt",_mbdavgt,"mbdavgt[2]/F");
   
   _wft->Branch("mbdhit",&_mbdhit,"mbdhit[2]/i");
+
+  for(int i=0; i<96; ++i)
+    {
+      for(int j=0; j<256; ++j)
+	{
+	  _emieta[i][j] = i;
+	  _emiphi[i][j] = j;
+	  if(i< 24 && j < 64)
+	    {
+	      _ihieta[i][j] = i;
+	      _ihiphi[i][j] = j;
+	      _ohieta[i][j] = i;
+	      _ohiphi[i][j] = j;
+	    }
+	}
+    }
   //jet_tree->Branch("nLayerEm",&_nLayerEm,"nLayerEm/I");
   //jet_tree->Branch("nLayerOh",&_nLayerOh,"nLayerOh/I");
   /*
@@ -1374,7 +1404,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       jet_ecc = eccentricity;
       jet_lfrac = maxEoverTot;
       failscut = (_bbfqavec >> 5) & 1;
-      bool dPhiCut = (_dphi < 3*M_PI/4 || !_isdijet || maxJetE < 0.2*subJetE);
+      bool dPhiCut = (_dphi < 3*M_PI/4 || !_isdijet || maxJetE*0.2 > subJetE);
       bool loETCut = _frcem > 0.9 || _frcem < 0.1 || _frcoh < 0.1 || _frcoh > 0.9 || (1.-_frcem-_frcoh) > 0.5;// ((_frcem < 0.1) && (_jet_ET > (50*_frcem+20))) && (dPhiCut || !_isdijet);
       bool hiETCut = ((_frcem > 0.9) && (_jet_ET > (-50*_frcem+70))) && (dPhiCut || !_isdijet);
       bool ihCut = (_frcem+_frcoh) < 0.65;
@@ -1440,7 +1470,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		  bool ishot = tower->get_isHot();
 		  if(j==0)
 		    {
-		      if(regtow) _emt[eta][phi] = regtow->get_time();
+		      _emt[eta][phi] = tower->get_time_float();
 		      _emtow[eta][phi] = tower->get_energy();
 		      if(regtow) _emadcfit[eta][phi] = regtow->get_energy();
 		      else _emadcfit[eta][phi] = -1;
@@ -1451,7 +1481,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		    }
 		  else if(j==1)
 		    {
-		      if(regtow) _iht[eta][phi] = regtow->get_time();
+		      _iht[eta][phi] = tower->get_time_float();
 		      _ihtow[eta][phi] = tower->get_energy();
 		      if(regtow) _ihadcfit[eta][phi] = regtow->get_energy();
 		      else _ihadcfit[eta][phi] = -1;
@@ -1462,7 +1492,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		    }
 		  else if(j==2)
 		    {
-		      if(regtow) _oht[eta][phi] = regtow->get_time();
+		      _oht[eta][phi] = tower->get_time_float();
 		      _ohtow[eta][phi] = tower->get_energy();
 		      if(regtow) _ohadcfit[eta][phi] = regtow->get_energy();
 		      else _ohadcfit[eta][phi] = -1;

@@ -159,6 +159,13 @@ class Chi2checker : public SubsysReco
   unsigned int _emwf[96][256][12];
   unsigned int _ihwf[24][64][12];
   unsigned int _ohwf[24][64][12];
+  int _emieta[96][256];
+  int _ihieta[24][64];
+  int _ohieta[24][64];
+
+  int _emiphi[96][256];
+  int _ihiphi[24][64];
+  int _ohiphi[24][64];
 
   float _emt[96][256];
   float _iht[24][64];
