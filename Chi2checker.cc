@@ -487,6 +487,10 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("elmbgvec",&_elmbgvec,"elmbgvec/i");
   */
   jet_tree->Branch("jet_n",&_jet_n,"jet_n/I");
+  jet_tree->Branch("nx",&_nx,"nx/I");
+  jet_tree->Branch("ny",&_ny,"ny/I");
+  jet_tree->Branch("nemx",&_nemx,"nemx/I");
+  jet_tree->Branch("nemy",&_nemy,"nemy/I");
   jet_tree->Branch("runnum",&_runnum,"runnum/I");
   jet_tree->Branch("evtnum",&_evtnum,"evtnum/I");
   jet_tree->Branch("failscut",&_failscut,"failscut/I");
@@ -497,52 +501,52 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("jet_t",_jet_t,"jet_t[jet_n]/F");
   jet_tree->Branch("jet_eta",_jet_eta,"jet_eta[jet_n]/F");
   jet_tree->Branch("jet_phi",_jet_phi,"jet_phi[jet_n]/F");
-  jet_tree->Branch("emtow",_emtow,"emtow[96][256]/F");
-  jet_tree->Branch("ihtow",_ihtow,"ihtow[24][64]/F");
-  jet_tree->Branch("ohtow",_ohtow,"ohtow[24][64]/F");
-  jet_tree->Branch("isbadem",_isbadem,"isbadem[96][256]/I");
-  jet_tree->Branch("isbadih",_isbadih,"isbadih[24][64]/I");
-  jet_tree->Branch("isbadoh",_isbadoh,"isbadoh[24][64]/I");
-  jet_tree->Branch("ishotem",_ishotem,"ishotem[96][256]/I");
-  jet_tree->Branch("ishotih",_ishotih,"ishotih[24][64]/I");
-  jet_tree->Branch("ishotoh",_ishotoh,"ishotoh[24][64]/I");
-  jet_tree->Branch("nocalem",_nocalem,"nocalem[96][256]/I");
-  jet_tree->Branch("nocalih",_nocalih,"nocalih[24][64]/I");
-  jet_tree->Branch("nocaloh",_nocaloh,"nocaloh[24][64]/I");
-  jet_tree->Branch("jconem",_jconem,"jconem[24][64]/F");
-  jet_tree->Branch("jconih",_jconih,"jconih[24][64]/F");
-  jet_tree->Branch("jconoh",_jconoh,"jconoh[24][64]/F");
+  jet_tree->Branch("emtow",_emtow,"emtow[nemx][256]/F");
+  jet_tree->Branch("ihtow",_ihtow,"ihtow[nx][64]/F");
+  jet_tree->Branch("ohtow",_ohtow,"ohtow[nx][64]/F");
+  jet_tree->Branch("isbadem",_isbadem,"isbadem[nemx][256]/I");
+  jet_tree->Branch("isbadih",_isbadih,"isbadih[nx][64]/I");
+  jet_tree->Branch("isbadoh",_isbadoh,"isbadoh[nx][64]/I");
+  jet_tree->Branch("ishotem",_ishotem,"ishotem[nemx][256]/I");
+  jet_tree->Branch("ishotih",_ishotih,"ishotih[nx][64]/I");
+  jet_tree->Branch("ishotoh",_ishotoh,"ishotoh[nx][64]/I");
+  jet_tree->Branch("nocalem",_nocalem,"nocalem[nemx][256]/I");
+  jet_tree->Branch("nocalih",_nocalih,"nocalih[nx][64]/I");
+  jet_tree->Branch("nocaloh",_nocaloh,"nocaloh[nx][64]/I");
+  jet_tree->Branch("jconem",_jconem,"jconem[nx][64]/F");
+  jet_tree->Branch("jconih",_jconih,"jconih[nx][64]/F");
+  jet_tree->Branch("jconoh",_jconoh,"jconoh[nx][64]/F");
   jet_tree->Branch("isblt",&_isbadlive,"isblt/I");
-  jet_tree->Branch("chi2em",_chi2em,"chi2em[96][256]/F");
-  jet_tree->Branch("chi2ih",_chi2ih,"chi2ih[24][64]/F");
-  jet_tree->Branch("chi2oh",_chi2oh,"chi2oh[24][64]/F");
+  jet_tree->Branch("chi2em",_chi2em,"chi2em[nemx][256]/F");
+  jet_tree->Branch("chi2ih",_chi2ih,"chi2ih[nx][64]/F");
+  jet_tree->Branch("chi2oh",_chi2oh,"chi2oh[nx][64]/F");
 
   _wft->Branch("runnum",&_runnum,"runnum/I");
   _wft->Branch("evtnum",&_evtnum,"evtnum/I");
-  _wft->Branch("emwf",_emwf,"emwf[96][256][12]/i");
-  _wft->Branch("ihwf",_ihwf,"ihwf[24][64][12]/i");
-  _wft->Branch("ohwf",_ohwf,"ohwf[24][64][12]/i");
+  _wft->Branch("emwf",_emwf,"emwf[nemx][256][12]/i");
+  _wft->Branch("ihwf",_ihwf,"ihwf[nx][64][12]/i");
+  _wft->Branch("ohwf",_ohwf,"ohwf[nx][64][12]/i");
 
-  _wft->Branch("emieta",_emieta,"emieta[96][256]/I");
-  _wft->Branch("ihieta",_ihieta,"ihieta[24][64]/I");
-  _wft->Branch("ohieta",_ohieta,"ohieta[24][64]/I");
-  _wft->Branch("emiphi",_emiphi,"emiphi[96][256]/I");
-  _wft->Branch("ihiphi",_ihiphi,"ihiphi[24][64]/I");
-  _wft->Branch("ohiphi",_ohiphi,"ohiphi[24][64]/I");
+  _wft->Branch("emieta",_emieta,"emieta[nemx][256]/I");
+  _wft->Branch("ihieta",_ihieta,"ihieta[nx][64]/I");
+  _wft->Branch("ohieta",_ohieta,"ohieta[nx][64]/I");
+  _wft->Branch("emiphi",_emiphi,"emiphi[nemx][256]/I");
+  _wft->Branch("ihiphi",_ihiphi,"ihiphi[nx][64]/I");
+  _wft->Branch("ohiphi",_ohiphi,"ohiphi[nx][64]/I");
 
-  jet_tree->Branch("emieta",_emieta,"emieta[96][256]/I");
-  jet_tree->Branch("ihieta",_ihieta,"ihieta[24][64]/I");
-  jet_tree->Branch("ohieta",_ohieta,"ohieta[24][64]/I");
-  jet_tree->Branch("emiphi",_emiphi,"emiphi[96][256]/I");
-  jet_tree->Branch("ihiphi",_ihiphi,"ihiphi[24][64]/I");
-  jet_tree->Branch("ohiphi",_ohiphi,"ohiphi[24][64]/I");
+  jet_tree->Branch("emieta",_emieta,"emieta[nemx][256]/I");
+  jet_tree->Branch("ihieta",_ihieta,"ihieta[nx][64]/I");
+  jet_tree->Branch("ohieta",_ohieta,"ohieta[nx][64]/I");
+  jet_tree->Branch("emiphi",_emiphi,"emiphi[nemx][256]/I");
+  jet_tree->Branch("ihiphi",_ihiphi,"ihiphi[nx][64]/I");
+  jet_tree->Branch("ohiphi",_ohiphi,"ohiphi[nx][64]/I");
 
-  _wft->Branch("emadcfit",_emadcfit,"emadcfit[96][256]/F");
-  _wft->Branch("ihadcfit",_ihadcfit,"ihadcfit[24][64]/F");
-  _wft->Branch("ohadcfit",_ohadcfit,"ohadcfit[24][64]/F");
-  _wft->Branch("emt",_emt,"emt[96][256]/F");
-  _wft->Branch("iht",_iht,"iht[24][64]/F");
-  _wft->Branch("oht",_oht,"oht[24][64]/F");
+  _wft->Branch("emadcfit",_emadcfit,"emadcfit[nemx][256]/F");
+  _wft->Branch("ihadcfit",_ihadcfit,"ihadcfit[nx][64]/F");
+  _wft->Branch("ohadcfit",_ohadcfit,"ohadcfit[nx][64]/F");
+  _wft->Branch("emt",_emt,"emt[nemx][256]/F");
+  _wft->Branch("iht",_iht,"iht[nx][64]/F");
+  _wft->Branch("oht",_oht,"oht[nx][64]/F");
   
   _wft->Branch("failscut",&_failscut,"failscut/I");
 
@@ -550,13 +554,13 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   
   _wft->Branch("mbdhit",&_mbdhit,"mbdhit[2]/i");
 
-  for(int i=0; i<96; ++i)
+  for(int i=0; i<nemx; ++i)
     {
-      for(int j=0; j<256; ++j)
+      for(int j=0; j<nemy; ++j)
 	{
 	  _emieta[i][j] = i;
 	  _emiphi[i][j] = j;
-	  if(i< 24 && j < 64)
+	  if(i< nx && j < ny)
 	    {
 	      _ihieta[i][j] = i;
 	      _ihiphi[i][j] = j;
@@ -632,7 +636,7 @@ float Chi2checker::getPhiFromBin(int binPhi)
 
 float getEtaFromBinEM(int binEta)
 {
-  return ((2.2*binEta)/96)-1.1;
+  return ((2.2*binEta)/64)-1.1;
 }
 
 float getPhiFromBinEM(int binPhi)
@@ -656,59 +660,62 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 
   if(_debug > 1) cout << endl << endl << endl << "Chi2checker: Beginning event processing" << endl;
   if(_nprocessed % 1000 == 0) cout << "processing event " << _nprocessed << endl;
-  
-  Gl1Packetv3* gl1 = findNode::getClass<Gl1Packetv3>(topNode, "14001");
-  if(!gl1)
-    {
-      cout << "No trigger info!" << endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
-  if(_debug > 1) cout << "Chi2checker: Getting gl1 trigger vector from: " << gl1 << endl;
-  _triggervec = gl1->getScaledVector();
 
-  int isjettrig = (_triggervec >> 22) & 1;
-  int isjmbtrig = (_triggervec >> 18) & 1;
-  //int ismbtrig = (_triggervec >> 10) & 1;
-  //if(_debug > 2) cout << _triggervec << " " << isjettrig << " " << ismbtrig << endl;
-  /*
-  if(!isjettrig && !isjmbtrig)// && !ismbtrig)
+  if(_isdat)
     {
-      if(_debug > 1) cout << "no jet trigger" << endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
+      
+      Gl1Packetv3* gl1 = findNode::getClass<Gl1Packetv3>(topNode, "14001");
+      if(!gl1)
+	{
+	  cout << "No trigger info!" << endl;
+	  return Fun4AllReturnCodes::ABORTRUN;
+	}
+      if(_debug > 1) cout << "Chi2checker: Getting gl1 trigger vector from: " << gl1 << endl;
+      _triggervec = gl1->getScaledVector();
+      
+      int isjettrig = (_triggervec >> 22) & 1;
+      int isjmbtrig = (_triggervec >> 18) & 1;
+      //int ismbtrig = (_triggervec >> 10) & 1;
+      //if(_debug > 2) cout << _triggervec << " " << isjettrig << " " << ismbtrig << endl;
+      /*
+	if(!isjettrig && !isjmbtrig)// && !ismbtrig)
+	{
+	if(_debug > 1) cout << "no jet trigger" << endl;
+	return Fun4AllReturnCodes::ABORTEVENT;
+	}
+      */
+      if(_nprocessed == 0)
+	{
+	  _prevraw18 = gl1->lValue(18,0);
+	  _prevraw22 = gl1->lValue(22,0);
+	  _prevlive18 = gl1->lValue(18,1);
+	  _prevlive22 = gl1->lValue(22,1);
+	  _isbadlive = 0;
+	}
+      long long unsigned int currentlive18, currentlive22, currentraw18, currentraw22;
+      currentlive18 = gl1->lValue(18,1);
+      currentlive22 = gl1->lValue(22,1);
+      currentraw18 = gl1->lValue(18,0);
+      currentraw22 = gl1->lValue(22,0);
+      long long unsigned int live18diff = currentlive18 - _prevlive18;
+      long long unsigned int live22diff = currentlive22 - _prevlive22;
+      long long unsigned int raw18diff = currentraw18 - _prevraw18;
+      long long unsigned int raw22diff = currentraw22 - _prevraw22;
+      if(_nprocessed != 0)
+	{
+	  if(isjettrig && (((float)live22diff)/raw22diff < 0.1 || ((float)live18diff)/raw18diff < 0.1)) _isbadlive = 1;
+	  else _isbadlive = 0;
+	}
+      else
+	{
+	  _isbadlive = 0;
+	}
+      
+      _prevraw18 = currentraw18;
+      _prevraw22 = currentraw22;
+      _prevlive18 = currentlive18;
+      _prevlive22 = currentlive22;
     }
-  */
-  if(_nprocessed == 0)
-    {
-      _prevraw18 = gl1->lValue(18,0);
-      _prevraw22 = gl1->lValue(22,0);
-      _prevlive18 = gl1->lValue(18,1);
-      _prevlive22 = gl1->lValue(22,1);
-      _isbadlive = 0;
-    }
-  long long unsigned int currentlive18, currentlive22, currentraw18, currentraw22;
-  currentlive18 = gl1->lValue(18,1);
-  currentlive22 = gl1->lValue(22,1);
-  currentraw18 = gl1->lValue(18,0);
-  currentraw22 = gl1->lValue(22,0);
-  long long unsigned int live18diff = currentlive18 - _prevlive18;
-  long long unsigned int live22diff = currentlive22 - _prevlive22;
-  long long unsigned int raw18diff = currentraw18 - _prevraw18;
-  long long unsigned int raw22diff = currentraw22 - _prevraw22;
-  if(_nprocessed != 0)
-    {
-      if(isjettrig && (((float)live22diff)/raw22diff < 0.1 || ((float)live18diff)/raw18diff < 0.1)) _isbadlive = 1;
-      else _isbadlive = 0;
-    }
-  else
-    {
-      _isbadlive = 0;
-    }
-
-  _prevraw18 = currentraw18;
-  _prevraw22 = currentraw22;
-  _prevlive18 = currentlive18;
-  _prevlive22 = currentlive22;
-  
   ++_nprocessed;
   /*
   if(ismbtrig)
@@ -718,17 +725,19 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       if(!isjettrig) return Fun4AllReturnCodes::ABORTEVENT;
     }
   */
-  int runnumber = 0;
-  int evtnum = 0;
-  EventHeader *runheader = findNode::getClass<EventHeader>(topNode, "EventHeader");
-  if (!runheader)
+  if(_isdat)
     {
-      std::cout << "can't find runheader" << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
+      int runnumber = 0;
+      int evtnum = 0;
+      EventHeader *runheader = findNode::getClass<EventHeader>(topNode, "EventHeader");
+      if (!runheader)
+	{
+	  std::cout << "can't find runheader" << std::endl;
+	  return Fun4AllReturnCodes::ABORTEVENT;
+	}
+      runnumber = runheader->get_RunNumber();
+      evtnum = runheader->get_EvtSequence();
     }
-  runnumber = runheader->get_RunNumber();
-  evtnum = runheader->get_EvtSequence();
-
   PHNodeIterator itNode(topNode);
   PHCompositeNode* parNode = dynamic_cast<PHCompositeNode*>(itNode.findFirst("PHCompositeNode","PAR"));
   PdbParameterMap* flagNode;
@@ -875,8 +884,11 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
     }
   else
     {
-      cout << "no MBD PMTs!!!" << endl;
-      return Fun4AllReturnCodes::ABORTRUN;
+      if(_isdat)
+	{
+	  cout << "no MBD PMTs!!!" << endl;
+	  return Fun4AllReturnCodes::ABORTRUN;
+	}
     }
 
   
@@ -1033,9 +1045,9 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   _jet_n = 0;
   float jet_ecc = -1;
   float jet_lfrac = -1;
-  for(int i=0; i<24; ++i)
+  for(int i=0; i<nx; ++i)
     {
-      for(int j=0; j<64; ++j)
+      for(int j=0; j<ny; ++j)
 	{
 	  _jconem[i][j] = 0;
 	  _jconih[i][j] = 0;
@@ -1454,21 +1466,21 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       
       
       
-      if((maxJetE > 30 && (!loETCut || !dPhiCut)) || maxJetE > 75 || _doall60)
+      if((maxJetE > 30 && (!loETCut || !dPhiCut)) || maxJetE > 50 || _doall60)
 	{
 
 	  for(int j=0; j<12; ++j)
 	    {
-	      for(int k=0; k<96; ++k)
+	      for(int k=0; k<nemx; ++k)
 		{
-		  for(int l=0; l<256; ++l)
+		  for(int l=0; l<nemy; ++l)
 		    {
 		      _emwf[k][l][j] = 0;
 		    }
 		}
-	      for(int k=0; k<24; ++k)
+	      for(int k=0; k<nx; ++k)
 		{
-		  for(int l=0; l<64; ++l)
+		  for(int l=0; l<ny; ++l)
 		    {
 		      _ihwf[k][l][j] = 0;
 		      _ohwf[k][l][j] = 0;
@@ -1480,7 +1492,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	  if(_debug > 1) cout << "adding to tree. towers: " << towers[0] << endl;
 	  for(int j=0; j<3; ++j)
 	    {
-	      for(int k=0; k<(j==0?24576:1536); ++k)
+	      for(int k=0; k<(j==0?nemt:nt); ++k)
 		{
 		  TowerInfo* tower = towers[j]->get_tower_at_channel(k);
 		  TowerInfo* regtow;

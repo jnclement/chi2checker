@@ -92,6 +92,10 @@ int timing_hists(int lo, int hi)
   jet_tree->SetBranchStatus("jet_phi",1);
   jet_tree->SetBranchStatus("zvtx",1);
   jet_tree->SetBranchStatus("jet_t",1);
+  jet_tree->SetBranchStatus("emtow",1);
+  jet_tree->SetBranchStatus("ihtow",1);
+  jet_tree->SetBranchStatus("ohtow",1);
+  
   
   jet_tree->SetBranchAddress("jet_n",&jet_n);
   jet_tree->SetBranchAddress("failscut",&failscut);
@@ -103,15 +107,20 @@ int timing_hists(int lo, int hi)
   jet_tree->SetBranchAddress("jet_phi",jet_phi);
   jet_tree->SetBranchAddress("zvtx",&zvtx);
   jet_tree->SetBranchAddress("jet_t",jet_t);
+  jet_tree->SetBranchAddress("emtow",emtow);
+  jet_tree->SetBranchAddress("ihtow",ihtow);
+  jet_tree->SetBranchAddress("ohtow",ohtow);
   
   const int ncut = 4;
   TH3D* h3_pt_dt_t[ncut];
   TH2D* h2_pt_t[ncut];
+  TH2D* h2_lt_st[ncut];
   string cuttype[ncut] = {"all","dijet","frac","both"};
   for(int i=0; i<ncut; ++i)
     {
       h3_pt_dt_t[i] = new TH3D(("h3_pt_dt_t_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];#Delta t_{l,sl} [samples];t_{jet} [samples]",200,0,200,100,-5,5,100,-5,5);
       h2_pt_t[i] = new TH2D(("h2_pt_t_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];t_{jet} [samples]",200,0,200,100,-5,5);
+      h2_lt_st[i] = new TH2D(("h2_lt_st_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];t_{jet} [samples]",100,-5,5,100,-5,5);
     }
   
   int wfte = 0;
@@ -119,6 +128,20 @@ int timing_hists(int lo, int hi)
     {
       if(!(i%100)) cout << i << endl;
       jet_tree->GetEntry(i);
+      float calosum = 0;
+      for(int j=0; j<96; ++j)
+	{
+	  for(int k=0; k<256; ++k)
+	    {
+	      calosum += emtow[j][k];
+	      if(j<24 && k<64)
+		{
+		  calosum += ihtow[j][k];
+		  calosum += ohtow[j][k];
+		}
+	    }
+	}
+      if(calosum > 180) continue;
       /*
       wft->GetEntry(wfte);
       int flag = 0;
@@ -166,19 +189,49 @@ int timing_hists(int lo, int hi)
 	      sindex = j;
 	    }
 	}
-      if(sumjetpt > 175) continue;
+      //if(sumjetpt > 175) continue;
       if(sindex > -1)
 	{
-	  h3_pt_dt_t[0]->Fill(lpt,lt-st,lt);
-	  if(failscut==0) h3_pt_dt_t[1]->Fill(lpt,lt-st,lt);
-	  if(failscut==1) h3_pt_dt_t[2]->Fill(lpt,lt-st,lt);
+	  h2_lt_st[0]->Fill(lt,st);
+	  if(failscut==0)
+	    {
+	      h2_lt_st[1]->Fill(lt,st);
+	    }
+	  if(failscut==1)
+	    {
+	      h2_lt_st[2]->Fill(lt,st);
+	    }
 	  if(failscut==2)
 	    {
-	      for(int j=1;j<4;++j) h3_pt_dt_t[j]->Fill(lpt,lt-st,lt);
+	      for(int j=1;j<4;++j)
+		{
+		  h2_lt_st[j]->Fill(lt,st);
+		}
 	    }
 	}
+
       for(int j=0; j<jet_n; ++j)
 	{
+	  if(sindex > -1)
+	    {
+	      h3_pt_dt_t[0]->Fill(jet_pt[j],lt-st,jet_t[j]);
+	      if(failscut==0)
+		{
+		  h3_pt_dt_t[1]->Fill(jet_pt[j],lt-st,jet_t[j]);
+		}
+	      if(failscut==1)
+		{
+		  h3_pt_dt_t[2]->Fill(jet_pt[j],lt-st,jet_t[j]);
+		}
+	      if(failscut==2)
+		{
+		  for(int j=1;j<4;++j)
+		    {
+		      h3_pt_dt_t[j]->Fill(jet_pt[j],lt-st,jet_t[j]);
+		    }
+		}
+	    }
+	  
 	  h2_pt_t[0]->Fill(jet_pt[j],jet_t[j]);
 	  if(failscut==0) h2_pt_t[1]->Fill(jet_pt[j],jet_t[j]);
 	  if(failscut==1) h2_pt_t[2]->Fill(jet_pt[j],jet_t[j]);
@@ -195,6 +248,7 @@ int timing_hists(int lo, int hi)
     {
       h3_pt_dt_t[i]->Write();
       h2_pt_t[i]->Write();
+      h2_lt_st[i]->Write();
     }
 
   outf->Write();
