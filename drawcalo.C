@@ -256,16 +256,12 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 	      if(j==1) deads[j]->Fill(eta,phi,10*ishotih[eta][phi]);
 	      if(j==2) deads[j]->Fill(eta,phi,10*ishotoh[eta][phi]);
 
-	      if(energy > 0.5)
-		{
-		  if(j==0) times[j]->Fill(eta,phi,emt[eta][phi]);
-		  if(j==1) times[j]->Fill(eta,phi,iht[eta][phi]);
-		  if(j==2) times[j]->Fill(eta,phi,oht[eta][phi]);
-		}
-	      else
-		{
-		  times[j]->Fill(eta,phi,0);
-		}
+	      if(j==0 && !std::isnan(emt[eta][phi])) times[j]->Fill(eta,phi,emt[eta][phi]);
+	      else times[j]->Fill(eta,phi,0);
+	      if(j==1 && !std::isnan(iht[eta][phi])) times[j]->Fill(eta,phi,iht[eta][phi]);
+	      else times[j]->Fill(eta,phi,0);
+	      if(j==2 && !std::isnan(oht[eta][phi])) times[j]->Fill(eta,phi,oht[eta][phi]);
+	      else times[j]->Fill(eta,phi,0);
 	      
 	      if(j==0) bchi2[j]->Fill(eta,phi,10*isbadem[eta][phi]);
 	      if(j==1) bchi2[j]->Fill(eta,phi,10*isbadih[eta][phi]);

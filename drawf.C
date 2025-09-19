@@ -183,7 +183,7 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 			  jetsum[j] += emtow[k][l];
 			  //cout << emtow[k][l] << " " << jetsum[j] << " " << (maxval-minval)/emtow[k][l] << endl;
 			}
-		      //if(runnumdraw > -1 && evtdraw > -1 && (maxval-minval > 30))
+		      if(maxval-minval > 999)//if(runnumdraw > -1 && evtdraw > -1 && (maxval-minval > 30))
 			{
 			  singlewf->GetYaxis()->SetRangeUser(0,17000);
 			  singlewf->Draw("HIST");
@@ -233,7 +233,7 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 			  jetsum[j] += ihtow[k][l];
 			  //cout << ihtow[k][l] << " " << jetsum[j] << " " << (maxval-minval)/ihtow[k][l] << endl;
 			}
-		      if(runnumdraw > -1 && evtdraw > -1 && maxval-minval>10)
+		      if(maxval-minval > 999)//if(runnumdraw > -1 && evtdraw > -1 && maxval-minval>10)
 			{
 			  singlewf->Draw("HIST");
 			  texts[4] = "IHCal #eta bin " + to_string(k) + ", #phi bin " + to_string(l);
@@ -285,7 +285,7 @@ int drawf(int lo, int hi, int runnumdraw = -1, int evtdraw = -1)
 			  //cout << ohtow[k][l] << " " << jetsum[j] << " " << (maxval-minval)/ohtow[k][l] << endl;
 			}
 		      //cout << maxval << endl;
-		      if(runnumdraw > -1 && evtdraw > -1 && maxval-minval>30)
+		      if(maxval-minval>999)//if(runnumdraw > -1 && evtdraw > -1 && maxval-minval>30)
 			{
 			  singlewf->Draw("HIST");
 			  texts[4] = "OHCal #eta bin " + to_string(k) + ", #phi bin " + to_string(l);

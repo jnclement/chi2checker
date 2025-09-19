@@ -494,6 +494,7 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("alljetfrcem",_alljetfrcem,"alljetfrcem[jet_n]/F");
   jet_tree->Branch("jet_et",_jet_et,"jet_et[jet_n]/F");
   jet_tree->Branch("jet_pt",_jet_pt,"jet_pt[jet_n]/F");
+  jet_tree->Branch("jet_t",_jet_t,"jet_t[jet_n]/F");
   jet_tree->Branch("jet_eta",_jet_eta,"jet_eta[jet_n]/F");
   jet_tree->Branch("jet_phi",_jet_phi,"jet_phi[jet_n]/F");
   jet_tree->Branch("emtow",_emtow,"emtow[96][256]/F");
@@ -1041,6 +1042,11 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	  _jconoh[i][j] = 0;
 	}
     }
+
+  for(int i=0; i<100; ++i)
+    {
+      _jet_t[i] = 0;
+    }
   //float Etot = 0;
   //bool isPerimeter[nx][ny] = {0};
   //float calE[3][nx][ny] = {0};
@@ -1129,7 +1135,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		    }
 		  */
 		}
-	      
+	      float jet_t_Esum = 0;
 	      for(auto comp: jet->get_comp_vec())
 		{
 		  ++ncomp;
@@ -1155,6 +1161,13 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		      float newTheta = atan2(radius,newz);
 		      float towerEta = -log(tan(0.5*newTheta));
 		      float towerPhi = tower_geom->get_phi();
+
+		      if(towerE > 0.1)
+			{
+			  jet_t_Esum += towerE;
+			  _jet_t[_jet_n] += towerE*tower->get_time_float();
+			}
+		      
 		      /*
 			_jetcompE[1][subcomp[1]] = towerE;
 			_jetcompEta[1][subcomp[1]] = towerPhi;
@@ -1207,6 +1220,12 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		      float newTheta = atan2(radius,newz);
 		      float towerEta = -log(tan(0.5*newTheta));
 		      float towerPhi = tower_geom->get_phi();
+
+		      if(towerE > 0.1)
+			{
+			  jet_t_Esum += towerE;
+			  _jet_t[_jet_n] += towerE*tower->get_time_float();
+			}
 		      /*
 			_jetcompE[2][subcomp[2]] = towerE;
 			_jetcompEta[2][subcomp[2]] = towerPhi;
@@ -1265,6 +1284,12 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		      float newTheta = atan2(radius,newz);
 		      float towerEta = -log(tan(0.5*newTheta));
 		      float towerPhi = tower_geom->get_phi();
+
+		      if(towerE > 0.1)
+			{
+			  jet_t_Esum += towerE;
+			  _jet_t[_jet_n] += towerE*tower->get_time_float();
+			}
 		      
 		      /*
 			_jetcompE[0][subcomp[0]] = towerE;
@@ -1329,6 +1354,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	      _dPhiLayer[_jet_n] = emAxis.Phi() - ohAxis.Phi();
 	      if(_dPhiLayer[_jet_n] > M_PI) _dPhiLayer[_jet_n] -= 2*M_PI;
 	      if(_dPhiLayer[_jet_n] < -M_PI) _dPhiLayer[_jet_n] += 2*M_PI;
+	      _jet_t[_jet_n] /= jet_t_Esum;
 	      ++_jet_n;
 	      if(_jet_n > 98) break;
 	    }

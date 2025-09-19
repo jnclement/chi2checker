@@ -107,6 +107,7 @@ class Chi2checker : public SubsysReco
   int _evtnum;
   float _jet_et[100];
   float _jet_pt[100];
+  float _jet_t[100];
   float _jet_eta[100];
   float _jet_phi[100];
   float _alljetfrcem[100];
