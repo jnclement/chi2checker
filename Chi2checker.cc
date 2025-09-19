@@ -421,9 +421,10 @@ void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet
 }
 
 //____________________________________________________________________________..
-Chi2checker::Chi2checker(const std::string &filename, const std::string &name, const int debug, const std::string &wfilename, const int dowf, const int doall60):
+Chi2checker::Chi2checker(const std::string &filename, const std::string &name, const int debug, const std::string &wfilename, const int dowf, const bool isdat, const int doall60):
   SubsysReco(name), _cutParams(name)
 {
+  _isdat = isdat;
   _name = name;
   _debug = debug;
   _filename = filename;

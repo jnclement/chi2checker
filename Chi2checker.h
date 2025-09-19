@@ -51,6 +51,7 @@ class Chi2checker : public SubsysReco
 
  
  private:
+  bool _isdat;
   int _doall60;
   bool _printedPhi = false;
   int cancount = 0;
