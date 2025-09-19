@@ -146,8 +146,10 @@ int timing_hists(int lo, int hi)
       float spt = 0;
       float lt = 0;
       float st = 0;
+      float sumjetpt = 0;
       for(int j=0; j<jet_n; ++j)
 	{
+	  sumjetpt += jet_pt[j];
 	  if(jet_pt[j] > lpt)
 	    {
 	      st = lt;
@@ -164,7 +166,7 @@ int timing_hists(int lo, int hi)
 	      sindex = j;
 	    }
 	}
-
+      if(sumjetpt > 175) continue;
       if(sindex > -1)
 	{
 	  h3_pt_dt_t[0]->Fill(lpt,lt-st,lt);
