@@ -488,10 +488,6 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("elmbgvec",&_elmbgvec,"elmbgvec/i");
   */
   jet_tree->Branch("jet_n",&_jet_n,"jet_n/I");
-  jet_tree->Branch("nx",&_nx,"nx/I");
-  jet_tree->Branch("ny",&_ny,"ny/I");
-  jet_tree->Branch("nemx",&_nemx,"nemx/I");
-  jet_tree->Branch("nemy",&_nemy,"nemy/I");
   jet_tree->Branch("runnum",&_runnum,"runnum/I");
   jet_tree->Branch("evtnum",&_evtnum,"evtnum/I");
   jet_tree->Branch("failscut",&_failscut,"failscut/I");
@@ -502,52 +498,52 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("jet_t",_jet_t,"jet_t[jet_n]/F");
   jet_tree->Branch("jet_eta",_jet_eta,"jet_eta[jet_n]/F");
   jet_tree->Branch("jet_phi",_jet_phi,"jet_phi[jet_n]/F");
-  jet_tree->Branch("emtow",_emtow,"emtow[nemx][256]/F");
-  jet_tree->Branch("ihtow",_ihtow,"ihtow[nx][64]/F");
-  jet_tree->Branch("ohtow",_ohtow,"ohtow[nx][64]/F");
-  jet_tree->Branch("isbadem",_isbadem,"isbadem[nemx][256]/I");
-  jet_tree->Branch("isbadih",_isbadih,"isbadih[nx][64]/I");
-  jet_tree->Branch("isbadoh",_isbadoh,"isbadoh[nx][64]/I");
-  jet_tree->Branch("ishotem",_ishotem,"ishotem[nemx][256]/I");
-  jet_tree->Branch("ishotih",_ishotih,"ishotih[nx][64]/I");
-  jet_tree->Branch("ishotoh",_ishotoh,"ishotoh[nx][64]/I");
-  jet_tree->Branch("nocalem",_nocalem,"nocalem[nemx][256]/I");
-  jet_tree->Branch("nocalih",_nocalih,"nocalih[nx][64]/I");
-  jet_tree->Branch("nocaloh",_nocaloh,"nocaloh[nx][64]/I");
-  jet_tree->Branch("jconem",_jconem,"jconem[nx][64]/F");
-  jet_tree->Branch("jconih",_jconih,"jconih[nx][64]/F");
-  jet_tree->Branch("jconoh",_jconoh,"jconoh[nx][64]/F");
+  jet_tree->Branch("emtow",_emtow,"emtow[96][256]/F");
+  jet_tree->Branch("ihtow",_ihtow,"ihtow[24][64]/F");
+  jet_tree->Branch("ohtow",_ohtow,"ohtow[24][64]/F");
+  jet_tree->Branch("isbadem",_isbadem,"isbadem[96][256]/I");
+  jet_tree->Branch("isbadih",_isbadih,"isbadih[24][64]/I");
+  jet_tree->Branch("isbadoh",_isbadoh,"isbadoh[24][64]/I");
+  jet_tree->Branch("ishotem",_ishotem,"ishotem[96][256]/I");
+  jet_tree->Branch("ishotih",_ishotih,"ishotih[24][64]/I");
+  jet_tree->Branch("ishotoh",_ishotoh,"ishotoh[24][64]/I");
+  jet_tree->Branch("nocalem",_nocalem,"nocalem[96][256]/I");
+  jet_tree->Branch("nocalih",_nocalih,"nocalih[24][64]/I");
+  jet_tree->Branch("nocaloh",_nocaloh,"nocaloh[24][64]/I");
+  jet_tree->Branch("jconem",_jconem,"jconem[24][64]/F");
+  jet_tree->Branch("jconih",_jconih,"jconih[24][64]/F");
+  jet_tree->Branch("jconoh",_jconoh,"jconoh[24][64]/F");
   jet_tree->Branch("isblt",&_isbadlive,"isblt/I");
-  jet_tree->Branch("chi2em",_chi2em,"chi2em[nemx][256]/F");
-  jet_tree->Branch("chi2ih",_chi2ih,"chi2ih[nx][64]/F");
-  jet_tree->Branch("chi2oh",_chi2oh,"chi2oh[nx][64]/F");
+  jet_tree->Branch("chi2em",_chi2em,"chi2em[96][256]/F");
+  jet_tree->Branch("chi2ih",_chi2ih,"chi2ih[24][64]/F");
+  jet_tree->Branch("chi2oh",_chi2oh,"chi2oh[24][64]/F");
 
   _wft->Branch("runnum",&_runnum,"runnum/I");
   _wft->Branch("evtnum",&_evtnum,"evtnum/I");
-  _wft->Branch("emwf",_emwf,"emwf[nemx][256][12]/i");
-  _wft->Branch("ihwf",_ihwf,"ihwf[nx][64][12]/i");
-  _wft->Branch("ohwf",_ohwf,"ohwf[nx][64][12]/i");
+  _wft->Branch("emwf",_emwf,"emwf[96][256][12]/i");
+  _wft->Branch("ihwf",_ihwf,"ihwf[24][64][12]/i");
+  _wft->Branch("ohwf",_ohwf,"ohwf[24][64][12]/i");
 
-  _wft->Branch("emieta",_emieta,"emieta[nemx][256]/I");
-  _wft->Branch("ihieta",_ihieta,"ihieta[nx][64]/I");
-  _wft->Branch("ohieta",_ohieta,"ohieta[nx][64]/I");
-  _wft->Branch("emiphi",_emiphi,"emiphi[nemx][256]/I");
-  _wft->Branch("ihiphi",_ihiphi,"ihiphi[nx][64]/I");
-  _wft->Branch("ohiphi",_ohiphi,"ohiphi[nx][64]/I");
+  _wft->Branch("emieta",_emieta,"emieta[96][256]/I");
+  _wft->Branch("ihieta",_ihieta,"ihieta[24][64]/I");
+  _wft->Branch("ohieta",_ohieta,"ohieta[24][64]/I");
+  _wft->Branch("emiphi",_emiphi,"emiphi[96][256]/I");
+  _wft->Branch("ihiphi",_ihiphi,"ihiphi[24][64]/I");
+  _wft->Branch("ohiphi",_ohiphi,"ohiphi[24][64]/I");
 
-  jet_tree->Branch("emieta",_emieta,"emieta[nemx][256]/I");
-  jet_tree->Branch("ihieta",_ihieta,"ihieta[nx][64]/I");
-  jet_tree->Branch("ohieta",_ohieta,"ohieta[nx][64]/I");
-  jet_tree->Branch("emiphi",_emiphi,"emiphi[nemx][256]/I");
-  jet_tree->Branch("ihiphi",_ihiphi,"ihiphi[nx][64]/I");
-  jet_tree->Branch("ohiphi",_ohiphi,"ohiphi[nx][64]/I");
+  jet_tree->Branch("emieta",_emieta,"emieta[96][256]/I");
+  jet_tree->Branch("ihieta",_ihieta,"ihieta[24][64]/I");
+  jet_tree->Branch("ohieta",_ohieta,"ohieta[24][64]/I");
+  jet_tree->Branch("emiphi",_emiphi,"emiphi[96][256]/I");
+  jet_tree->Branch("ihiphi",_ihiphi,"ihiphi[24][64]/I");
+  jet_tree->Branch("ohiphi",_ohiphi,"ohiphi[24][64]/I");
 
-  _wft->Branch("emadcfit",_emadcfit,"emadcfit[nemx][256]/F");
-  _wft->Branch("ihadcfit",_ihadcfit,"ihadcfit[nx][64]/F");
-  _wft->Branch("ohadcfit",_ohadcfit,"ohadcfit[nx][64]/F");
-  _wft->Branch("emt",_emt,"emt[nemx][256]/F");
-  _wft->Branch("iht",_iht,"iht[nx][64]/F");
-  _wft->Branch("oht",_oht,"oht[nx][64]/F");
+  _wft->Branch("emadcfit",_emadcfit,"emadcfit[96][256]/F");
+  _wft->Branch("ihadcfit",_ihadcfit,"ihadcfit[24][64]/F");
+  _wft->Branch("ohadcfit",_ohadcfit,"ohadcfit[24][64]/F");
+  _wft->Branch("emt",_emt,"emt[96][256]/F");
+  _wft->Branch("iht",_iht,"iht[24][64]/F");
+  _wft->Branch("oht",_oht,"oht[24][64]/F");
   
   _wft->Branch("failscut",&_failscut,"failscut/I");
 
@@ -738,6 +734,9 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	}
       runnumber = runheader->get_RunNumber();
       evtnum = runheader->get_EvtSequence();
+      _runnum = runnumber;
+      _evtnum = evtnum;
+
     }
   PHNodeIterator itNode(topNode);
   PHCompositeNode* parNode = dynamic_cast<PHCompositeNode*>(itNode.findFirst("PHCompositeNode","PAR"));
@@ -1544,8 +1543,6 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	      if(_debug > 3) cout << "did towers["<<j<<"]" << endl;
 	    }
 	  _failscut = failsall;
-	  _runnum = runnumber;
-	  _evtnum = evtnum;
 	  //drawCalo(towers, _jet_pt, _jet_eta, _jet_phi, _jet_n, jet_ecc, jet_lfrac, geom, zvtx, failsall, runnumber, evtnum, _frcoh, _frcem, maxLayerE[0], maxLayerE[1], maxJetE);
 	  cout << "jet_tree = " << jet_tree << endl;
 	  if(_dowf)

@@ -20,7 +20,7 @@ class Chi2checker : public SubsysReco
 {
  public:
 
-  Chi2checker(const std::string &filename = "/sphenix/user/jocl/projects/run2024_earlydata/run/output/temphists/debug.root", const std::string &name = "Chi2checker", const int debug = 0, const std::string &wfilename = "", const int dowf = 0, const int doall60 = 1);
+  Chi2checker(const std::string &filename = "/sphenix/user/jocl/projects/run2024_earlydata/run/output/temphists/debug.root", const std::string &name = "Chi2checker", const int debug = 0, const std::string &wfilename = "", const int dowf = 0, const bool isdat = 1, const int doall60 = 1);
 
   virtual ~Chi2checker();
 
