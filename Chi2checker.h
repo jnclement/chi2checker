@@ -118,6 +118,13 @@ class Chi2checker : public SubsysReco
   float _jet_t[100];
   float _jet_eta[100];
   float _jet_phi[100];
+
+  int _tjet_n;
+  float _tjet_e[100];
+  float _tjet_pt[100];
+  float _tjet_eta[100];
+  float _tjet_phi[100];
+  
   float _alljetfrcem[100];
   float _alljetfrcoh[100];
   float _emtow[nemx][nemy];
