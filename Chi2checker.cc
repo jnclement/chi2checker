@@ -499,7 +499,7 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("jet_eta",_jet_eta,"jet_eta[jet_n]/F");
   jet_tree->Branch("jet_phi",_jet_phi,"jet_phi[jet_n]/F");
 
-  if(_isdat)
+  if(!_isdat)
     {
   jet_tree->Branch("tjet_n",&_tjet_n,"tjet_n/I");
   jet_tree->Branch("tjet_e",_tjet_e,"tjet_e[tjet_n]/F");
@@ -861,9 +861,10 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   regtows[2] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_HCALOUT");
   JetContainer *jets = findNode::getClass<JetContainerv1>(topNode, "AntiKt_Tower_HIRecoSeedsRaw_r04");//"AntiKt_unsubtracted_r04");
   if(!jets) jets = findNode::getClass<JetContainerv1>(topNode, "AntiKt_unsubtracted_r04");
-  JetContainer* truthjets;
+  JetContainer* truthjets = NULL;
   if(!_isdat) truthjets = findNode::getClass<JetContainerv1>(topNode, "AntiKt_Truth_r04");
-
+  cout <<"truthjets: " <<  truthjets << endl;
+  _tjet_n = 0;
   if(truthjets)
     {
       for(int i=0; i<truthjets->size(); ++i)
@@ -1072,7 +1073,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   float theta = 0;
   int jet_n = 0;
   _jet_n = 0;
-  _tjet_n = 0;
+  
   float jet_ecc = -1;
   float jet_lfrac = -1;
   for(int i=0; i<nx; ++i)

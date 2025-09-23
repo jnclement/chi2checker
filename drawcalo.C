@@ -174,7 +174,6 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   double stp[nstp] = {0,2./27,1};;// = {0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0};
   
 
-  
   TCanvas* c = new TCanvas("","",1900,1000);
   c->Divide(4,1,0,0.1);
   
@@ -310,7 +309,6 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
       ex2->Draw();
       deads[j]->Draw("col same0");
     }
-
   c->cd(4);
 
   gPad->SetLogz(0);            
@@ -384,8 +382,8 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 	}
     }
   if(maxJetE > 130) dirstring = "gr130";
-      
-  if(maxJetE > 60) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+(abs(lt-st)>0.5?"_failtime":"_passtime")+".png").c_str());
+  float minjetdraw = 50;
+  if(maxJetE > minjetdraw) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+(abs(lt-st)>0.5?"_failtime":"_passtime")+".png").c_str());
 
 
   for(int i=0; i<3; ++i)
@@ -399,9 +397,8 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   gPad->SetLogz();
   event_sum->GetZaxis()->SetRangeUser(0.05,25);
   gPad->Update();
-  if(maxJetE > 60) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+(abs(lt-st)>0.5?"_failtime":"_passtime")+"_log.png").c_str());
+  if(maxJetE > minjetdraw) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+(abs(lt-st)>0.5?"_failtime":"_passtime")+"_log.png").c_str());
   ++cancount;
-  cout << "Saved" << endl;
 
   for(int i=0; i<3; ++i)
     {
@@ -415,7 +412,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   c->cd(4);
   event_sum->GetZaxis()->SetRangeUser(-2,25);
   gPad->SetLogz(0);
-  if(maxJetE > 60 && !rainbow) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+(abs(lt-st)>0.5?"_failtime":"_passtime")+"_chi2.png").c_str());
+  if(maxJetE > minjetdraw && !rainbow) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+(abs(lt-st)>0.5?"_failtime":"_passtime")+"_chi2.png").c_str());
 
   
   //gStyle->SetPalette(2,kBird);
@@ -433,7 +430,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   c->cd(4);
   event_sum->GetZaxis()->SetRangeUser(-2,25);
   gPad->SetLogz(0);
-  if(maxJetE > 60 && !rainbow) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+(abs(lt-st)>0.5?"_failtime":"_passtime")+"_jetcon.png").c_str());
+  if(maxJetE > minjetdraw && !rainbow) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+(abs(lt-st)>0.5?"_failtime":"_passtime")+"_jetcon.png").c_str());
 
   gStyle->SetPalette(kBird);
   for(int i=0; i<3; ++i)
@@ -445,7 +442,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
       times[i]->GetZaxis()->SetTitle("Tower Fitted Time");
       times[i]->Draw("COLZ");
     }
-  if(maxJetE > 60 && !rainbow) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+(abs(lt-st)>0.5?"_failtime":"_passtime")+"_times.png").c_str());
+  if(maxJetE > minjetdraw && !rainbow) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+(abs(lt-st)>0.5?"_failtime":"_passtime")+"_times.png").c_str());
 
   event_sum->SetName(("event_sum_"+to_string(runnum)+"_"+to_string(evtnum)).c_str());
   event_disrt[0]->SetName(("emcal_"+to_string(runnum)+"_"+to_string(evtnum)).c_str());
@@ -555,22 +552,20 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
   TChain* wft = new TChain("wft");
   
   string tempinfilename;
-  ifstream chi2list("chi2files.txt");
+  ifstream chi2list("chi2filesdat.txt");
 
   for(int i=0; i<lo; ++i)
     {
       std::getline(chi2list,tempinfilename);
     }
   int counter = lo;
-  cout << hi << endl;
   while(std::getline(chi2list,tempinfilename))
     {
-      cout << "Read: " << tempinfilename << endl;
+      //cout << "Read: " << tempinfilename << endl;
       jet_tree->Add(tempinfilename.c_str());
       ++counter;
       if(counter >= hi)
 	{
-	  cout << counter << endl;
 	  break;
 	}
     }
@@ -585,7 +580,6 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
   int wfcounter = lo;
   while(std::getline(wflist,tempinfilename))
     {
-      cout << "Read: " << tempinfilename << endl;
       wft->Add(tempinfilename.c_str());
       ++wfcounter;
       if(wfcounter >= hi) break;
@@ -636,7 +630,6 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
   
   float jetcut = 4;
   outf->cd();
-  cout << "test" << endl;
   int wfte = 0;
   for(int i=0; i<jet_tree->GetEntries(); ++i)
     {
@@ -644,10 +637,8 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
       jet_tree->GetEntry(i);
       wft->GetEntry(wfte);
       int flag = 0;
-      cout << rnwf << " " << runnum << " " << enwf << " " << evtnum << endl;
       while(rnwf != runnum || enwf != evtnum)
 	{
-	  cout << "no match" << endl;
 	  ++wfte;
 	  if(wfte >= wft->GetEntries())
 	    {
@@ -707,7 +698,7 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
 	    }
 	  outt->Fill();
 	}
-      if((evtnum != evtdraw || runnum != rundraw) && evtnum > -1 && rundraw > -1) continue;
+      //if((evtnum != evtdraw || runnum != rundraw) && evtnum > -1 && rundraw > -1) continue;
       drawCalo(emtow,ihtow,ohtow,jet_pt,jet_eta,jet_phi,jet_t,jet_n,zvtx,failscut,runnum,evtnum,frcoh,frcem,jet_e,isbadem,isbadih,isbadoh,ishotem,ishotih,ishotoh,nocalem,nocalih,nocaloh,jconem,jconih,jconoh,isblt,jetcut,chi2em,chi2ih,chi2oh,emt,iht,oht,rainbow?true:false);
     }
   if(dosave) outf->Write();
