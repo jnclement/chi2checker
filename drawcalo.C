@@ -59,7 +59,7 @@ void Pal4()
   }
   gStyle->SetPalette(ncol, colors);
 }
-
+bool _dosave;
 void Pal2()
 {   // for "black pixels"
   const Int_t nstp = 2;
@@ -383,7 +383,8 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
     }
   if(maxJetE > 130) dirstring = "gr130";
   float minjetdraw = 50;
-  if(maxJetE > minjetdraw) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+(abs(lt-st)>0.5?"_failtime":"_passtime")+".png").c_str());
+  bool past = !(abs(lt-st)<0.5 && abs(lt) < 0.5 && abs(st) < 0.5);
+  if(maxJetE > minjetdraw) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+(past?"_failtime":"_passtime")+".png").c_str());
 
 
   for(int i=0; i<3; ++i)
@@ -397,7 +398,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   gPad->SetLogz();
   event_sum->GetZaxis()->SetRangeUser(0.05,25);
   gPad->Update();
-  if(maxJetE > minjetdraw) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+(abs(lt-st)>0.5?"_failtime":"_passtime")+"_log.png").c_str());
+  if(maxJetE > minjetdraw) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+(past?"_failtime":"_passtime")+"_log.png").c_str());
   ++cancount;
 
   for(int i=0; i<3; ++i)
@@ -412,7 +413,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   c->cd(4);
   event_sum->GetZaxis()->SetRangeUser(-2,25);
   gPad->SetLogz(0);
-  if(maxJetE > minjetdraw && !rainbow) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+(abs(lt-st)>0.5?"_failtime":"_passtime")+"_chi2.png").c_str());
+  if(maxJetE > minjetdraw && !rainbow) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+(past?"_failtime":"_passtime")+"_chi2.png").c_str());
 
   
   //gStyle->SetPalette(2,kBird);
@@ -430,7 +431,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   c->cd(4);
   event_sum->GetZaxis()->SetRangeUser(-2,25);
   gPad->SetLogz(0);
-  if(maxJetE > minjetdraw && !rainbow) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+(abs(lt-st)>0.5?"_failtime":"_passtime")+"_jetcon.png").c_str());
+  if(maxJetE > minjetdraw && !rainbow) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+(past?"_failtime":"_passtime")+"_jetcon.png").c_str());
 
   gStyle->SetPalette(kBird);
   for(int i=0; i<3; ++i)
@@ -442,15 +443,18 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
       times[i]->GetZaxis()->SetTitle("Tower Fitted Time");
       times[i]->Draw("COLZ");
     }
-  if(maxJetE > minjetdraw && !rainbow) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+(abs(lt-st)>0.5?"_failtime":"_passtime")+"_times.png").c_str());
+  if(maxJetE > minjetdraw && !rainbow) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+(past?"_failtime":"_passtime")+"_times.png").c_str());
 
   event_sum->SetName(("event_sum_"+to_string(runnum)+"_"+to_string(evtnum)).c_str());
   event_disrt[0]->SetName(("emcal_"+to_string(runnum)+"_"+to_string(evtnum)).c_str());
   event_disrt[1]->SetName(("ihcal_"+to_string(runnum)+"_"+to_string(evtnum)).c_str());
   event_disrt[2]->SetName(("ohcal_"+to_string(runnum)+"_"+to_string(evtnum)).c_str());
 
-  event_sum->Write();
-  for(int i=0; i<3; ++i) event_disrt[i]->Write();
+  if(_dosave)
+    {
+      event_sum->Write();
+      for(int i=0; i<3; ++i) event_disrt[i]->Write();
+    }
   
   if(c) delete c;
   if(event_disrt[0]) delete event_disrt[0];
@@ -486,7 +490,7 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
 {
   cancount = lo;
   //TFile* evtfile = TFile::Open("../chi2/hadded_chi2file_20250902.root","READ");
-
+  _dosave = dosave;
   TFile* outf;
   if(dosave) outf = TFile::Open(("../savedhists/savedhists_20250916_"+to_string(lo)+"_"+to_string(hi)+".root").c_str(),"RECREATE");
   TTree* outt;
@@ -629,7 +633,7 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
   int nhist = 0;
   
   float jetcut = 4;
-  outf->cd();
+  if(dosave) outf->cd();
   int wfte = 0;
   for(int i=0; i<jet_tree->GetEntries(); ++i)
     {
