@@ -43,7 +43,7 @@ int timing_hists(int lo, int hi, int type)
   float scalefactor = 1;
   if(type==1) scalefactor = 7.2695e-9;
   if(type==2) scalefactor = 1.034e-11;
-  
+  if(type==3) scalefactor = 2.502e-6;
   TChain* jet_tree = new TChain("jet_tree");
   TChain* wft = new TChain("wft");
   
@@ -53,6 +53,7 @@ int timing_hists(int lo, int hi, int type)
   string listname = "chi2files";
   if(type==1) samplename = "50";
   if(type==2) samplename = "70";
+  if(type==3) samplename = "30";
   listname += samplename+".txt";
   
   ifstream chi2list(listname);
@@ -218,8 +219,9 @@ int timing_hists(int lo, int hi, int type)
 	    {
 	      if(tjet_pt[j] > ltpt) ltpt = tjet_pt[j];
 	    }
-	  if(type == 1 && (ltpt > 71)) continue;
+	  if(type == 1 && (ltpt > 71 || ltpt < 52)) continue;
 	  if(type == 2 && ltpt < 71) continue;
+	  if(type == 3 && ltpt > 52) continue;
 	}
       //if(sumjetpt > 175) continue;
       lt*=17.6;
@@ -318,6 +320,7 @@ int timing_hists(int lo, int hi, int type)
     {
       h3_pt_adt_t[i]->Write();
       h3_pt_dt_t[i]->Write();
+      h3_pt_dt_lt[i]->Write();
       h2_pt_t[i]->Write();
       h2_lt_st[i]->Write();
     }

@@ -20,7 +20,7 @@ class Chi2checker : public SubsysReco
 {
  public:
 
-  Chi2checker(const std::string &filename = "/sphenix/user/jocl/projects/run2024_earlydata/run/output/temphists/debug.root", const std::string &name = "Chi2checker", const int debug = 0, const std::string &wfilename = "", const int dowf = 0, const bool isdat = 1, const int doall60 = 1);
+  Chi2checker(const std::string &filename = "/sphenix/user/jocl/projects/run2024_earlydata/run/output/temphists/debug.root", const std::string &name = "Chi2checker", const int debug = 0, const std::string &wfilename = "", const int dowf = 0, const bool isdat = 1, const int doall60 = 1, const int dotruthpar = 0);
 
   virtual ~Chi2checker();
 
@@ -51,6 +51,7 @@ class Chi2checker : public SubsysReco
 
  
  private:
+  int _dotruthpar;
   bool _isdat;
   int _doall60;
   bool _printedPhi = false;
@@ -116,6 +117,9 @@ class Chi2checker : public SubsysReco
   float _jet_et[100];
   float _jet_pt[100];
   float _jet_t[100];
+  float _jet_t_em[100];
+  float _jet_t_ih[100];
+  float _jet_t_oh[100];
   float _jet_eta[100];
   float _jet_phi[100];
 
@@ -193,6 +197,12 @@ class Chi2checker : public SubsysReco
   float _emadcfit[nemx][nemy];
   float _ihadcfit[nx][ny];
   float _ohadcfit[nx][ny];
+
+  std::vector<float> _truthparenergy;
+  std::vector<float> _truthpareta;
+  std::vector<float> _truthparphi;
+  std::vector<float> _truthparpt;
+  std::vector<int> _truthparid;
 };
 
 #endif // CHI2TREEMAKER

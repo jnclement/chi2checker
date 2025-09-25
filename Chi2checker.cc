@@ -23,6 +23,7 @@
 #include <globalvertex/MbdVertexMapv1.h>
 #include <globalvertex/MbdVertex.h>
 #include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4Particle.h>
 #include <mbd/MbdPmtHit.h>
 #include <jetbackground/TowerBackgroundv1.h>
 #include <cmath>
@@ -421,9 +422,10 @@ void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet
 }
 
 //____________________________________________________________________________..
-Chi2checker::Chi2checker(const std::string &filename, const std::string &name, const int debug, const std::string &wfilename, const int dowf, const bool isdat, const int doall60):
+Chi2checker::Chi2checker(const std::string &filename, const std::string &name, const int debug, const std::string &wfilename, const int dowf, const bool isdat, const int doall60, const int dotruthpar):
   SubsysReco(name), _cutParams(name)
 {
+  _dotruthpar = dotruthpar;
   _isdat = isdat;
   _name = name;
   _debug = debug;
@@ -437,9 +439,9 @@ Chi2checker::Chi2checker(const std::string &filename, const std::string &name, c
   if(_doall60) _wff = new TFile(_wfilename.c_str(),"RECREATE");
   if(_doall60) _wff->cd();
   if(_doall60) _wft->SetDirectory(_wff);
-  if(_doall60) _f = new TFile(_filename.c_str(), "RECREATE");
-  if(_doall60) _f->cd();
-  if(_doall60) jet_tree->SetDirectory(_f);
+  if(_doall60 || !_isdat) _f = new TFile(_filename.c_str(), "RECREATE");
+  if(_doall60 || !_isdat) _f->cd();
+  if(_doall60 || !_isdat) jet_tree->SetDirectory(_f);
 }
 
 //____________________________________________________________________________..
@@ -496,6 +498,9 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("jet_et",_jet_et,"jet_et[jet_n]/F");
   jet_tree->Branch("jet_pt",_jet_pt,"jet_pt[jet_n]/F");
   jet_tree->Branch("jet_t",_jet_t,"jet_t[jet_n]/F");
+  jet_tree->Branch("jet_t_em",_jet_t_em,"jet_t_em[jet_n]/F");
+  jet_tree->Branch("jet_t_ih",_jet_t_ih,"jet_t_ih[jet_n]/F");
+  jet_tree->Branch("jet_t_oh",_jet_t_oh,"jet_t_oh[jet_n]/F");
   jet_tree->Branch("jet_eta",_jet_eta,"jet_eta[jet_n]/F");
   jet_tree->Branch("jet_phi",_jet_phi,"jet_phi[jet_n]/F");
 
@@ -527,6 +532,13 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("chi2ih",_chi2ih,"chi2ih[24][64]/F");
   jet_tree->Branch("chi2oh",_chi2oh,"chi2oh[24][64]/F");
 
+  if(_dotruthpar) jet_tree->Branch("truthparenergy",&_truthparenergy);
+  if(_dotruthpar) jet_tree->Branch("truthpareta",&_truthpareta);
+  if(_dotruthpar) jet_tree->Branch("truthparphi",&_truthparphi);
+  if(_dotruthpar) jet_tree->Branch("truthparpt",&_truthparpt);
+  if(_dotruthpar) jet_tree->Branch("truthparid",&_truthparid);
+  
+  
   _wft->Branch("runnum",&_runnum,"runnum/I");
   _wft->Branch("evtnum",&_evtnum,"evtnum/I");
   _wft->Branch("emwf",_emwf,"emwf[96][256][12]/i");
@@ -1089,6 +1101,9 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   for(int i=0; i<100; ++i)
     {
       _jet_t[i] = 0;
+      _jet_t_em[i] = 0;
+      _jet_t_ih[i] = 0;
+      _jet_t_oh[i] = 0;
     }
   //float Etot = 0;
   //bool isPerimeter[nx][ny] = {0};
@@ -1179,6 +1194,9 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		  */
 		}
 	      float jet_t_Esum = 0;
+	      float jet_emsum = 0;
+	      float jet_ihsum = 0;
+	      float jet_ohsum = 0;
 	      for(auto comp: jet->get_comp_vec())
 		{
 		  ++ncomp;
@@ -1208,6 +1226,8 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 		      if(towerE > 0.1)
 			{
 			  jet_t_Esum += towerE;
+			  jet_ihsum += towerE;
+			  _jet_t_ih[_jet_n] += towerE*tower->get_time();
 			  _jet_t[_jet_n] += towerE*tower->get_time();
 			}
 		      
@@ -1266,6 +1286,8 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 
 		      if(towerE > 0.1)
 			{
+			  jet_ohsum += towerE;
+			  _jet_t_oh[_jet_n] += towerE*tower->get_time();
 			  jet_t_Esum += towerE;
 			  _jet_t[_jet_n] += towerE*tower->get_time();
 			}
@@ -1330,6 +1352,8 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 
 		      if(towerE > 0.1)
 			{
+			  jet_emsum += towerE;
+			  _jet_t_em[_jet_n] += towerE*tower->get_time();
 			  jet_t_Esum += towerE;
 			  _jet_t[_jet_n] += towerE*tower->get_time();
 			}
@@ -1398,6 +1422,9 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	      if(_dPhiLayer[_jet_n] > M_PI) _dPhiLayer[_jet_n] -= 2*M_PI;
 	      if(_dPhiLayer[_jet_n] < -M_PI) _dPhiLayer[_jet_n] += 2*M_PI;
 	      _jet_t[_jet_n] /= jet_t_Esum;
+	      _jet_t_em[_jet_n] /= jet_emsum;
+	      _jet_t_ih[_jet_n] /= jet_ihsum;
+	      _jet_t_oh[_jet_n] /= jet_ohsum;
 	      ++_jet_n;
 	      if(_jet_n > 98) break;
 	    }
@@ -1494,10 +1521,60 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       if(_debug > 7) cout << "cuts set" << endl;
 
 
+
+      
+
+      if(_dotruthpar)
+	{
+	  _truthparenergy.clear();
+	  _truthpareta.clear();
+	  _truthparphi.clear();
+	  _truthparpt.clear();
+	  _truthparid.clear();
+	  PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+	  if(!truthinfo)
+	    {
+	      std::cout
+		<< "MyJetAnalysis::process_event - Error can not find DST Truth Info node "
+		<< "G4TruthInfo" << std::endl;
+	      return Fun4AllReturnCodes::ABORTEVENT;
+	    }
+	  // Get the primary particle range
+	  PHG4TruthInfoContainer::Range range = truthinfo->GetPrimaryParticleRange();
+
+	  // Loop over the G4 truth (stable) particles
+	  for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
+	       iter != range.second;
+	       ++iter)
+	    {
+	      // Get this truth particle
+	      const PHG4Particle *truth = iter->second;
+	      
+	      /// Get this particles momentum, etc.
+	      float m_truthpx = truth->get_px();
+	      float m_truthpy = truth->get_py();
+	      float m_truthpz = truth->get_pz();
+	      float m_truthpt_temp = sqrt(m_truthpx * m_truthpx + m_truthpy * m_truthpy);
+	      if(m_truthpt_temp < 0.5) continue;
+	      // float m_truthp = sqrt(m_truthpx * m_truthpx + m_truthpy * m_truthpy + m_truthpz * m_truthpz);
+	      float m_tempe = truth->get_e();
+
+	      _truthparenergy.push_back(m_tempe);
+	      _truthparphi.push_back(atan(m_truthpy / m_truthpx));
+	      _truthparpt.push_back(m_truthpt_temp);
+	      float m_tempeta= atanh(m_truthpz / m_tempe);
+	      /// Check for nans
+	      if (!std::isfinite(m_tempeta))
+		{
+		  m_tempeta = -99;
+		}
+	      _truthpareta.push_back(m_tempeta);
+	      _truthparid.push_back(truth->get_pid());	      
+	    }
+	}
       
       
-      
-      if((maxJetE > 30 && (!loETCut || !dPhiCut)) || maxJetE > 40 || _doall60)
+      if((maxJetE > 30 && (!loETCut || !dPhiCut)) || maxJetE > 40 || _doall60 || !_isdat)
 	{
 
 	  for(int j=0; j<12; ++j)
@@ -1732,11 +1809,11 @@ int Chi2checker::End(PHCompositeNode *topNode)
   cout << "ending run" << endl;
   if(jet_tree->GetEntries() > 0)
     {
-      if(!_doall60) _f = new TFile(_filename.c_str(), "RECREATE");
+      if(!_doall60 && _isdat) _f = new TFile(_filename.c_str(), "RECREATE");
       cout << "file created" << endl;
-      if(!_doall60) _f->cd();
+      if(!_doall60 && _isdat) _f->cd();
       cout << "cded to file" << endl;
-      if(!_doall60) jet_tree->SetDirectory(_f);
+      if(!_doall60 && _isdat) jet_tree->SetDirectory(_f);
       cout << "tree set to directory of file" << endl;
       jet_tree->Write();
       cout << "tree written" << endl;
