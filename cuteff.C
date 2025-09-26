@@ -135,11 +135,17 @@ int cuteff(int lo, int hi, int type)
 	  std::vector<float> jet = {jet_pt[j], jet_eta[j], jet_phi[j], frcem[j], frcoh[j], 0};
 	  recojets.push_back(jet);
 	}
+      float lpt = 0;
       for(int j=0; j<tjet_n; ++j)
 	{
 	  std::vector<float> jet = {tjet_pt[j], tjet_eta[j], tjet_phi[j]};
+	  if(tjet_pt[j] > lpt) lpt = tjet_pt[j];
 	  truthjets.push_back(jet);
 	}
+      if(type==1 && (lpt < 52 || lpt > 71)) continue;
+      if(type==2 && lpt < 71) continue;
+      if(type==3 && lpt > 52) continue;
+      
       std::vector<vector<float>> matched_jets = match_truth_reco(truthjets,recojets);
 
       if(matched_jets.size() > 0)
