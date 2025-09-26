@@ -125,6 +125,7 @@ int cuteff(int lo, int hi, int type)
   
   for(int i=0; i<jet_tree->GetEntries(); ++i)
     {
+      if((i+1)%100 == 0) cout << i << endl;
       jet_tree->GetEntry(i);
       std::vector<vector<float>> recojets = {};
       std::vector<vector<float>> truthjets = {};
@@ -141,29 +142,32 @@ int cuteff(int lo, int hi, int type)
 	}
       std::vector<vector<float>> matched_jets = match_truth_reco(truthjets,recojets);
 
-      h3_lpt_lem_loh->Fill(matched_jets.at(0).at(1),matched_jets.at(0).at(2), matched_jets.at(0).at(3));
-      h3_ltpt_lem_loh->Fill(matched_jets.at(0).at(0),matched_jets.at(0).at(2), matched_jets.at(0).at(3));
-
-      if(failscut%2==0)
+      if(matched_jets.size() > 0)
 	{
-	  h3_lpt_lem_loh_dijet->Fill(matched_jets.at(0).at(1),matched_jets.at(0).at(2), matched_jets.at(0).at(3));
-	  h3_ltpt_lem_loh_dijet->Fill(matched_jets.at(0).at(0),matched_jets.at(0).at(2), matched_jets.at(0).at(3));
-	}
-
-      
-      for(int j=0; j<matched_jets.size(); ++j)
-	{
-	  h3_pt_lem_loh->Fill(matched_jets.at(j).at(1),matched_jets.at(j).at(2), matched_jets.at(j).at(3));
-	  h3_tpt_lem_loh->Fill(matched_jets.at(j).at(0),matched_jets.at(j).at(2), matched_jets.at(j).at(3));
+	  h3_lpt_lem_loh->Fill(matched_jets.at(0).at(1),matched_jets.at(0).at(2), matched_jets.at(0).at(3));
+	  h3_ltpt_lem_loh->Fill(matched_jets.at(0).at(0),matched_jets.at(0).at(2), matched_jets.at(0).at(3));
+	  
 	  if(failscut%2==0)
 	    {
-	      h3_pt_lem_loh_dijet->Fill(matched_jets.at(j).at(1),matched_jets.at(j).at(2), matched_jets.at(j).at(3));
-	      h3_tpt_lem_loh_dijet->Fill(matched_jets.at(j).at(0),matched_jets.at(j).at(2), matched_jets.at(j).at(3));
+	      h3_lpt_lem_loh_dijet->Fill(matched_jets.at(0).at(1),matched_jets.at(0).at(2), matched_jets.at(0).at(3));
+	      h3_ltpt_lem_loh_dijet->Fill(matched_jets.at(0).at(0),matched_jets.at(0).at(2), matched_jets.at(0).at(3));
+	    }
+	  
+	  
+	  for(int j=0; j<matched_jets.size(); ++j)
+	    {
+	      h3_pt_lem_loh->Fill(matched_jets.at(j).at(1),matched_jets.at(j).at(2), matched_jets.at(j).at(3));
+	      h3_tpt_lem_loh->Fill(matched_jets.at(j).at(0),matched_jets.at(j).at(2), matched_jets.at(j).at(3));
+	      if(failscut%2==0)
+		{
+		  h3_pt_lem_loh_dijet->Fill(matched_jets.at(j).at(1),matched_jets.at(j).at(2), matched_jets.at(j).at(3));
+		  h3_tpt_lem_loh_dijet->Fill(matched_jets.at(j).at(0),matched_jets.at(j).at(2), matched_jets.at(j).at(3));
+		}
 	    }
 	}
     }
 
-  TFile* outf = TFile::Open(("../cuteff/cuteff_"+to_string(lo)+"_"+to_string(hi)+"_"+samplename+".root").c_str());
+  TFile* outf = TFile::Open(("../cuteff/cuteff_"+to_string(lo)+"_"+to_string(hi)+"_"+samplename+".root").c_str(),"RECREATE");
 
   outf->cd();
 
