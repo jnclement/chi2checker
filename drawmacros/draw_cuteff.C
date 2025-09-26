@@ -1,54 +1,40 @@
 #include <../dlUtility.h>
 
-int drawprettyeff(std::vector<TH3D*> nums3, TH3D* den3, std::vector<vector<int>> xbounds, std::vector<vector<int>> ybounds, std::vector<vector<int>> zbounds, int axis, std::vector<int> colors, std::vector<int> markers, std::vector<string> numlabels, std::vector<string> denlabels, string title)
+int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vector<int>> zbounds, int axis, std::vector<int> colors, std::vector<int> markers, std::vector<string> numlabels, string title)
 {
 
-  if(nums3.size() > colors.size() || nums3.size() > markers.size())
+  if(ybounds.size() != zbounds.size())
     {
-      cout << "error! nums must be shorter vector than colors, markers!" << endl;
+      cout << "error! bounds must be same size vectors!" << endl;
       return 1;
     }
 
   std::vector<TH1D*> nums1 = {};
-  std::vector<TH1D*> dens1 = {};
+  TH1D* den1;
 
-  for(int i=0; i<nums3.size(); ++i)
+  if(axis==0) den1 = hist3->ProjectionX((string(hist3->GetName())+"_den").c_str(),0,-1,0,-1,"e");
+  if(axis==1) den1 = hist3->ProjectionX((string(hist3->GetName())+"_den").c_str(),0,-1,0,-1,"e");
+  if(axis==2) den1 = hist3->ProjectionX((string(hist3->GetName())+"_den").c_str(),0,-1,0,-1,"e");
+
+
+  
+  for(int i=0; i<ybounds.size(); ++i)
     {
-      if(axis==0)
-	{
-	  int ylo = ybounds.at(i).at(0);
-	  int yhi = ybounds.at(i).at(1);
-	  int zlo = zbounds.at(i).at(0);
-	  int zhi = zbounds.at(i).at(1);
-	  nums1.push_back(nums3.at(i)->ProjectionX((string(nums3.at(i)->GetName())+"_projx_"+to_string(ylo)+"_"+to_string(yhi)+"_"+to_string(zlo)+"_"+to_string(yhi)).c_str(),ylo,yhi,zlo,zhi,"e"));
-	  dens1.push_back(den3->ProjectionX((string(den3->GetName())+"_projx_"+to_string(ylo)+"_"+to_string(yhi)+"_"+to_string(zlo)+"_"+to_string(yhi)).c_str(),ylo,yhi,zlo,zhi,"e"));
-	}
-      if(axis==1)
-	{
-	  int xlo = xbounds.at(i).at(0);
-	  int xhi = xbounds.at(i).at(1);
-	  int zlo = zbounds.at(i).at(0);
-	  int zhi = zbounds.at(i).at(1);
-	  nums1.push_back(nums3.at(i)->ProjectionX((string(nums3.at(i)->GetName())+"_projx_"+to_string(xlo)+"_"+to_string(xhi)+"_"+to_string(zlo)+"_"+to_string(xhi)).c_str(),xlo,xhi,zlo,zhi,"e"));
-	  dens1.push_back(den3->ProjectionX((string(den3->GetName())+"_projx_"+to_string(xlo)+"_"+to_string(xhi)+"_"+to_string(zlo)+"_"+to_string(xhi)).c_str(),xlo,xhi,zlo,zhi,"e"));
-	}
-      if(axis==2)
-	{
-	  int xlo = xbounds.at(i).at(0);
-	  int xhi = xbounds.at(i).at(1);
-	  int ylo = ybounds.at(i).at(0);
-	  int yhi = ybounds.at(i).at(1);
-	  nums1.push_back(nums3.at(i)->ProjectionX((string(nums3.at(i)->GetName())+"_projx_"+to_string(xlo)+"_"+to_string(xhi)+"_"+to_string(ylo)+"_"+to_string(xhi)).c_str(),xlo,xhi,ylo,yhi,"e"));
-	  dens1.push_back(den3->ProjectionX((string(den3->GetName())+"_projx_"+to_string(xlo)+"_"+to_string(xhi)+"_"+to_string(ylo)+"_"+to_string(xhi)).c_str(),xlo,xhi,ylo,yhi,"e"));
-	}
+      int ylo = ybounds.at(i).at(0);
+      int yhi = ybounds.at(i).at(1);
+      int zlo = zbounds.at(i).at(0);
+      int zhi = zbounds.at(i).at(1);
+      if(axis==0) nums1.push_back(hist3->ProjectionX((string(hist3->GetName())+"_proj_"+to_string(ylo)+"_"+to_string(yhi)+"_"+to_string(zlo)+"_"+to_string(yhi)).c_str(),ylo,yhi,zlo,zhi,"e"));
+      if(axis==1) nums1.push_back(hist3->ProjectionY((string(hist3->GetName())+"_proj_"+to_string(ylo)+"_"+to_string(yhi)+"_"+to_string(zlo)+"_"+to_string(yhi)).c_str(),ylo,yhi,zlo,zhi,"e"));
+      if(axis==2) nums1.push_back(hist3->ProjectionZ((string(hist3->GetName())+"_proj_"+to_string(ylo)+"_"+to_string(yhi)+"_"+to_string(zlo)+"_"+to_string(yhi)).c_str(),ylo,yhi,zlo,zhi,"e"));
     }
 
   std::vector<TH1D*> effs1 = {};
 
   for(int i=0; i<nums1.size(); ++i)
     {
-      effs1.push_back(nums1.at(i)->Clone((string(nums1.at(i)->GetName())+"_eff").c_str()));
-      effs1.at(i)->Divide(nums1.at(i),dens1.at(i),1,1,"B");
+      effs1.push_back((TH1D*)nums1.at(i)->Clone((string(nums1.at(i)->GetName())+"_eff").c_str()));
+      effs1.at(i)->Divide(nums1.at(i),den1,1,1,"B");
     }
 
   TCanvas* can = new TCanvas("","",1500,1500);
@@ -61,6 +47,13 @@ int drawprettyeff(std::vector<TH3D*> nums3, TH3D* den3, std::vector<vector<int>>
   leg->SetFillStyle(0);
   leg->SetLineWidth(0);
   leg->SetNColumns(2);
+
+  den1->SetMarkerColor(kBlack);
+  den1->SetLineColor(kBlack);
+  den1->SetMarkerStyle(20);
+  den1->SetMarkerSize(2);
+  leg->AddEntry(den1,"No cuts","p");
+
   
   for(int i=0; i<nums1.size(); ++i)
     {
@@ -68,28 +61,21 @@ int drawprettyeff(std::vector<TH3D*> nums3, TH3D* den3, std::vector<vector<int>>
       nums1.at(i)->SetLineColor(colors.at(i));
       nums1.at(i)->SetMarkerStyle(markers.at(i));
       nums1.at(i)->SetMarkerSize(2);
-      leg->AddEntry(nums1.at(i),numlabels.at(i),"p");
+      leg->AddEntry(nums1.at(i),numlabels.at(i).c_str(),"p");
 
       effs1.at(i)->SetMarkerColor(colors.at(i));
       effs1.at(i)->SetLineColor(colors.at(i));
       effs1.at(i)->SetMarkerStyle(markers.at(i));
       effs1.at(i)->SetMarkerSize(2);
-
-      dens1.at(i)->SetMarkerColor(colors.at(i)+2);
-      dens1.at(i)->SetLineColor(colors.at(i)+2);
-      dens1.at(i)->SetMarkerStyle(markers.at(i));
-      dens1.at(i)->SetMarkerSize(2);
-      leg->AddEntry(dens1.at(i),denlabels.at(i),"p");
     }
 
+  den1->Draw("PE");
   for(int i=0; i<nums1.size(); ++i)
     {
-      if(i==0) nums1.at(i)->Draw("PE");
-      else nums1.at(i)->Draw("SAME PE");
-      dens1.at(i)->Draw("SAME PE");
+      nums1.at(i)->Draw("SAME PE");
     }
 
-  c->cd(2);
+  can->cd(2);
   for(int i=0; i<effs1.size(); ++i)
     {
       if(i==0) effs1.at(i)->Draw("PE");
@@ -117,7 +103,19 @@ int draw_cuteff()
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
 
-  
+  TFile* inf = TFile::Open("../../cuteff/hadded_cuteff.root","READ");
+
+  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get("h3_pt_lem_loh");
+  TH3D* h3_tpt_lem_loh = (TH3D*)inf->Get("h3_tpt_lem_loh");
+
+  std::vector<vector<int>> ybounds = {{1,100,1,120},{21,120,1,120},{1,120,1,120},{1,120,1,120}};
+  std::vector<vector<int>> zbounds = {{1,120,1,120},{1,120,1,120},{1,100,1,120},{21,120,1,120}};
+  int axis = 0;
+  std::vector<int> colors = {kSpring, kAzure, kViolet, kOrange};
+  std::vector<int> markers = {20, 21, 71, 72};
+  std::vector<string> numlabels = {"EM fraction < 0.9 only","EM fraction > 0.1 only","OH fraction < 0.9 only","OH Fraction > 0.1 only"};
+
+  drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"h3_pt_lem_loh_effs.png");
   
   return 0;
 }
