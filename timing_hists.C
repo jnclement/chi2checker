@@ -13,6 +13,8 @@ int timing_hists(int lo, int hi, int type)
   float jet_eta[100];
   float jet_phi[100];
   float jet_t[100];
+  float jet_t_em[100];
+  float jet_t_oh[100];
   float emtow[96][256];
   float ihtow[24][64];
   float ohtow[24][64];
@@ -100,13 +102,15 @@ int timing_hists(int lo, int hi, int type)
   jet_tree->SetBranchStatus("alljetfrcoh",1);
   jet_tree->SetBranchStatus("jet_et",1);
   jet_tree->SetBranchStatus("jet_pt",1);
-  jet_tree->SetBranchStatus("jet_eta",1);
-  jet_tree->SetBranchStatus("jet_phi",1);
-  jet_tree->SetBranchStatus("zvtx",1);
+  //jet_tree->SetBranchStatus("jet_eta",1);
+  //jet_tree->SetBranchStatus("jet_phi",1);
+  //jet_tree->SetBranchStatus("zvtx",1);
   jet_tree->SetBranchStatus("jet_t",1);
-  jet_tree->SetBranchStatus("emtow",1);
-  jet_tree->SetBranchStatus("ihtow",1);
-  jet_tree->SetBranchStatus("ohtow",1);
+  jet_tree->SetBranchStatus("jet_t_em",1);
+  jet_tree->SetBranchStatus("jet_t_oh",1);
+  //jet_tree->SetBranchStatus("emtow",1);
+  //jet_tree->SetBranchStatus("ihtow",1);
+  //jet_tree->SetBranchStatus("ohtow",1);
   if(type != 0)
     {
       jet_tree->SetBranchStatus("tjet_pt",1);
@@ -120,16 +124,20 @@ int timing_hists(int lo, int hi, int type)
   jet_tree->SetBranchAddress("alljetfrcoh",frcoh);
   jet_tree->SetBranchAddress("jet_et",jet_e);
   jet_tree->SetBranchAddress("jet_pt",jet_pt);
-  jet_tree->SetBranchAddress("jet_eta",jet_eta);
-  jet_tree->SetBranchAddress("jet_phi",jet_phi);
-  jet_tree->SetBranchAddress("zvtx",&zvtx);
+  //jet_tree->SetBranchAddress("jet_eta",jet_eta);
+  //jet_tree->SetBranchAddress("jet_phi",jet_phi);
+  //jet_tree->SetBranchAddress("zvtx",&zvtx);
   jet_tree->SetBranchAddress("jet_t",jet_t);
-  jet_tree->SetBranchAddress("emtow",emtow);
-  jet_tree->SetBranchAddress("ihtow",ihtow);
-  jet_tree->SetBranchAddress("ohtow",ohtow);
+  jet_tree->SetBranchAddress("jet_t_em",jet_t_em);
+  jet_tree->SetBranchAddress("jet_t_oh",jet_t_oh);
+  //jet_tree->SetBranchAddress("emtow",emtow);
+  //jet_tree->SetBranchAddress("ihtow",ihtow);
+  //jet_tree->SetBranchAddress("ohtow",ohtow);
   
   const int ncut = 4;
   TH3D* h3_pt_dt_t[ncut];
+  TH3D* h3_pt_dtem_tem[ncut];
+  TH3D* h3_pt_dtoh_toh[ncut];
   TH3D* h3_apt_dt_t[ncut];
   TH3D* h3_pt_dt_lt[ncut];
   TH3D* h3_pt_adt_t[ncut];
@@ -138,12 +146,14 @@ int timing_hists(int lo, int hi, int type)
   string cuttype[ncut] = {"all","dijet","frac","both"};
   for(int i=0; i<ncut; ++i)
     {
-      h3_pt_dt_t[i] = new TH3D((nametype+"h3_pt_dt_t_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];#Delta t_{l,sl} [samples];t_{jet} [samples]",200,0,200,200,-25,25,200,-25,25);
-      h3_apt_dt_t[i] = new TH3D((nametype+"h3_apt_dt_t_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];#Delta t_{l,sl} [samples];t_{jet} [samples]",200,0,200,200,-25,25,200,-25,25);
-      h3_pt_dt_lt[i] = new TH3D((nametype+"h3_pt_dt_lt_"+cuttype[i]).c_str(),";p_{T}^{lead} [GeV];#Delta t_{l,sl} [samples];t_{lead} [samples]",200,0,200,200,-25,25,200,-25,25);
-      h3_pt_adt_t[i] = new TH3D((nametype+"h3_pt_adt_t_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];#Delta t_{l,sl} [samples];t_{jet} [samples]",200,0,200,50,0,5,200,-25,25);
-      h2_pt_t[i] = new TH2D((nametype+"h2_pt_t_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];t_{jet} [samples]",200,0,200,200,-25,25);
-      h2_lt_st[i] = new TH2D((nametype+"h2_lt_st_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];t_{jet} [samples]",200,-25,25,200,-25,25);
+      h3_pt_dt_t[i] = new TH3D((nametype+"h3_pt_dt_t_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];#Delta t_{l,sl} [ns];t_{jet} [ns]",200,0,200,200,-25,25,200,-25,25);
+      h3_pt_dtem_tem[i] = new TH3D((nametype+"h3_pt_dtem_tem_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];#Delta t_{EM} [ns];t_{jet,EM} [ns]",200,0,200,200,-25,25,200,-25,25);
+      h3_pt_dtoh_toh[i] = new TH3D((nametype+"h3_pt_dtoh_toh_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];#Delta t_{OH} [ns];t_{jet,OH} [ns]",200,0,200,200,-25,25,200,-25,25);
+      h3_apt_dt_t[i] = new TH3D((nametype+"h3_apt_dt_t_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];#Delta t_{l,sl} [ns];t_{jet} [ns]",200,0,200,200,-25,25,200,-25,25);
+      h3_pt_dt_lt[i] = new TH3D((nametype+"h3_pt_dt_lt_"+cuttype[i]).c_str(),";p_{T}^{lead} [GeV];#Delta t_{l,sl} [ns];t_{lead} [ns]",200,0,200,200,-25,25,200,-25,25);
+      h3_pt_adt_t[i] = new TH3D((nametype+"h3_pt_adt_t_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];#Delta t_{l,sl} [ns];t_{jet} [ns]",200,0,200,50,0,5,200,-25,25);
+      h2_pt_t[i] = new TH2D((nametype+"h2_pt_t_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];t_{jet} [ns]",200,0,200,200,-25,25);
+      h2_lt_st[i] = new TH2D((nametype+"h2_lt_st_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];t_{jet} [ns]",200,-25,25,200,-25,25);
     }
   
   int wfte = 0;
@@ -151,6 +161,7 @@ int timing_hists(int lo, int hi, int type)
     {
       if(!(i%100)) cout << i << endl;
       jet_tree->GetEntry(i);
+      /*
       float calosum = 0;
       for(int j=0; j<96; ++j)
 	{
@@ -165,6 +176,7 @@ int timing_hists(int lo, int hi, int type)
 	    }
 	}
       if(calosum > 180) continue;
+      */
       /*
       wft->GetEntry(wfte);
       int flag = 0;
@@ -224,23 +236,72 @@ int timing_hists(int lo, int hi, int type)
 	  if(type == 3 && ltpt > 52) continue;
 	}
       //if(sumjetpt > 175) continue;
-      lt*=17.6;
-      st*=17.6;
+      float stons = 17.6;
+      lt*=stons;
+      st*=stons;
+      float ltem = 0;
+      if(frcem[lindex]*jet_e[lindex] > 5) ltem = jet_t_em[lindex]*stons;
+      float stem = 0;
+      if(frcem[sindex]*jet_e[sindex] > 5) stem = jet_t_em[sindex]*stons;
+      float ltoh = 0;
+      if(frcoh[lindex]*jet_e[lindex] > 5) ltoh = jet_t_oh[lindex]*stons;
+      float stoh = 0;
+      if(frcoh[sindex]*jet_e[sindex] > 5) stoh = jet_t_oh[sindex]*stons;
       if(sindex > -1)
 	{
 	  h2_lt_st[0]->Fill(lt,st,scalefactor);
+	  if(!std::isnan(ltem) && !std::isnan(stem) && ltem != 0 && stem != 0)
+	    {
+	      h3_pt_dtem_tem[0]->Fill(lpt,ltem-stem,ltem,scalefactor);
+	      h3_pt_dtem_tem[0]->Fill(spt,ltem-stem,stem,scalefactor);
+	    }
+	  if(!std::isnan(ltoh) && !std::isnan(stoh) && ltoh != 0 && stoh != 0)
+	    {
+	      h3_pt_dtoh_toh[0]->Fill(lpt,ltoh-stoh,ltoh,scalefactor);
+	      h3_pt_dtoh_toh[0]->Fill(spt,ltoh-stoh,stoh,scalefactor);
+	    }
 	  if(failscut==0)
 	    {
+	      if(!std::isnan(ltem) && !std::isnan(stem) && ltem != 0 && stem != 0)
+		{
+		  h3_pt_dtem_tem[1]->Fill(lpt,ltem-stem,ltem,scalefactor);
+		  h3_pt_dtem_tem[1]->Fill(spt,ltem-stem,stem,scalefactor);
+		}
+	      if(!std::isnan(ltoh) && !std::isnan(stoh) && ltoh != 0 && stoh != 0)
+		{
+		  h3_pt_dtoh_toh[1]->Fill(lpt,ltoh-stoh,ltoh,scalefactor);
+		  h3_pt_dtoh_toh[1]->Fill(spt,ltoh-stoh,stoh,scalefactor);
+		}
 	      h2_lt_st[1]->Fill(lt,st,scalefactor);
 	    }
 	  if(failscut==1)
 	    {
+	      if(!std::isnan(ltem) && !std::isnan(stem) && ltem != 0 && stem != 0)
+		{
+		  h3_pt_dtem_tem[2]->Fill(lpt,ltem-stem,ltem,scalefactor);
+		  h3_pt_dtem_tem[2]->Fill(spt,ltem-stem,stem,scalefactor);
+		}
+	      if(!std::isnan(ltoh) && !std::isnan(stoh) && ltoh != 0 && stoh != 0)
+		{
+		  h3_pt_dtoh_toh[2]->Fill(lpt,ltoh-stoh,ltoh,scalefactor);
+		  h3_pt_dtoh_toh[2]->Fill(spt,ltoh-stoh,stoh,scalefactor);
+		}
 	      h2_lt_st[2]->Fill(lt,st,scalefactor);
 	    }
 	  if(failscut==2)
 	    {
 	      for(int k=1;k<4;++k)
 		{
+		  if(!std::isnan(ltem) && !std::isnan(stem) && ltem != 0 && stem != 0)
+		    {
+		      h3_pt_dtem_tem[k]->Fill(lpt,ltem-stem,ltem,scalefactor);
+		      h3_pt_dtem_tem[k]->Fill(spt,ltem-stem,stem,scalefactor);
+		    }
+		  if(!std::isnan(ltoh) && !std::isnan(stoh) && ltoh != 0 && stoh != 0)
+		    {
+		      h3_pt_dtoh_toh[k]->Fill(lpt,ltoh-stoh,ltoh,scalefactor);
+		      h3_pt_dtoh_toh[k]->Fill(spt,ltoh-stoh,stoh,scalefactor);
+		    }
 		  h2_lt_st[k]->Fill(lt,st,scalefactor);
 		}
 	    }
@@ -249,8 +310,8 @@ int timing_hists(int lo, int hi, int type)
       if(sindex > -1 && st != 0)
 	{
 	  h3_pt_dt_t[0]->Fill(lpt,lt-st,lt,scalefactor);
-	  h3_pt_dt_lt[0]->Fill(lpt,lt-st,lt,scalefactor);
 	  h3_pt_dt_t[0]->Fill(spt,lt-st,st,scalefactor);
+	  h3_pt_dt_lt[0]->Fill(lpt,lt-st,lt,scalefactor);
 	  h3_pt_adt_t[0]->Fill(lpt,abs(lt-st),lt,scalefactor);
 	  h3_pt_adt_t[0]->Fill(spt,abs(lt-st),st,scalefactor);
 	  
@@ -287,7 +348,7 @@ int timing_hists(int lo, int hi, int type)
       for(int j=0; j<jet_n; ++j)
 	{
 	  if(jet_t[j] == 0) continue;
-	  float tns = jet_t[j]*17.6;
+	  float tns = jet_t[j]*stons;
 	  if(sindex > -1 && st != 0)
 	    {
 	      h3_apt_dt_t[0]->Fill(jet_pt[j],lt-st,tns,scalefactor);
@@ -321,6 +382,8 @@ int timing_hists(int lo, int hi, int type)
       h3_pt_adt_t[i]->Write();
       h3_pt_dt_t[i]->Write();
       h3_pt_dt_lt[i]->Write();
+      h3_pt_dtem_tem[i]->Write();
+      h3_pt_dtoh_toh[i]->Write();
       h2_pt_t[i]->Write();
       h2_lt_st[i]->Write();
     }

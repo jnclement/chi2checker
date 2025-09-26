@@ -501,6 +501,7 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
   float jetkin[100][5];
   float outz;
   float outtime[2];
+  float frac[100][2];
   if(dosave)
     {
       outt->Branch("passfrac",&passfrac,"passfrac/I");
@@ -512,6 +513,7 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
       outt->Branch("zvtx",&outz,"zvtx/F");
       outt->Branch("mbdhit",outmbdhit,"mbdhit[2]/i");
       outt->Branch("avgt",&outtime,"avgt[2]/F");
+      outt->Branch("frac",&frac,"frac[njet][2]/F");
     }
   gStyle->SetPadTickX(1);
   gStyle->SetPadTickY(1);
@@ -643,6 +645,7 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
       int flag = 0;
       while(rnwf != runnum || enwf != evtnum)
 	{
+	  cout << "no match" << endl;
 	  ++wfte;
 	  if(wfte >= wft->GetEntries())
 	    {
@@ -688,6 +691,8 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
 	    {
 	      jetkin[j][0] = jet_pt[j];
 	      float radius;
+	      frac[j][0] = frcem[j];
+	      frac[j][1] = frcoh[j];
 	      if(frcem[j] > 0.6) radius = radem;
 	      else if(frcoh[j] > 0.6) radius = radoh;
 	      else radius = (radem + radoh)/2;

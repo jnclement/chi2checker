@@ -875,7 +875,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   if(!jets) jets = findNode::getClass<JetContainerv1>(topNode, "AntiKt_unsubtracted_r04");
   JetContainer* truthjets = NULL;
   if(!_isdat) truthjets = findNode::getClass<JetContainerv1>(topNode, "AntiKt_Truth_r04");
-  cout <<"truthjets: " <<  truthjets << endl;
+  //cout <<"truthjets: " <<  truthjets << endl;
   _tjet_n = 0;
   if(truthjets)
     {
