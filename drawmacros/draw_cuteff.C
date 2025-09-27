@@ -42,8 +42,8 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   can->cd(1);
   gPad->SetTopMargin(0.2);
   gPad->SetRightMargin(0.05);
-
-  TLegend* leg = new TLegend(0.6,0.5,0.9,0.8);
+  gPad->SetLogy();
+  TLegend* leg = new TLegend(0.5,0.6,0.9,0.8);
   leg->SetFillStyle(0);
   leg->SetLineWidth(0);
   leg->SetNColumns(2);
@@ -70,22 +70,32 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
     }
 
   den1->Draw("PE");
+  den1->GetXaxis()->SetRangeUser(30,100);
+  den1->GetYaxis()->SetTitle("Counts");
   for(int i=0; i<nums1.size(); ++i)
     {
       nums1.at(i)->Draw("SAME PE");
     }
-
+  leg->Draw();
   can->cd(2);
   for(int i=0; i<effs1.size(); ++i)
     {
+      effs1.at(i)->GetYaxis()->SetRangeUser(0,1.05);
+      effs1.at(i)->GetXaxis()->SetRangeUser(30,100);
+      effs1.at(i)->GetXaxis()->SetLabelSize(0.07);
+      effs1.at(i)->GetYaxis()->SetLabelSize(0.07);
+      effs1.at(i)->GetXaxis()->SetTitleSize(0.07);
+      effs1.at(i)->GetYaxis()->SetTitleSize(0.07);
       if(i==0) effs1.at(i)->Draw("PE");
       else effs1.at(i)->Draw("SAME PE");
     }
 
-  leg->Draw();
+
   can->cd(0);
 
   maintexts(0.98,0.6,0,0.03);
+  drawText("Jet30,50,70 PYTHIA",0.6,0.87,0,kBlack,0.03);
+  drawText("No z_{vtx} cut (non-reconstructed included)",0.2,0.87,0,kBlack,0.03);
 
   can->SaveAs(title.c_str());
 

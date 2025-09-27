@@ -9,7 +9,7 @@ int format_hist(TH1D* hist, int color = kBlack, int markerstyle = 20, float mark
   return 0;
 }
 
-int draw_1d_timing()
+int draw_1d_timing(int lopt, int hipt)
 {
   gStyle->SetPadTickX(1);
   gStyle->SetPadTickY(1);
@@ -18,10 +18,10 @@ int draw_1d_timing()
 
   TFile* inf = TFile::Open("../../timing/hadded_timing.root","READ");
 
-  TH1D* data_dt = (TH1D*)(((TH3D*)inf->Get("dath3_pt_dt_lt_both"))->ProjectionY("datdt_good",31,46));
-  TH1D* data_lt = (TH1D*)(((TH3D*)inf->Get("dath3_pt_dt_lt_both"))->ProjectionZ("datlt_good",31,46));
-  TH1D* sim_dt = (TH1D*)(((TH3D*)inf->Get("simh3_pt_dt_lt_both"))->ProjectionY("simdt_good",31,46));
-  TH1D* sim_lt = (TH1D*)(((TH3D*)inf->Get("simh3_pt_dt_lt_both"))->ProjectionZ("simlt_good",31,46));
+  TH1D* data_dt = (TH1D*)(((TH3D*)inf->Get("dath3_pt_dt_lt_both"))->ProjectionY("datdt_good",lopt,hipt));
+  TH1D* data_lt = (TH1D*)(((TH3D*)inf->Get("dath3_pt_dt_lt_both"))->ProjectionZ("datlt_good",lopt,hipt));
+  TH1D* sim_dt = (TH1D*)(((TH3D*)inf->Get("simh3_pt_dt_lt_both"))->ProjectionY("simdt_good",lopt,hipt));
+  TH1D* sim_lt = (TH1D*)(((TH3D*)inf->Get("simh3_pt_dt_lt_both"))->ProjectionZ("simlt_good",lopt,hipt));
 
   data_dt->GetXaxis()->SetTitle("#Delta t [ns]");
   sim_dt->GetXaxis()->SetTitle("#Delta t [ns]");

@@ -176,8 +176,8 @@ void sphenixprelim(float xpos = 0.8, float ypos = 0.96, int ra = 1, float textsi
 void maintexts(/*bool isdat, */float ystart = 0.96, float xpos = 0.7, int ra = 0, float textsize = 0.03)
 {
   sphenixtext(xpos,ystart,ra,textsize);
-  sqrt_s_text(xpos,ystart-2*textsize/3,ra,textsize);
-  antikt_text(0.4,xpos,ystart-4*textsize/3,ra,textsize);
+  sqrt_s_text(xpos,ystart-8*textsize/7,ra,textsize);
+  antikt_text(0.4,xpos,ystart-16*textsize/7,ra,textsize);
   //drawText(isdat?"Data":"Simulation",xpos,ystart-2*textsize,ra,kBlack,textsize);
 }
 
@@ -231,7 +231,7 @@ void ratioPanelCanvas(TCanvas*& canv,
     const Float_t divRatio=0.4,
     //const Float_t leftOffset=0.,
     //const Float_t bottomOffset=0.,
-    const Float_t leftMargin=0.17,
+    const Float_t leftMargin=0.125,
     const Float_t bottomMargin=0.3,
     const Float_t edge=0.05) {
   if (canv==0) {
