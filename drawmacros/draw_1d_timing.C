@@ -18,15 +18,17 @@ int draw_1d_timing(int lopt, int hipt)
 
   TFile* inf = TFile::Open("../../timing/hadded_timing.root","READ");
 
-  TH1D* data_dt = (TH1D*)(((TH3D*)inf->Get("dath3_pt_dt_lt_both"))->ProjectionY("datdt_good",lopt,hipt));
-  TH1D* data_lt = (TH1D*)(((TH3D*)inf->Get("dath3_pt_dt_lt_both"))->ProjectionZ("datlt_good",lopt,hipt));
-  TH1D* sim_dt = (TH1D*)(((TH3D*)inf->Get("simh3_pt_dt_lt_both"))->ProjectionY("simdt_good",lopt,hipt));
-  TH1D* sim_lt = (TH1D*)(((TH3D*)inf->Get("simh3_pt_dt_lt_both"))->ProjectionZ("simlt_good",lopt,hipt));
+  TH1D* data_dt = (TH1D*)(((TH3D*)inf->Get("dath3_pt_dtem_tem_both"))->ProjectionY("datdt_good",lopt,hipt));
+  TH1D* data_lt = (TH1D*)(((TH3D*)inf->Get("dath3_pt_dtoh_toh_both"))->ProjectionY("datlt_good",lopt,hipt));
+  //TH1D* data_lt = (TH1D*)(((TH3D*)inf->Get("dath3_pt_dt_lt_both"))->ProjectionZ("datlt_good",lopt,hipt));
+  TH1D* sim_dt = (TH1D*)(((TH3D*)inf->Get("simh3_pt_dtem_tem_both"))->ProjectionY("simdt_good",lopt,hipt));
+  TH1D* sim_lt = (TH1D*)(((TH3D*)inf->Get("simh3_pt_dtoh_toh_both"))->ProjectionY("simlt_good",lopt,hipt));
+  //TH1D* sim_lt = (TH1D*)(((TH3D*)inf->Get("simh3_pt_dt_lt_both"))->ProjectionZ("simlt_good",lopt,hipt));
 
-  data_dt->GetXaxis()->SetTitle("#Delta t [ns]");
-  sim_dt->GetXaxis()->SetTitle("#Delta t [ns]");
-  data_lt->GetXaxis()->SetTitle("t_{lead} [ns]");
-  sim_lt->GetXaxis()->SetTitle("t_{lead} [ns]");
+  data_dt->GetXaxis()->SetTitle("#Delta t EMCal [ns]");
+  sim_dt->GetXaxis()->SetTitle("#Delta t EMCal [ns]");
+  data_lt->GetXaxis()->SetTitle("#Delta t OHCal [ns]");
+  sim_lt->GetXaxis()->SetTitle("#Delta t OHCal [ns]");
   
   TH1D* dt_rat = (TH1D*)data_dt->Clone("dt_rat");
   TH1D* lt_rat = (TH1D*)data_lt->Clone("lt_rat");
@@ -39,10 +41,10 @@ int draw_1d_timing(int lopt, int hipt)
   dt_rat->Divide(data_dt,sim_dt);
   lt_rat->Divide(data_lt,sim_lt);
 
-  data_dt->Fit("gaus","IM");
-  data_lt->Fit("gaus","IM");
-  sim_dt->Fit("gaus","IM");
-  sim_lt->Fit("gaus","IM");
+  data_dt->Fit("gaus","I");
+  data_lt->Fit("gaus","I");
+  sim_dt->Fit("gaus","I");
+  sim_lt->Fit("gaus","I");
 
   format_hist(data_dt);
   format_hist(dt_rat);
@@ -77,7 +79,7 @@ int draw_1d_timing(int lopt, int hipt)
 
   lt_mw << "#mu_{data}=" << std::fixed << std::setprecision(2) << m_lt_data << "#pm" << w_lt_data << " ns; #mu_{sim}=" << m_lt_sim << "#pm" << w_lt_sim << " ns";
   
-  TCanvas* c = new TCanvas("","",1000,1500);
+  TCanvas* c = new TCanvas("","",1500,1500);
 
   string dt_mw_str = dt_mw.str();
   string lt_mw_str = lt_mw.str();
@@ -91,10 +93,13 @@ int draw_1d_timing(int lopt, int hipt)
 
   data_dt->GetYaxis()->SetRangeUser(0,1.1*max);
   data_lt->GetYaxis()->SetRangeUser(0,1.1*max);
+
+  data_dt->GetXaxis()->SetRangeUser(-10,10);
+  data_lt->GetXaxis()->SetRangeUser(-10,10);
   
   //ratioPanelCanvas(c,0.3);
   c->cd();
-  gPad->SetTopMargin(0.15);
+  gPad->SetTopMargin(0.2);
   gPad->SetRightMargin(0.05);
   data_dt->Draw("PE");
   sim_dt->Draw("SAME PE");
@@ -102,9 +107,9 @@ int draw_1d_timing(int lopt, int hipt)
   //c->cd(2);
   //dt_rat->Draw("PE");
   //c->cd(0);
-  maintexts(0.98,0.6,0,0.02);
-  drawText(dt_mw_str.c_str(),0.6,0.94,0,kBlack,0.02);
-  drawText(cut.c_str(),0.3,0.915,0,kBlack,0.02);
+  maintexts(0.98,0.5,0,0.03);
+  drawText(dt_mw_str.c_str(),0.5,0.88,0,kBlack,0.03);
+  drawText(cut.c_str(),0.1,0.835,0,kBlack,0.03);
   c->SaveAs("../../images/timing/dt_1d_simdat.png");
   c->Clear();
 
@@ -117,9 +122,9 @@ int draw_1d_timing(int lopt, int hipt)
   //c->cd(2);
   //lt_rat->Draw("PE");
   //c->cd(0);
-  maintexts(0.98,0.6,0,0.02);
-  drawText(lt_mw_str.c_str(),0.6,0.94,0,kBlack,0.02);
-  drawText(cut.c_str(),0.3,0.915,0,kBlack,0.02);
+  maintexts(0.98,0.5,0,0.02);
+  drawText(lt_mw_str.c_str(),0.5,0.88,0,kBlack,0.02);
+  drawText(cut.c_str(),0.1,0.835,0,kBlack,0.02);
   c->SaveAs("../../images/timing/lt_1d_simdat.png");
   c->Clear();
 

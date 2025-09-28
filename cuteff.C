@@ -5,6 +5,72 @@ float get_dphi(float phi1, float phi2)
   return dphi;
 }
 
+float get_emcal_mineta_zcorrected(float zvertex) {
+  float minz_EM = -130.23;
+  float radius_EM = 93.5;
+  float z = minz_EM - zvertex;
+  float eta_zcorrected = asinh(z / (float)radius_EM);
+  return eta_zcorrected;
+}
+
+float get_emcal_maxeta_zcorrected(float zvertex) {
+  float maxz_EM = 130.23;
+  float radius_EM = 93.5;
+  float z = maxz_EM - zvertex;
+  float eta_zcorrected = asinh(z / (float)radius_EM);
+  return eta_zcorrected;
+}
+
+float get_ihcal_mineta_zcorrected(float zvertex) {
+  float minz_IH = -170.299;
+  float radius_IH = 127.503;
+  float z = minz_IH - zvertex;
+  float eta_zcorrected = asinh(z / (float)radius_IH);
+  return eta_zcorrected;
+}
+
+float get_ihcal_maxeta_zcorrected(float zvertex) {
+  float maxz_IH = 170.299;
+  float radius_IH = 127.503;
+  float z = maxz_IH - zvertex;
+  float eta_zcorrected = asinh(z / (float)radius_IH);
+  return eta_zcorrected;
+}
+
+float get_ohcal_mineta_zcorrected(float zvertex) {
+  float minz_OH = -301.683;
+  float radius_OH = 225.87;
+  float z = minz_OH - zvertex;
+  float eta_zcorrected = asinh(z / (float)radius_OH);
+  return eta_zcorrected;
+}
+
+float get_ohcal_maxeta_zcorrected(float zvertex) {
+  float maxz_OH = 301.683;
+  float radius_OH = 225.87;
+  float z = maxz_OH - zvertex;
+  float eta_zcorrected = asinh(z / (float)radius_OH);
+  return eta_zcorrected;
+}
+
+bool check_bad_jet_eta(float jet_eta, float zvertex, float jet_radius) {
+  float emcal_mineta = get_emcal_mineta_zcorrected(zvertex);
+  float emcal_maxeta = get_emcal_maxeta_zcorrected(zvertex);
+  float ihcal_mineta = get_ihcal_mineta_zcorrected(zvertex);
+  float ihcal_maxeta = get_ihcal_maxeta_zcorrected(zvertex);
+  float ohcal_mineta = get_ohcal_mineta_zcorrected(zvertex);
+  float ohcal_maxeta = get_ohcal_maxeta_zcorrected(zvertex);
+  float minlimit = emcal_mineta;
+  if (ihcal_mineta > minlimit) minlimit = ihcal_mineta;
+  if (ohcal_mineta > minlimit) minlimit = ohcal_mineta;
+  float maxlimit = emcal_maxeta;
+  if (ihcal_maxeta < maxlimit) maxlimit = ihcal_maxeta;
+  if (ohcal_maxeta < maxlimit) maxlimit = ohcal_maxeta;
+  minlimit += jet_radius;
+  maxlimit -= jet_radius;
+  return jet_eta < minlimit || jet_eta > maxlimit;
+}
+
 std::vector<vector<float>> match_truth_reco(std::vector<vector<float>> truthjets, std::vector<vector<float>> recojets)
 {
   std::vector<vector<float>> matched_pts = {};
@@ -30,6 +96,7 @@ std::vector<vector<float>> match_truth_reco(std::vector<vector<float>> truthjets
 	      matched_pt.push_back(recojets.at(j).at(0));
 	      matched_pt.push_back(lremf);
 	      matched_pt.push_back(lrohf);
+	      matched_pt.push_back(recojets.at(j).at(1));
 	      recojets.at(j).at(5) = 1;
 	      matched_pts.push_back(matched_pt);
 	      break;
@@ -51,7 +118,8 @@ int cuteff(int lo, int hi, int type)
   float tjet_eta[100];
   float jet_phi[100];
   float tjet_phi[100];
-
+  float zvtx;
+  
   TChain* jet_tree = new TChain("jet_tree");
   
   float scalefactor = 7.2695e-9;
@@ -97,6 +165,7 @@ int cuteff(int lo, int hi, int type)
   jet_tree->SetBranchStatus("tjet_pt",1);
   jet_tree->SetBranchStatus("tjet_eta",1);
   jet_tree->SetBranchStatus("tjet_phi",1);
+  jet_tree->SetBranchStatus("zvtx",1);
 
   jet_tree->SetBranchAddress("failscut",&failscut);
   jet_tree->SetBranchAddress("jet_n",&jet_n);
@@ -109,10 +178,21 @@ int cuteff(int lo, int hi, int type)
   jet_tree->SetBranchAddress("tjet_pt",tjet_pt);
   jet_tree->SetBranchAddress("tjet_eta",tjet_eta);
   jet_tree->SetBranchAddress("tjet_phi",tjet_phi);
-
+  jet_tree->SetBranchAddress("zvtx",&zvtx);
 
   TH3D* h3_pt_lem_loh = new TH3D("h3_pt_lem_loh",";p_{T}^{reco} [GeV];E_{reco}^{EM}/E_{reco};E_{reco}^{OH}/E_{reco}",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
   TH3D* h3_tpt_lem_loh = new TH3D("h3_tpt_lem_loh",";p_{T}^{truth} [GeV];E_{reco}^{EM}/E_{reco} Matched;E_{reco}^{OH}/E_{reco} Matched",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
+
+  TH3D* h3_pt_lem_loh_etacut = new TH3D("h3_pt_lem_loh_etacut",";p_{T}^{reco} [GeV];E_{reco}^{EM}/E_{reco};E_{reco}^{OH}/E_{reco}",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
+  TH3D* h3_tpt_lem_loh_etacut = new TH3D("h3_tpt_lem_loh_etacut",";p_{T}^{truth} [GeV];E_{reco}^{EM}/E_{reco} Matched;E_{reco}^{OH}/E_{reco} Matched",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
+
+  TH3D* h3_pt_lem_loh_z100 = new TH3D("h3_pt_lem_loh_z100",";p_{T}^{reco} [GeV];E_{reco}^{EM}/E_{reco};E_{reco}^{OH}/E_{reco}",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
+  TH3D* h3_tpt_lem_loh_z100 = new TH3D("h3_tpt_lem_loh_z100",";p_{T}^{truth} [GeV];E_{reco}^{EM}/E_{reco} Matched;E_{reco}^{OH}/E_{reco} Matched",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
+
+  TH3D* h3s_pt_lem_loh = new TH3D("h3s_pt_lem_loh",";p_{T}^{reco} [GeV];E_{reco}^{EM}/E_{reco};E_{reco}^{OH}/E_{reco}",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
+  TH3D* h3s_tpt_lem_loh = new TH3D("h3s_tpt_lem_loh",";p_{T}^{truth} [GeV];E_{reco}^{EM}/E_{reco} Matched;E_{reco}^{OH}/E_{reco} Matched",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
+
+  
   TH3D* h3_lpt_lem_loh = new TH3D("h3_lpt_lem_loh",";p_{T,lead}^{reco} [GeV];E_{reco}^{EM}/E_{reco};E_{reco}^{OH}/E_{reco}",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
   TH3D* h3_ltpt_lem_loh = new TH3D("h3_ltpt_lem_loh",";p_{T,lead}^{truth} [GeV];E_{reco}^{EM}/E_{reco} Matched;E_{reco}^{OH}/E_{reco} Matched",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
 
@@ -159,16 +239,31 @@ int cuteff(int lo, int hi, int type)
 	      h3_ltpt_lem_loh_dijet->Fill(matched_jets.at(0).at(0),matched_jets.at(0).at(2), matched_jets.at(0).at(3),scalefactor);
 	    }
 	  
-	  
 	  for(int j=0; j<matched_jets.size(); ++j)
 	    {
 	      h3_pt_lem_loh->Fill(matched_jets.at(j).at(1),matched_jets.at(j).at(2), matched_jets.at(j).at(3),scalefactor);
 	      h3_tpt_lem_loh->Fill(matched_jets.at(j).at(0),matched_jets.at(j).at(2), matched_jets.at(j).at(3),scalefactor);
+	      if(abs(zvtx) < 100)
+		{
+		  h3_pt_lem_loh_z100->Fill(matched_jets.at(j).at(1),matched_jets.at(j).at(2), matched_jets.at(j).at(3),scalefactor);
+		  h3_tpt_lem_loh_z100->Fill(matched_jets.at(j).at(0),matched_jets.at(j).at(2), matched_jets.at(j).at(3),scalefactor);
+		}
+	      
+	      if(check_bad_jet_eta(matched_jets.at(j).at(4),zvtx,0.4)) continue;
+	      h3_pt_lem_loh_etacut->Fill(matched_jets.at(j).at(1),matched_jets.at(j).at(2), matched_jets.at(j).at(3),scalefactor);
+	      h3_tpt_lem_loh_etacut->Fill(matched_jets.at(j).at(0),matched_jets.at(j).at(2), matched_jets.at(j).at(3),scalefactor);
 	      if(failscut%2==0)
 		{
 		  h3_pt_lem_loh_dijet->Fill(matched_jets.at(j).at(1),matched_jets.at(j).at(2), matched_jets.at(j).at(3),scalefactor);
 		  h3_tpt_lem_loh_dijet->Fill(matched_jets.at(j).at(0),matched_jets.at(j).at(2), matched_jets.at(j).at(3),scalefactor);
 		}
+
+	      if(type==1 && matched_jets.at(j).at(1) > 74) continue;
+	      if(type==3 && matched_jets.at(j).at(1) > 55) continue;
+      
+	      h3s_pt_lem_loh->Fill(matched_jets.at(j).at(1),matched_jets.at(j).at(2), matched_jets.at(j).at(3),scalefactor);
+	      h3s_tpt_lem_loh->Fill(matched_jets.at(j).at(0),matched_jets.at(j).at(2), matched_jets.at(j).at(3),scalefactor);
+	      
 	    }
 	}
     }
@@ -179,6 +274,16 @@ int cuteff(int lo, int hi, int type)
 
   h3_pt_lem_loh->Write();
   h3_tpt_lem_loh->Write();
+
+  h3_pt_lem_loh_z100->Write();
+  h3_tpt_lem_loh_z100->Write();
+
+  h3_pt_lem_loh_etacut->Write();
+  h3_tpt_lem_loh_etacut->Write();
+
+  h3s_pt_lem_loh->Write();
+  h3s_tpt_lem_loh->Write();
+  
   h3_lpt_lem_loh->Write();
   h3_ltpt_lem_loh->Write();
 

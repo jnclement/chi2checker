@@ -1,5 +1,71 @@
 #include <cmath>
 
+float get_emcal_mineta_zcorrected(float zvertex) {
+  float minz_EM = -130.23;
+  float radius_EM = 93.5;
+  float z = minz_EM - zvertex;
+  float eta_zcorrected = asinh(z / (float)radius_EM);
+  return eta_zcorrected;
+}
+
+float get_emcal_maxeta_zcorrected(float zvertex) {
+  float maxz_EM = 130.23;
+  float radius_EM = 93.5;
+  float z = maxz_EM - zvertex;
+  float eta_zcorrected = asinh(z / (float)radius_EM);
+  return eta_zcorrected;
+}
+
+float get_ihcal_mineta_zcorrected(float zvertex) {
+  float minz_IH = -170.299;
+  float radius_IH = 127.503;
+  float z = minz_IH - zvertex;
+  float eta_zcorrected = asinh(z / (float)radius_IH);
+  return eta_zcorrected;
+}
+
+float get_ihcal_maxeta_zcorrected(float zvertex) {
+  float maxz_IH = 170.299;
+  float radius_IH = 127.503;
+  float z = maxz_IH - zvertex;
+  float eta_zcorrected = asinh(z / (float)radius_IH);
+  return eta_zcorrected;
+}
+
+float get_ohcal_mineta_zcorrected(float zvertex) {
+  float minz_OH = -301.683;
+  float radius_OH = 225.87;
+  float z = minz_OH - zvertex;
+  float eta_zcorrected = asinh(z / (float)radius_OH);
+  return eta_zcorrected;
+}
+
+float get_ohcal_maxeta_zcorrected(float zvertex) {
+  float maxz_OH = 301.683;
+  float radius_OH = 225.87;
+  float z = maxz_OH - zvertex;
+  float eta_zcorrected = asinh(z / (float)radius_OH);
+  return eta_zcorrected;
+}
+
+bool check_bad_jet_eta(float jet_eta, float zvertex, float jet_radius) {
+  float emcal_mineta = get_emcal_mineta_zcorrected(zvertex);
+  float emcal_maxeta = get_emcal_maxeta_zcorrected(zvertex);
+  float ihcal_mineta = get_ihcal_mineta_zcorrected(zvertex);
+  float ihcal_maxeta = get_ihcal_maxeta_zcorrected(zvertex);
+  float ohcal_mineta = get_ohcal_mineta_zcorrected(zvertex);
+  float ohcal_maxeta = get_ohcal_maxeta_zcorrected(zvertex);
+  float minlimit = emcal_mineta;
+  if (ihcal_mineta > minlimit) minlimit = ihcal_mineta;
+  if (ohcal_mineta > minlimit) minlimit = ohcal_mineta;
+  float maxlimit = emcal_maxeta;
+  if (ihcal_maxeta < maxlimit) maxlimit = ihcal_maxeta;
+  if (ohcal_maxeta < maxlimit) maxlimit = ohcal_maxeta;
+  minlimit += jet_radius;
+  maxlimit -= jet_radius;
+  return jet_eta < minlimit || jet_eta > maxlimit;
+}
+
 int timing_hists(int lo, int hi, int type)
 {
   gStyle->SetPadTickX(1);
@@ -102,9 +168,9 @@ int timing_hists(int lo, int hi, int type)
   jet_tree->SetBranchStatus("alljetfrcoh",1);
   jet_tree->SetBranchStatus("jet_et",1);
   jet_tree->SetBranchStatus("jet_pt",1);
-  //jet_tree->SetBranchStatus("jet_eta",1);
+  jet_tree->SetBranchStatus("jet_eta",1);
   //jet_tree->SetBranchStatus("jet_phi",1);
-  //jet_tree->SetBranchStatus("zvtx",1);
+  jet_tree->SetBranchStatus("zvtx",1);
   jet_tree->SetBranchStatus("jet_t",1);
   jet_tree->SetBranchStatus("jet_t_em",1);
   jet_tree->SetBranchStatus("jet_t_oh",1);
@@ -124,9 +190,9 @@ int timing_hists(int lo, int hi, int type)
   jet_tree->SetBranchAddress("alljetfrcoh",frcoh);
   jet_tree->SetBranchAddress("jet_et",jet_e);
   jet_tree->SetBranchAddress("jet_pt",jet_pt);
-  //jet_tree->SetBranchAddress("jet_eta",jet_eta);
+  jet_tree->SetBranchAddress("jet_eta",jet_eta);
   //jet_tree->SetBranchAddress("jet_phi",jet_phi);
-  //jet_tree->SetBranchAddress("zvtx",&zvtx);
+  jet_tree->SetBranchAddress("zvtx",&zvtx);
   jet_tree->SetBranchAddress("jet_t",jet_t);
   jet_tree->SetBranchAddress("jet_t_em",jet_t_em);
   jet_tree->SetBranchAddress("jet_t_oh",jet_t_oh);
@@ -139,6 +205,7 @@ int timing_hists(int lo, int hi, int type)
   TH3D* h3_pt_dtem_tem[ncut];
   TH3D* h3_pt_dtoh_toh[ncut];
   TH3D* h3_apt_dt_t[ncut];
+  TH3D* h3_apt_dtem_dtoh[ncut];
   TH3D* h3_pt_dt_lt[ncut];
   TH3D* h3_pt_adt_t[ncut];
   TH2D* h2_pt_t[ncut];
@@ -150,6 +217,7 @@ int timing_hists(int lo, int hi, int type)
       h3_pt_dtem_tem[i] = new TH3D((nametype+"h3_pt_dtem_tem_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];#Delta t_{EM} [ns];t_{jet,EM} [ns]",200,0,200,200,-25,25,200,-25,25);
       h3_pt_dtoh_toh[i] = new TH3D((nametype+"h3_pt_dtoh_toh_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];#Delta t_{OH} [ns];t_{jet,OH} [ns]",200,0,200,200,-25,25,200,-25,25);
       h3_apt_dt_t[i] = new TH3D((nametype+"h3_apt_dt_t_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];#Delta t_{l,sl} [ns];t_{jet} [ns]",200,0,200,200,-25,25,200,-25,25);
+      h3_apt_dtem_dtoh[i] = new TH3D((nametype+"h3_apt_dtem_dtoh_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];#Delta t_{l,sl} [ns];t_{jet} [ns]",200,0,200,200,-25,25,200,-25,25);
       h3_pt_dt_lt[i] = new TH3D((nametype+"h3_pt_dt_lt_"+cuttype[i]).c_str(),";p_{T}^{lead} [GeV];#Delta t_{l,sl} [ns];t_{lead} [ns]",200,0,200,200,-25,25,200,-25,25);
       h3_pt_adt_t[i] = new TH3D((nametype+"h3_pt_adt_t_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];#Delta t_{l,sl} [ns];t_{jet} [ns]",200,0,200,50,0,5,200,-25,25);
       h2_pt_t[i] = new TH2D((nametype+"h2_pt_t_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];t_{jet} [ns]",200,0,200,200,-25,25);
@@ -352,17 +420,21 @@ int timing_hists(int lo, int hi, int type)
 	  if(sindex > -1 && st != 0)
 	    {
 	      h3_apt_dt_t[0]->Fill(jet_pt[j],lt-st,tns,scalefactor);
+	      h3_apt_dtem_dtoh[0]->Fill(jet_pt[j],ltem-stem,ltoh-stoh,scalefactor);
 	      if(failscut == 0)
 		{
 		  h3_apt_dt_t[1]->Fill(jet_pt[j],lt-st,tns,scalefactor);
+		  h3_apt_dtem_dtoh[1]->Fill(jet_pt[j],ltem-stem,ltoh-stoh,scalefactor);
 		}
 	      if(failscut == 1)
 		{
 		  h3_apt_dt_t[2]->Fill(jet_pt[j],lt-st,tns,scalefactor);
+		  h3_apt_dtem_dtoh[2]->Fill(jet_pt[j],ltem-stem,ltoh-stoh,scalefactor);
 		}
 	      if(failscut == 2)
 		{
 		  for(int k=1; k<4; ++k) h3_apt_dt_t[k]->Fill(jet_pt[j],lt-st,tns,scalefactor);
+		  for(int k=1; k<4; ++k) h3_apt_dtem_dtoh[k]->Fill(jet_pt[j],ltem-stem,ltoh-stoh,scalefactor);
 		}
 	    }
 	  h2_pt_t[0]->Fill(jet_pt[j],tns,scalefactor);
@@ -384,6 +456,8 @@ int timing_hists(int lo, int hi, int type)
       h3_pt_dt_lt[i]->Write();
       h3_pt_dtem_tem[i]->Write();
       h3_pt_dtoh_toh[i]->Write();
+      h3_apt_dt_t[i]->Write();
+      h3_apt_dtem_dtoh[i]->Write();
       h2_pt_t[i]->Write();
       h2_lt_st[i]->Write();
     }
