@@ -183,6 +183,12 @@ int cuteff(int lo, int hi, int type)
   TH3D* h3_pt_lem_loh = new TH3D("h3_pt_lem_loh",";p_{T}^{reco} [GeV];E_{reco}^{EM}/E_{reco};E_{reco}^{OH}/E_{reco}",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
   TH3D* h3_tpt_lem_loh = new TH3D("h3_tpt_lem_loh",";p_{T}^{truth} [GeV];E_{reco}^{EM}/E_{reco} Matched;E_{reco}^{OH}/E_{reco} Matched",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
 
+  TH3D* h3_pt_tpt_loh = new TH3D("h3_pt_tpt_loh",";p_{T}^{reco} [GeV];p_{T}^{truth};E_{reco}^{OH}/E_{reco}",100,0,100,100,0,100,120,-0.1,1.1);
+  TH3D* h3_pt_tpt_lem = new TH3D("h3_pt_tpt_lem",";p_{T}^{truth} [GeV];p_{T}^{truth};E_{reco}^{EM}/E_{reco} Matched",100,0,100,100,0,100,120,-0.1,1.1);
+
+  TH3D* h3_pt_tpt_loh_etacut = new TH3D("h3_pt_tpt_loh_etacut",";p_{T}^{reco} [GeV];p_{T}^{truth};E_{reco}^{OH}/E_{reco}",100,0,100,100,0,100,120,-0.1,1.1);
+  TH3D* h3_pt_tpt_lem_etacut = new TH3D("h3_pt_tpt_lem_etacut",";p_{T}^{truth} [GeV];p_{T}^{truth};E_{reco}^{EM}/E_{reco} Matched",100,0,100,100,0,100,120,-0.1,1.1);
+
   TH3D* h3_pt_lem_loh_etacut = new TH3D("h3_pt_lem_loh_etacut",";p_{T}^{reco} [GeV];E_{reco}^{EM}/E_{reco};E_{reco}^{OH}/E_{reco}",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
   TH3D* h3_tpt_lem_loh_etacut = new TH3D("h3_tpt_lem_loh_etacut",";p_{T}^{truth} [GeV];E_{reco}^{EM}/E_{reco} Matched;E_{reco}^{OH}/E_{reco} Matched",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
 
@@ -243,6 +249,12 @@ int cuteff(int lo, int hi, int type)
 	    {
 	      h3_pt_lem_loh->Fill(matched_jets.at(j).at(1),matched_jets.at(j).at(2), matched_jets.at(j).at(3),scalefactor);
 	      h3_tpt_lem_loh->Fill(matched_jets.at(j).at(0),matched_jets.at(j).at(2), matched_jets.at(j).at(3),scalefactor);
+
+
+	      h3_pt_tpt_loh->Fill(matched_jets.at(j).at(1),matched_jets.at(j).at(0), matched_jets.at(j).at(3),scalefactor);
+	      h3_pt_tpt_lem->Fill(matched_jets.at(j).at(1),matched_jets.at(j).at(0), matched_jets.at(j).at(2),scalefactor);
+
+
 	      if(abs(zvtx) < 100)
 		{
 		  h3_pt_lem_loh_z100->Fill(matched_jets.at(j).at(1),matched_jets.at(j).at(2), matched_jets.at(j).at(3),scalefactor);
@@ -250,6 +262,10 @@ int cuteff(int lo, int hi, int type)
 		}
 	      
 	      if(check_bad_jet_eta(matched_jets.at(j).at(4),zvtx,0.4)) continue;
+
+	      h3_pt_tpt_loh_etacut->Fill(matched_jets.at(j).at(1),matched_jets.at(j).at(0), matched_jets.at(j).at(3),scalefactor);
+	      h3_pt_tpt_lem_etacut->Fill(matched_jets.at(j).at(1),matched_jets.at(j).at(0), matched_jets.at(j).at(2),scalefactor);
+	      
 	      h3_pt_lem_loh_etacut->Fill(matched_jets.at(j).at(1),matched_jets.at(j).at(2), matched_jets.at(j).at(3),scalefactor);
 	      h3_tpt_lem_loh_etacut->Fill(matched_jets.at(j).at(0),matched_jets.at(j).at(2), matched_jets.at(j).at(3),scalefactor);
 	      if(failscut%2==0)
@@ -274,6 +290,11 @@ int cuteff(int lo, int hi, int type)
 
   h3_pt_lem_loh->Write();
   h3_tpt_lem_loh->Write();
+
+  h3_pt_tpt_lem->Write();
+  h3_pt_tpt_loh->Write();
+  h3_pt_tpt_lem_etacut->Write();
+  h3_pt_tpt_loh_etacut->Write();
 
   h3_pt_lem_loh_z100->Write();
   h3_tpt_lem_loh_z100->Write();
