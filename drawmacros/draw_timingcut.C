@@ -43,7 +43,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   gPad->SetTopMargin(0.2);
   gPad->SetRightMargin(0.05);
   gPad->SetLogy();
-  TLegend* leg = new TLegend(0.15,0.1,0.75,0.3);
+  TLegend* leg = new TLegend(0.3,0.6,0.9,0.8);
   leg->SetFillStyle(0);
   leg->SetLineWidth(0);
   leg->SetNColumns(2);
@@ -53,7 +53,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   den1->SetLineWidth(2);
   den1->SetMarkerStyle(20);
   den1->SetMarkerSize(2);
-  leg->AddEntry(den1,"No cuts","p");
+  leg->AddEntry(den1,"Dijet & fraction cuts only","p");
 
   
   for(int i=0; i<nums1.size(); ++i)
@@ -97,9 +97,9 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   can->cd(0);
 
   maintexts(0.98,0.6,0,0.03);
-  drawText("Jet30,50,70 PYTHIA",0.6,0.87,0,kBlack,0.03);
+  //drawText("Jet30,50,70 PYTHIA",0.6,0.87,0,kBlack,0.03);
   drawText("No z_{vtx} cut (non-reconstructed included)",0.05,0.87,0,kBlack,0.03);
-  drawText("Truth-reco matched jets",0.05,0.91,0,kBlack,0.03);
+  //drawText("Truth-reco matched jets",0.05,0.91,0,kBlack,0.03);
 
   can->SaveAs(title.c_str());
 
@@ -110,26 +110,26 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
 }
 
 
-int draw_cuteff()
+int draw_timingcut()
 {
   gStyle->SetPadTickX(1);
   gStyle->SetPadTickY(1);
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
 
-  TFile* inf = TFile::Open("../../cuteff/hadded_cuteff.root","READ");
+  TFile* inf = TFile::Open("../../timing/hadded_timing.root","READ");
 
-  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get("h3_pt_lem_loh");
-  TH3D* h3_tpt_lem_loh = (TH3D*)inf->Get("h3_tpt_lem_loh");
+  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get("dath3_apt_dtem_dtoh_both");
+  TH3D* h3_tpt_lem_loh = (TH3D*)inf->Get("simh3_apt_dtem_dtoh_both");
 
-  std::vector<vector<int>> ybounds = {{1,100},{21,120},{1,120},{1,120},{1,100}};
-  std::vector<vector<int>> zbounds = {{1,120},{1,120},{1,100},{21,120},{21,120}};
+  std::vector<vector<int>> ybounds = {{91,110},{96,105},{81,120}};
+  std::vector<vector<int>> zbounds = {{81,120},{91,110},{71,130}};
   int axis = 0;
-  std::vector<int> colors = {kSpring, kAzure, kViolet, kOrange, kGray};
-  std::vector<int> markers = {20, 21, 71, 72, 88};
-  std::vector<string> numlabels = {"EM fraction < 0.9 only","EM fraction > 0.1 only","OH fraction < 0.9 only","OH Fraction > 0.1 only","EM frac <0.9 && OH frac > 0.1"};
+  std::vector<int> colors = {kAzure, kSpring, kViolet};
+  std::vector<int> markers = {21, 20, 71};
+  std::vector<string> numlabels = {"|#Delta t_{EM}|<2.5 ns && |#Delta t_{OH}<5 ns","|#Delta t_{EM}|<1.25 ns && |#Delta t_{OH}<2.5 ns","|#Delta t_{EM}|<10 ns && |#Delta t_{OH}<15 ns"};
 
-  drawprettyeff(h3_tpt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"h3_pt_lem_loh_effs.png");
+  drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"timing_cut.png");
   
   return 0;
 }

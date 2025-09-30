@@ -87,6 +87,7 @@ std::vector<vector<float>> match_truth_reco(std::vector<vector<float>> truthjets
       for(int j=0; j<recojets.size(); ++j)
 	{
 	  if(recojets.at(j).at(5) != 0) continue;
+	  if(recojets.at(j).at(0) < 5) continue;
 	  float deta = abs(truthjets.at(i).at(1) - recojets.at(j).at(1));
 	  float dphi = get_dphi(truthjets.at(i).at(2),recojets.at(j).at(2));
 	  float dR = sqrt(deta*deta+dphi*dphi);
@@ -97,6 +98,8 @@ std::vector<vector<float>> match_truth_reco(std::vector<vector<float>> truthjets
 	      matched_pt.push_back(lremf);
 	      matched_pt.push_back(lrohf);
 	      matched_pt.push_back(recojets.at(j).at(1));
+	      matched_pt.push_back(recojets.at(j).at(3));
+	      matched_pt.push_back(recojets.at(j).at(4));
 	      recojets.at(j).at(5) = 1;
 	      matched_pts.push_back(matched_pt);
 	      break;
@@ -181,6 +184,9 @@ int cuteff(int lo, int hi, int type)
   jet_tree->SetBranchAddress("zvtx",&zvtx);
 
   TH3D* h3_pt_lem_loh = new TH3D("h3_pt_lem_loh",";p_{T}^{reco} [GeV];E_{reco}^{EM}/E_{reco};E_{reco}^{OH}/E_{reco}",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
+
+  TH3D* h3_pt_em_oh = new TH3D("h3_pt_lem_loh",";p_{T}^{reco} [GeV];E_{reco}^{EM}/E_{reco};E_{reco}^{OH}/E_{reco}",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
+
   TH3D* h3_tpt_lem_loh = new TH3D("h3_tpt_lem_loh",";p_{T}^{truth} [GeV];E_{reco}^{EM}/E_{reco} Matched;E_{reco}^{OH}/E_{reco} Matched",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
 
   TH3D* h3_pt_tpt_loh = new TH3D("h3_pt_tpt_loh",";p_{T}^{reco} [GeV];p_{T}^{truth};E_{reco}^{OH}/E_{reco}",100,0,100,100,0,100,120,-0.1,1.1);
@@ -248,6 +254,9 @@ int cuteff(int lo, int hi, int type)
 	  for(int j=0; j<matched_jets.size(); ++j)
 	    {
 	      h3_pt_lem_loh->Fill(matched_jets.at(j).at(1),matched_jets.at(j).at(2), matched_jets.at(j).at(3),scalefactor);
+
+	      h3_pt_em_oh->Fill(matched_jets.at(j).at(1),matched_jets.at(j).at(5), matched_jets.at(j).at(6),scalefactor);
+	      
 	      h3_tpt_lem_loh->Fill(matched_jets.at(j).at(0),matched_jets.at(j).at(2), matched_jets.at(j).at(3),scalefactor);
 
 

@@ -207,9 +207,9 @@ int timing_hists(int lo, int hi, int type)
   TH3D* h3_apt_dt_t[ncut];
   TH3D* h3_apt_dtem_dtoh[ncut];
   TH3D* h3_pt_dt_lt[ncut];
-  TH3D* h3_pt_adt_t[ncut];
-  TH2D* h2_pt_t[ncut];
-  TH2D* h2_lt_st[ncut];
+  //TH3D* h3_pt_adt_t[ncut];
+  //TH2D* h2_pt_t[ncut];
+  //TH2D* h2_lt_st[ncut];
   string cuttype[ncut] = {"all","dijet","frac","both"};
   for(int i=0; i<ncut; ++i)
     {
@@ -219,9 +219,9 @@ int timing_hists(int lo, int hi, int type)
       h3_apt_dt_t[i] = new TH3D((nametype+"h3_apt_dt_t_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];#Delta t_{l,sl} [ns];t_{jet} [ns]",200,0,200,200,-25,25,200,-25,25);
       h3_apt_dtem_dtoh[i] = new TH3D((nametype+"h3_apt_dtem_dtoh_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];#Delta t_{EM} [ns];#Delta t_{OH} [ns]",200,0,200,200,-25,25,200,-25,25);
       h3_pt_dt_lt[i] = new TH3D((nametype+"h3_pt_dt_lt_"+cuttype[i]).c_str(),";p_{T}^{lead} [GeV];#Delta t_{l,sl} [ns];t_{lead} [ns]",200,0,200,200,-25,25,200,-25,25);
-      h3_pt_adt_t[i] = new TH3D((nametype+"h3_pt_adt_t_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];#Delta t_{l,sl} [ns];t_{jet} [ns]",200,0,200,50,0,5,200,-25,25);
-      h2_pt_t[i] = new TH2D((nametype+"h2_pt_t_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];t_{jet} [ns]",200,0,200,200,-25,25);
-      h2_lt_st[i] = new TH2D((nametype+"h2_lt_st_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];t_{jet} [ns]",200,-25,25,200,-25,25);
+      //h3_pt_adt_t[i] = new TH3D((nametype+"h3_pt_adt_t_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];#Delta t_{l,sl} [ns];t_{jet} [ns]",200,0,200,50,0,5,200,-25,25);
+      //h2_pt_t[i] = new TH2D((nametype+"h2_pt_t_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];t_{jet} [ns]",200,0,200,200,-25,25);
+      //h2_lt_st[i] = new TH2D((nametype+"h2_lt_st_"+cuttype[i]).c_str(),";p_{T}^{jet} [GeV];t_{jet} [ns]",200,-25,25,200,-25,25);
     }
   
   int wfte = 0;
@@ -308,16 +308,16 @@ int timing_hists(int lo, int hi, int type)
       lt*=stons;
       st*=stons;
       float ltem = 0;
-      if(frcem[lindex]*jet_e[lindex] > 5) ltem = jet_t_em[lindex]*stons;
+      if(frcem[lindex]*jet_e[lindex] > 3) ltem = jet_t_em[lindex]*stons;
       float stem = 0;
-      if(frcem[sindex]*jet_e[sindex] > 5) stem = jet_t_em[sindex]*stons;
+      if(frcem[sindex]*jet_e[sindex] > 3) stem = jet_t_em[sindex]*stons;
       float ltoh = 0;
-      if(frcoh[lindex]*jet_e[lindex] > 5) ltoh = jet_t_oh[lindex]*stons;
+      if(frcoh[lindex]*jet_e[lindex] > 3) ltoh = jet_t_oh[lindex]*stons;
       float stoh = 0;
-      if(frcoh[sindex]*jet_e[sindex] > 5) stoh = jet_t_oh[sindex]*stons;
+      if(frcoh[sindex]*jet_e[sindex] > 3) stoh = jet_t_oh[sindex]*stons;
       if(sindex > -1)
 	{
-	  h2_lt_st[0]->Fill(lt,st,scalefactor);
+	  //h2_lt_st[0]->Fill(lt,st,scalefactor);
 	  if(!std::isnan(ltem) && !std::isnan(stem) && ltem != 0 && stem != 0)
 	    {
 	      h3_pt_dtem_tem[0]->Fill(lpt,ltem-stem,ltem,scalefactor);
@@ -340,7 +340,7 @@ int timing_hists(int lo, int hi, int type)
 		  h3_pt_dtoh_toh[1]->Fill(lpt,ltoh-stoh,ltoh,scalefactor);
 		  h3_pt_dtoh_toh[1]->Fill(spt,ltoh-stoh,stoh,scalefactor);
 		}
-	      h2_lt_st[1]->Fill(lt,st,scalefactor);
+	      //h2_lt_st[1]->Fill(lt,st,scalefactor);
 	    }
 	  if(failscut==1)
 	    {
@@ -354,7 +354,7 @@ int timing_hists(int lo, int hi, int type)
 		  h3_pt_dtoh_toh[2]->Fill(lpt,ltoh-stoh,ltoh,scalefactor);
 		  h3_pt_dtoh_toh[2]->Fill(spt,ltoh-stoh,stoh,scalefactor);
 		}
-	      h2_lt_st[2]->Fill(lt,st,scalefactor);
+	      //h2_lt_st[2]->Fill(lt,st,scalefactor);
 	    }
 	  if(failscut==2)
 	    {
@@ -370,7 +370,7 @@ int timing_hists(int lo, int hi, int type)
 		      h3_pt_dtoh_toh[k]->Fill(lpt,ltoh-stoh,ltoh,scalefactor);
 		      h3_pt_dtoh_toh[k]->Fill(spt,ltoh-stoh,stoh,scalefactor);
 		    }
-		  h2_lt_st[k]->Fill(lt,st,scalefactor);
+		  //h2_lt_st[k]->Fill(lt,st,scalefactor);
 		}
 	    }
 	}
@@ -380,24 +380,24 @@ int timing_hists(int lo, int hi, int type)
 	  h3_pt_dt_t[0]->Fill(lpt,lt-st,lt,scalefactor);
 	  h3_pt_dt_t[0]->Fill(spt,lt-st,st,scalefactor);
 	  h3_pt_dt_lt[0]->Fill(lpt,lt-st,lt,scalefactor);
-	  h3_pt_adt_t[0]->Fill(lpt,abs(lt-st),lt,scalefactor);
-	  h3_pt_adt_t[0]->Fill(spt,abs(lt-st),st,scalefactor);
+	  //h3_pt_adt_t[0]->Fill(lpt,abs(lt-st),lt,scalefactor);
+	  //h3_pt_adt_t[0]->Fill(spt,abs(lt-st),st,scalefactor);
 	  
 	  if(failscut==0)
 	    {
 	      h3_pt_dt_t[1]->Fill(lpt,lt-st,lt,scalefactor);
 	      h3_pt_dt_t[1]->Fill(spt,lt-st,st,scalefactor);
 	      h3_pt_dt_lt[1]->Fill(lpt,lt-st,lt,scalefactor);
-	      h3_pt_adt_t[1]->Fill(lpt,abs(lt-st),lt,scalefactor);
-	      h3_pt_adt_t[1]->Fill(spt,abs(lt-st),st,scalefactor);
+	      //h3_pt_adt_t[1]->Fill(lpt,abs(lt-st),lt,scalefactor);
+	      //h3_pt_adt_t[1]->Fill(spt,abs(lt-st),st,scalefactor);
 	    }
 	  if(failscut==1)
 	    {
 	      h3_pt_dt_t[2]->Fill(lpt,lt-st,lt,scalefactor);
 	      h3_pt_dt_t[2]->Fill(spt,lt-st,st,scalefactor);
 	      h3_pt_dt_lt[2]->Fill(lpt,lt-st,lt,scalefactor);
-	      h3_pt_adt_t[2]->Fill(lpt,abs(lt-st),lt,scalefactor);
-	      h3_pt_adt_t[2]->Fill(spt,abs(lt-st),st,scalefactor);
+	      //h3_pt_adt_t[2]->Fill(lpt,abs(lt-st),lt,scalefactor);
+	      //h3_pt_adt_t[2]->Fill(spt,abs(lt-st),st,scalefactor);
 	    }
 	  if(failscut==2)
 	    {
@@ -406,8 +406,8 @@ int timing_hists(int lo, int hi, int type)
 		  h3_pt_dt_t[k]->Fill(lpt,lt-st,lt,scalefactor);
 		  h3_pt_dt_t[k]->Fill(spt,lt-st,st,scalefactor);
 		  h3_pt_dt_lt[k]->Fill(lpt,lt-st,lt,scalefactor);
-		  h3_pt_adt_t[k]->Fill(lpt,abs(lt-st),lt,scalefactor);
-		  h3_pt_adt_t[k]->Fill(spt,abs(lt-st),st,scalefactor);
+		  //h3_pt_adt_t[k]->Fill(lpt,abs(lt-st),lt,scalefactor);
+		  //h3_pt_adt_t[k]->Fill(spt,abs(lt-st),st,scalefactor);
 		}
 	    }
 	}
@@ -419,24 +419,25 @@ int timing_hists(int lo, int hi, int type)
 	  float tns = jet_t[j]*stons;
 	  if(sindex > -1 && st != 0)
 	    {
-	      h3_apt_dt_t[0]->Fill(jet_pt[j],lt-st,tns,scalefactor);
+	      h3_apt_dt_t[0]->Fill(jet_pt[j],lt-st,lt,scalefactor);
 	      h3_apt_dtem_dtoh[0]->Fill(jet_pt[j],ltem-stem,ltoh-stoh,scalefactor);
 	      if(failscut == 0)
 		{
-		  h3_apt_dt_t[1]->Fill(jet_pt[j],lt-st,tns,scalefactor);
+		  h3_apt_dt_t[1]->Fill(jet_pt[j],lt-st,lt,scalefactor);
 		  h3_apt_dtem_dtoh[1]->Fill(jet_pt[j],ltem-stem,ltoh-stoh,scalefactor);
 		}
 	      if(failscut == 1)
 		{
-		  h3_apt_dt_t[2]->Fill(jet_pt[j],lt-st,tns,scalefactor);
+		  h3_apt_dt_t[2]->Fill(jet_pt[j],lt-st,lt,scalefactor);
 		  h3_apt_dtem_dtoh[2]->Fill(jet_pt[j],ltem-stem,ltoh-stoh,scalefactor);
 		}
 	      if(failscut == 2)
 		{
-		  for(int k=1; k<4; ++k) h3_apt_dt_t[k]->Fill(jet_pt[j],lt-st,tns,scalefactor);
+		  for(int k=1; k<4; ++k) h3_apt_dt_t[k]->Fill(jet_pt[j],lt-st,lt,scalefactor);
 		  for(int k=1; k<4; ++k) h3_apt_dtem_dtoh[k]->Fill(jet_pt[j],ltem-stem,ltoh-stoh,scalefactor);
 		}
 	    }
+	  /*
 	  h2_pt_t[0]->Fill(jet_pt[j],tns,scalefactor);
 	  if(failscut==0) h2_pt_t[1]->Fill(jet_pt[j],tns,scalefactor);
 	  if(failscut==1) h2_pt_t[2]->Fill(jet_pt[j],tns,scalefactor);
@@ -444,6 +445,7 @@ int timing_hists(int lo, int hi, int type)
 	    {
 	      for(int k=1;k<4;++k) h2_pt_t[k]->Fill(jet_pt[j],tns,scalefactor);
 	    }
+	  */
 	}
     }
 
@@ -451,15 +453,15 @@ int timing_hists(int lo, int hi, int type)
   outf->cd();
   for(int i=0; i<ncut; ++i)
     {
-      h3_pt_adt_t[i]->Write();
+      //h3_pt_adt_t[i]->Write();
       h3_pt_dt_t[i]->Write();
       h3_pt_dt_lt[i]->Write();
       h3_pt_dtem_tem[i]->Write();
       h3_pt_dtoh_toh[i]->Write();
       h3_apt_dt_t[i]->Write();
       h3_apt_dtem_dtoh[i]->Write();
-      h2_pt_t[i]->Write();
-      h2_lt_st[i]->Write();
+      //h2_pt_t[i]->Write();
+      //h2_lt_st[i]->Write();
     }
 
   outf->Write();
