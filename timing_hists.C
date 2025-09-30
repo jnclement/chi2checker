@@ -163,6 +163,7 @@ int timing_hists(int lo, int hi, int type)
   //TTree* jet_tree = (TTree*)evtfile->Get("jet_tree");
   jet_tree->SetBranchStatus("*",0);
   jet_tree->SetBranchStatus("jet_n",1);
+  jet_tree->SetBranchStatus("runnum",1);
   jet_tree->SetBranchStatus("failscut",1);
   jet_tree->SetBranchStatus("alljetfrcem",1);
   jet_tree->SetBranchStatus("alljetfrcoh",1);
@@ -185,6 +186,7 @@ int timing_hists(int lo, int hi, int type)
       jet_tree->SetBranchAddress("tjet_n",&tjet_n);
     }
   jet_tree->SetBranchAddress("jet_n",&jet_n);
+  jet_tree->SetBranchAddress("runnum",&runnum);
   jet_tree->SetBranchAddress("failscut",&failscut);
   jet_tree->SetBranchAddress("alljetfrcem",frcem);
   jet_tree->SetBranchAddress("alljetfrcoh",frcoh);
@@ -229,6 +231,7 @@ int timing_hists(int lo, int hi, int type)
     {
       if(!(i%100)) cout << i << endl;
       jet_tree->GetEntry(i);
+      if(runnum == 51161) continue;
       /*
       float calosum = 0;
       for(int j=0; j<96; ++j)
