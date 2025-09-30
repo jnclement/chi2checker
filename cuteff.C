@@ -185,7 +185,7 @@ int cuteff(int lo, int hi, int type)
 
   TH3D* h3_pt_lem_loh = new TH3D("h3_pt_lem_loh",";p_{T}^{reco} [GeV];E_{reco}^{EM}/E_{reco};E_{reco}^{OH}/E_{reco}",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
 
-  TH3D* h3_pt_em_oh = new TH3D("h3_pt_lem_loh",";p_{T}^{reco} [GeV];E_{reco}^{EM}/E_{reco};E_{reco}^{OH}/E_{reco}",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
+  TH3D* h3_pt_em_oh = new TH3D("h3_pt_em_oh",";p_{T}^{reco} [GeV];E_{reco}^{EM}/E_{reco};E_{reco}^{OH}/E_{reco}",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
 
   TH3D* h3_tpt_lem_loh = new TH3D("h3_tpt_lem_loh",";p_{T}^{truth} [GeV];E_{reco}^{EM}/E_{reco} Matched;E_{reco}^{OH}/E_{reco} Matched",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
 

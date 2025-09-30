@@ -16,7 +16,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   if(axis==1) den1 = hist3->ProjectionX((string(hist3->GetName())+"_den").c_str(),0,-1,0,-1,"e");
   if(axis==2) den1 = hist3->ProjectionX((string(hist3->GetName())+"_den").c_str(),0,-1,0,-1,"e");
 
-
+  den1->Rebin(2);
   
   for(int i=0; i<ybounds.size(); ++i)
     {
@@ -33,6 +33,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
 
   for(int i=0; i<nums1.size(); ++i)
     {
+      nums1.at(i)->Rebin(2);
       effs1.push_back((TH1D*)nums1.at(i)->Clone((string(nums1.at(i)->GetName())+"_eff").c_str()));
       effs1.at(i)->Divide(nums1.at(i),den1,1,1,"B");
     }
@@ -53,7 +54,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   den1->SetLineWidth(2);
   den1->SetMarkerStyle(20);
   den1->SetMarkerSize(2);
-  leg->AddEntry(den1,"Dijet & fraction cuts only","p");
+  leg->AddEntry(den1,"Dijet cut only","p");
 
   
   for(int i=0; i<nums1.size(); ++i)
@@ -75,6 +76,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   den1->Draw("PE");
   den1->GetXaxis()->SetRangeUser(30,100);
   den1->GetYaxis()->SetTitle("Counts");
+  den1->GetYaxis()->SetRangeUser(0.5,den1->GetMaximum()*1.1);
   for(int i=0; i<nums1.size(); ++i)
     {
       nums1.at(i)->Draw("SAME PE");
@@ -119,15 +121,15 @@ int draw_timingcut()
 
   TFile* inf = TFile::Open("../../timing/hadded_timing.root","READ");
 
-  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get("dath3_apt_dtem_dtoh_both");
+  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get("dath3_apt_dt_t_dijet");
   TH3D* h3_tpt_lem_loh = (TH3D*)inf->Get("simh3_apt_dtem_dtoh_both");
 
-  std::vector<vector<int>> ybounds = {{91,110},{96,105},{81,120}};
-  std::vector<vector<int>> zbounds = {{81,120},{91,110},{71,130}};
+  std::vector<vector<int>> ybounds = {{90,109},{92,107},{88,111}};
+  std::vector<vector<int>> zbounds = {{72,111},{78,107},{66,117}};
   int axis = 0;
   std::vector<int> colors = {kAzure, kSpring, kViolet};
   std::vector<int> markers = {21, 20, 71};
-  std::vector<string> numlabels = {"|#Delta t_{EM}|<2.5 ns && |#Delta t_{OH}<5 ns","|#Delta t_{EM}|<1.25 ns && |#Delta t_{OH}<2.5 ns","|#Delta t_{EM}|<10 ns && |#Delta t_{OH}<15 ns"};
+  std::vector<string> numlabels = {"-7 ns<t_{lead}<3 ns && |#Delta t_{lead}|<2.5 ns","-5.5 ns<t_{lead}<1.5 ns && |#Delta t_{lead}|<2 ns","-8.5 ns<t_{lead}<4.5 ns && |#Delta t_{lead}|<3 ns"};
 
   drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"timing_cut.png");
   
