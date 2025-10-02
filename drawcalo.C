@@ -157,7 +157,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 	  st = jet_t[i];
 	}
     }
-  if(maxE > 60 || maxE < 50) return;
+  if(maxE < 50) return;
   std::stringstream full_stream;
   full_stream << std::fixed << std::setprecision(3) << "Run " << runnum << ", event " << evtnum << ", Leading EM fraction: " << frcem[maxindex] << ", OH fraction: " << frcoh[maxindex] << ", z_{vtx} = " <<  std::setprecision(1) << (zvtx==0?NAN:zvtx) << std::setprecision(3) << " E_{sl}/E_{lead}=" << jet_e[slindex]/jet_e[maxindex] << ". Tower energy scale maxes out at 25, but actual energies may be higher. Values on plots are p_{T}^{jet}. ";
   std::string full_string = full_stream.str();
@@ -362,7 +362,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   drawText(full_string.c_str(),0.05,0.925,0,kBlack,0.02);
 
   std::stringstream secondss;
-  secondss << std::fixed << std::setprecision(2) << "E_{lead}="<<jet_e[maxindex]<<", E_{sl}="<<jet_e[slindex]<<", p_{T}^{lead}=" << maxE << ", p_{T}^{sl}=" << slE << ". " << (isblt?"Bad livetime region.":"Good livetime region.") << "  t_{lead}="<<lt*17.6 << " t_{sub}="<<st*17.6;
+  secondss << std::fixed << std::setprecision(2) << "E_{lead}="<<jet_e[maxindex]<<", E_{sl}="<<jet_e[slindex]<<", p_{T}^{lead}=" << maxE << ", p_{T}^{sl}=" << slE << ". " << (isblt?"Bad livetime region.":"Good livetime region.") << "  t_{lead}="<<lt*17.6 << " ns, t_{sub}="<<st*17.6 << " ns.";
 
   std::string secondstring = secondss.str();
   
@@ -501,7 +501,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 }
 
 
-int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, int evtdraw = -1)
+int drawcalo(int lo, int hi, int dosave = 0, string listfilename = "chi2filesdat.txt", int rainbow = 0, int rundraw = -1, int evtdraw = -1)
 {
   cancount = lo;
   //TFile* evtfile = TFile::Open("../chi2/hadded_chi2file_20250902.root","READ");
@@ -573,7 +573,7 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
   //TChain* wft = new TChain("wft");
   
   string tempinfilename;
-  ifstream chi2list("chi2filesdat.txt");
+  ifstream chi2list(listfilename);
 
   for(int i=0; i<lo; ++i)
     {
