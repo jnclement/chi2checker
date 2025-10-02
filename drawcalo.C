@@ -157,7 +157,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 	  st = jet_t[i];
 	}
     }
-  
+  if(maxE > 60 || maxE < 50) return;
   std::stringstream full_stream;
   full_stream << std::fixed << std::setprecision(3) << "Run " << runnum << ", event " << evtnum << ", Leading EM fraction: " << frcem[maxindex] << ", OH fraction: " << frcoh[maxindex] << ", z_{vtx} = " <<  std::setprecision(1) << (zvtx==0?NAN:zvtx) << std::setprecision(3) << " E_{sl}/E_{lead}=" << jet_e[slindex]/jet_e[maxindex] << ". Tower energy scale maxes out at 25, but actual energies may be higher. Values on plots are p_{T}^{jet}. ";
   std::string full_string = full_stream.str();
@@ -179,27 +179,27 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   
   TH2D* event_sum = new TH2D("event_sum","Calorimeter Sum",24,-0.5,23.5,64,-0.5,63.5);
   TH2D* event_disrt[3];
-  /*
-  TH2D* times[3];
+  
+  //TH2D* times[3];
   TH2D* deads[3];
   TH2D* bchi2[3];
   TH2D* nocal[3];
-  TH2D* jcons[3];
+  //TH2D* jcons[3];
   TH2D* chi2s[3];
-  */
+  
   for(int i=0; i<3; ++i)
     {
       int nbinx = (i==0?96:24);
       int nbiny = (i==0?256:64);
       event_disrt[i] = new TH2D(("event_display_rt"+to_string(i)).c_str(),"",nbinx,-0.5,nbinx-0.5,nbiny,-0.5,nbiny-0.5);
-      /*
+      
       deads[i] = new TH2D(("deads"+to_string(i)).c_str(),"",nbinx,-0.5,nbinx-0.5,nbiny,-0.5,nbiny-0.5);
-      times[i] = new TH2D(("times"+to_string(i)).c_str(),"",nbinx,-0.5,nbinx-0.5,nbiny,-0.5,nbiny-0.5);
+      //times[i] = new TH2D(("times"+to_string(i)).c_str(),"",nbinx,-0.5,nbinx-0.5,nbiny,-0.5,nbiny-0.5);
       bchi2[i] = new TH2D(("bchi2"+to_string(i)).c_str(),"",nbinx,-0.5,nbinx-0.5,nbiny,-0.5,nbiny-0.5);
       nocal[i] = new TH2D(("nocal"+to_string(i)).c_str(),"",nbinx,-0.5,nbinx-0.5,nbiny,-0.5,nbiny-0.5);
-      jcons[i] = new TH2D(("jcons"+to_string(i)).c_str(),"",24,-0.5,23.5,64,-0.5,63.5);
-      chi2s[i] = new TH2D(("chi2s"+to_string(i)).c_str(),"",nbinx,-0.5,nbinx-0.5,nbiny,-0.5,nbiny-0.5);
-      */
+      //jcons[i] = new TH2D(("jcons"+to_string(i)).c_str(),"",24,-0.5,23.5,64,-0.5,63.5);
+      //chi2s[i] = new TH2D(("chi2s"+to_string(i)).c_str(),"",nbinx,-0.5,nbinx-0.5,nbiny,-0.5,nbiny-0.5);
+      
     }
   //TColor::CreateGradientColorTable(nstp, stp, red, grn, blu, ncol);
   event_disrt[0]->GetXaxis()->SetTitle("EMCal #eta Bin");
@@ -240,13 +240,13 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   event_sum->GetZaxis()->SetLabelSize(0.04);
   event_sum->GetXaxis()->SetLabelOffset(0.02);
   event_sum->Reset();
-  /*
+  
   TExec* ex1 = new TExec("ex1","Pal1();");
   TExec* ex2 = new TExec("ex2","Pal2();");
   TExec* ex3 = new TExec("ex3","Pal3();");
   TExec* ex4 = new TExec("ex4","Pal4();");
   TExec* ex5 = new TExec("ex5","Pal5();");
-  */
+  
   for(int j=0; j<3; ++j)
     {
       event_disrt[j]->Reset();
@@ -261,18 +261,18 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 	      event_disrt[j]->Fill(eta,phi,energy);
 	      if(j==0)event_sum->Fill(eta/4,phi/4,energy);
 	      else event_sum->Fill(eta,phi,energy);
-	      /*
+	      
 	      if(j==0) deads[j]->Fill(eta,phi,10*ishotem[eta][phi]);
 	      if(j==1) deads[j]->Fill(eta,phi,10*ishotih[eta][phi]);
 	      if(j==2) deads[j]->Fill(eta,phi,10*ishotoh[eta][phi]);
-
+	      /*
 	      if(j==0 && !std::isnan(emt[eta][phi])) times[j]->Fill(eta,phi,emt[eta][phi]);
 	      else times[j]->Fill(eta,phi,0);
 	      if(j==1 && !std::isnan(iht[eta][phi])) times[j]->Fill(eta,phi,iht[eta][phi]);
 	      else times[j]->Fill(eta,phi,0);
 	      if(j==2 && !std::isnan(oht[eta][phi])) times[j]->Fill(eta,phi,oht[eta][phi]);
 	      else times[j]->Fill(eta,phi,0);
-	      
+	      */
 	      if(j==0) bchi2[j]->Fill(eta,phi,10*isbadem[eta][phi]);
 	      if(j==1) bchi2[j]->Fill(eta,phi,10*isbadih[eta][phi]);
 	      if(j==2) bchi2[j]->Fill(eta,phi,10*isbadoh[eta][phi]);
@@ -281,17 +281,17 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 	      if(j==1) nocal[j]->Fill(eta,phi,10*nocalih[eta][phi]);
 	      if(j==2) nocal[j]->Fill(eta,phi,10*nocaloh[eta][phi]);
 	      
-	      if(j==0 && eta < 24 && phi < 64 && jconem[eta][phi] > jetcut) jcons[j]->Fill(eta,phi,10*jconem[eta][phi]);
-	      if(j==1 && jconih[eta][phi] > jetcut) jcons[j]->Fill(eta,phi,10*jconih[eta][phi]);
-	      if(j==2 && jconoh[eta][phi] > jetcut) jcons[j]->Fill(eta,phi,10*jconoh[eta][phi]);
-
+	      //if(j==0 && eta < 24 && phi < 64 && jconem[eta][phi] > jetcut) jcons[j]->Fill(eta,phi,10*jconem[eta][phi]);
+	      //if(j==1 && jconih[eta][phi] > jetcut) jcons[j]->Fill(eta,phi,10*jconih[eta][phi]);
+	      //if(j==2 && jconoh[eta][phi] > jetcut) jcons[j]->Fill(eta,phi,10*jconoh[eta][phi]);
+	      /*
 	      if(j==0 && !std::isnan(chi2em[eta][phi])) chi2s[j]->Fill(eta,phi,chi2em[eta][phi]);
 	      if(j==1 && !std::isnan(chi2ih[eta][phi])) chi2s[j]->Fill(eta,phi,chi2ih[eta][phi]);
 	      if(j==2 && !std::isnan(chi2oh[eta][phi])) chi2s[j]->Fill(eta,phi,chi2oh[eta][phi]);
 	      */
 	    }
 	}
-      /*
+      
       deads[j]->SetMaximum(2);
       bchi2[j]->SetMaximum(2);
       nocal[j]->SetMaximum(2);
@@ -318,9 +318,9 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
       deads[j]->Draw("col same0");
       ex2->Draw();
       deads[j]->Draw("col same0");
-      */
+      
     }
-  /*
+  
   c->cd(4);
 
   gPad->SetLogz(0);            
@@ -362,7 +362,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   drawText(full_string.c_str(),0.05,0.925,0,kBlack,0.02);
 
   std::stringstream secondss;
-  secondss << std::fixed << std::setprecision(2) << "E_{lead}="<<jet_e[maxindex]<<", E_{sl}="<<jet_e[slindex]<<", p_{T}^{lead}=" << maxE << ", p_{T}^{sl}=" << slE << ". " << (isblt?"Bad livetime region.":"Good livetime region.") << "  t_{lead}="<<lt << " t_{sub}="<<st;
+  secondss << std::fixed << std::setprecision(2) << "E_{lead}="<<jet_e[maxindex]<<", E_{sl}="<<jet_e[slindex]<<", p_{T}^{lead}=" << maxE << ", p_{T}^{sl}=" << slE << ". " << (isblt?"Bad livetime region.":"Good livetime region.") << "  t_{lead}="<<lt*17.6 << " t_{sub}="<<st*17.6;
 
   std::string secondstring = secondss.str();
   
@@ -395,7 +395,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
     }
   if(maxJetE > 130) dirstring = "gr130";
   float minjetdraw = 50;
-  bool past = !(abs(lt-st)<0.5 && abs(lt) < 0.5 && abs(st) < 0.5);
+  bool past = !(abs(lt-st)*17.6<2.5 && abs(lt*17.6+2.0) < 5.0);
   if(maxJetE > minjetdraw) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+(past?"_failtime":"_passtime")+".png").c_str());
 
 
@@ -411,8 +411,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   event_sum->GetZaxis()->SetRangeUser(0.05,25);
   gPad->Update();
   if(maxJetE > minjetdraw) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+(past?"_failtime":"_passtime")+"_log.png").c_str());
-  ++cancount;
-
+  /*
   for(int i=0; i<3; ++i)
     {
       c->cd(i+1);
@@ -456,12 +455,12 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
       times[i]->Draw("COLZ");
     }
   if(maxJetE > minjetdraw && !rainbow) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+(past?"_failtime":"_passtime")+"_times.png").c_str());
-
+  */
   event_sum->SetName(("event_sum_"+to_string(runnum)+"_"+to_string(evtnum)).c_str());
   event_disrt[0]->SetName(("emcal_"+to_string(runnum)+"_"+to_string(evtnum)).c_str());
   event_disrt[1]->SetName(("ihcal_"+to_string(runnum)+"_"+to_string(evtnum)).c_str());
   event_disrt[2]->SetName(("ohcal_"+to_string(runnum)+"_"+to_string(evtnum)).c_str());
-  */
+  
   if(_dosave)
     {
       event_sum->Write();
@@ -473,7 +472,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   if(event_disrt[1]) delete event_disrt[1];
   if(event_disrt[2]) delete event_disrt[2];
   if(event_sum) delete event_sum;
-  /*
+  
   if(deads[0]) delete deads[0];
   if(deads[1]) delete deads[1];
   if(deads[2]) delete deads[2];
@@ -483,6 +482,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   if(nocal[0]) delete nocal[0];
   if(nocal[1]) delete nocal[1];
   if(nocal[2]) delete nocal[2];
+  /*
   if(jcons[0]) delete jcons[0];
   if(jcons[1]) delete jcons[1];
   if(jcons[2]) delete jcons[2];
@@ -491,12 +491,13 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
       if(chi2s[i]) delete chi2s[i];
       if(times[i]) delete times[i];
     }
+  */
   if(ex1) delete ex1;
   if(ex2) delete ex2;
   if(ex3) delete ex3;
   if(ex4) delete ex4;
   if(ex5) delete ex5;
-  */
+  
 }
 
 
@@ -569,7 +570,7 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
   
   
   TChain* jet_tree = new TChain("jet_tree");
-  TChain* wft = new TChain("wft");
+  //TChain* wft = new TChain("wft");
   
   string tempinfilename;
   ifstream chi2list("chi2filesdat.txt");
@@ -591,12 +592,13 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
     }
 
 
-  
+  /*
   ifstream wflist("wavefiles.txt");
   for(int i=0; i<lo; ++i)
     {
       std::getline(wflist,tempinfilename);
     }
+  
   int wfcounter = lo;
   while(std::getline(wflist,tempinfilename))
     {
@@ -604,8 +606,8 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
       ++wfcounter;
       if(wfcounter >= hi) break;
     }
+  */
   
-  //TTree* jet_tree = (TTree*)evtfile->Get("jet_tree");
   jet_tree->SetBranchStatus("*",0);
   jet_tree->SetBranchStatus("jet_n",1);
   jet_tree->SetBranchStatus("runnum",1);
@@ -622,7 +624,17 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
   jet_tree->SetBranchStatus("ihtow",1);
   jet_tree->SetBranchStatus("ohtow",1);
   jet_tree->SetBranchStatus("zvtx",1);
+  jet_tree->SetBranchStatus("isbadem",1);
+  jet_tree->SetBranchStatus("isbadih",1);
+  jet_tree->SetBranchStatus("isbadoh",1);
+  jet_tree->SetBranchStatus("nocalem",1);
+  jet_tree->SetBranchStatus("nocalih",1);
+  jet_tree->SetBranchStatus("nocaloh",1);
+  jet_tree->SetBranchStatus("ishotem",1);
+  jet_tree->SetBranchStatus("ishotih",1);
+  jet_tree->SetBranchStatus("ishotoh",1);
 
+  
   jet_tree->SetBranchAddress("jet_n",&jet_n);
   jet_tree->SetBranchAddress("runnum",&runnum);
   jet_tree->SetBranchAddress("evtnum",&evtnum);
@@ -639,7 +651,7 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
   jet_tree->SetBranchAddress("ohtow",ohtow);
   jet_tree->SetBranchAddress("zvtx",&zvtx);
 
-  /*
+  
   jet_tree->SetBranchAddress("isbadem",isbadem);
   jet_tree->SetBranchAddress("isbadih",isbadih);
   jet_tree->SetBranchAddress("isbadoh",isbadoh);
@@ -649,6 +661,7 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
   jet_tree->SetBranchAddress("ishotem",ishotem);
   jet_tree->SetBranchAddress("ishotih",ishotih);
   jet_tree->SetBranchAddress("ishotoh",ishotoh);
+  /*
   jet_tree->SetBranchAddress("jconem",jconem);
   jet_tree->SetBranchAddress("jconih",jconih);
   jet_tree->SetBranchAddress("jconoh",jconoh);
@@ -657,6 +670,7 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
   jet_tree->SetBranchAddress("chi2ih",chi2ih);
   jet_tree->SetBranchAddress("chi2oh",chi2oh);
   */
+  /*
   wft->SetBranchAddress("mbdavgt",avgt);
   wft->SetBranchAddress("mbdhit",mbdhit);
   wft->SetBranchAddress("runnum",&rnwf);
@@ -664,7 +678,7 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
   wft->SetBranchAddress("emt",emt);
   wft->SetBranchAddress("iht",iht);
   wft->SetBranchAddress("oht",oht);
-
+  */
   int nhist = 0;
   
   float jetcut = 4;
@@ -675,8 +689,9 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
       if(runnum == 51161) continue;
       if(!(i%100)) cout << i << endl;
       jet_tree->GetEntry(i);
-      wft->GetEntry(wfte);
+      //wft->GetEntry(wfte);
       int flag = 0;
+      /*
       while(rnwf != runnum || enwf != evtnum)
 	{
 	  cout << "no match" << endl;
@@ -691,6 +706,7 @@ int drawcalo(int lo, int hi, int dosave = 0, int rainbow = 0, int rundraw = -1, 
 	}
       if(flag) continue;
       ++wfte;
+      */
       if((failscut > 2 || failscut < 0)) continue; // && i % 100 != 0 && evtdraw < 0) continue;
       ++nhist;
       if(dosave && failscut <= 2 && failscut >= 0)
