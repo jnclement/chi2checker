@@ -43,7 +43,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
       if(axis==2) outs1.push_back(hist3->ProjectionZ((string(hist3->GetName())+"_outside").c_str(),0,-1,0,-1,"e"));
 
       outs1.at(i)->Add(nums1.at(i),-1);
-      outs1.at(i)->Scale(1./40);
+      outs1.at(i)->Scale(1./53.5);
     }
 
   std::vector<TH1D*> effs1 = {};
@@ -83,9 +83,9 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
       nums1.at(i)->SetMarkerStyle(markers.at(i));
       nums1.at(i)->SetMarkerSize(2);
       leg->AddEntry(nums1.at(i),numlabels.at(i).c_str(),"p");
-
-      outs1.at(i)->SetMarkerColor(colors.at(i)+3);
-      outs1.at(i)->SetLineColor(colors.at(i)+3);
+      leg->AddEntry((TObject*)0,"","");
+      outs1.at(i)->SetMarkerColor(kOrange+2);
+      outs1.at(i)->SetLineColor(kOrange+2);
       outs1.at(i)->SetLineWidth(2);
       outs1.at(i)->SetMarkerStyle(markers.at(i));
       outs1.at(i)->SetMarkerSize(2);
@@ -98,11 +98,12 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
       effs1.at(i)->SetMarkerSize(2);
     }
 
-  den1->Draw("PE");
-  den1->GetXaxis()->SetRangeUser(30,100);
   den1->GetYaxis()->SetTitle("Counts");
-  den1->GetXaxis()->SetTitle("Uncalibrated p_{T}^{jet}");
-  den1->GetYaxis()->SetRangeUser(0.1001,den1->GetMaximum()*1.1);
+  effs1.at(0)->GetXaxis()->SetTitle("Uncalibrated p_{T}^{jet} [GeV]");
+  den1->GetXaxis()->SetRangeUser(30,100);
+  den1->GetYaxis()->SetRangeUser(0.1001,den1->GetMaximum()*1.5);
+  den1->Draw("PE");
+
   for(int i=0; i<nums1.size(); ++i)
     {
       nums1.at(i)->Draw("SAME PE");
@@ -127,7 +128,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
 
   maintexts(0.98,0.6,0,0.03);
   //drawText("Jet30,50,70 PYTHIA",0.6,0.87,0,kBlack,0.03);
-  drawText("No z_{vtx} cut (non-reconstructed included)",0.05,0.87,0,kBlack,0.03);
+  drawText("No z_{vtx} cut (non-reconstructed included)",0.1,0.87,0,kBlack,0.03);
   //drawText("Truth-reco matched jets",0.05,0.91,0,kBlack,0.03);
 
   can->SaveAs(title.c_str());
@@ -146,13 +147,13 @@ int draw_timingcut()
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
 
-  TFile* inf = TFile::Open("../../timing/hadded_timing.root","READ");
+  TFile* inf = TFile::Open("../../timing/hadded_timing_dat.root","READ");
 
   TH3D* h3_pt_lem_loh = (TH3D*)inf->Get("dath3_apt_dt_t_dijet");
-  TH3D* h3_tpt_lem_loh = (TH3D*)inf->Get("simh3_apt_dtem_dtoh_both");
+  //TH3D* h3_tpt_lem_loh = (TH3D*)inf->Get("simh3_apt_dtem_dtoh_both");
 
-  std::vector<vector<int>> ybounds = {{88,111}};
-  std::vector<vector<int>> zbounds = {{68,115}};
+  std::vector<vector<int>> ybounds = {{89,112}};
+  std::vector<vector<int>> zbounds = {{169,216}};
   int axis = 0;
   std::vector<int> colors = {kAzure};
   std::vector<int> markers = {20};
