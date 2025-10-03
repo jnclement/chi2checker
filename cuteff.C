@@ -239,20 +239,22 @@ int cuteff(int lo, int hi, int type)
       if(type==3 && lpt > 52) continue;
       
       std::vector<vector<float>> matched_jets = match_truth_reco(truthjets,recojets);
-
-      if(matched_jets.size() > 0)
-	{
-	  h3_lpt_lem_loh->Fill(matched_jets.at(0).at(1),matched_jets.at(0).at(2), matched_jets.at(0).at(3),scalefactor);
-	  h3_ltpt_lem_loh->Fill(matched_jets.at(0).at(0),matched_jets.at(0).at(2), matched_jets.at(0).at(3),scalefactor);
-	  
-	  if(failscut%2==0)
-	    {
-	      h3_lpt_lem_loh_dijet->Fill(matched_jets.at(0).at(1),matched_jets.at(0).at(2), matched_jets.at(0).at(3),scalefactor);
-	      h3_ltpt_lem_loh_dijet->Fill(matched_jets.at(0).at(0),matched_jets.at(0).at(2), matched_jets.at(0).at(3),scalefactor);
-	    }
 	  
 	  for(int j=0; j<matched_jets.size(); ++j)
 	    {
+	      if(matched_jets.at(j).at(1)/matched_jets.at(j).at(0) > 1.5) continue;
+	      if(i==0)
+		{
+	      	  h3_lpt_lem_loh->Fill(matched_jets.at(0).at(1),matched_jets.at(0).at(2), matched_jets.at(0).at(3),scalefactor);
+		  h3_ltpt_lem_loh->Fill(matched_jets.at(0).at(0),matched_jets.at(0).at(2), matched_jets.at(0).at(3),scalefactor);
+		  
+		  if(failscut%2==0)
+		    {
+		      h3_lpt_lem_loh_dijet->Fill(matched_jets.at(0).at(1),matched_jets.at(0).at(2), matched_jets.at(0).at(3),scalefactor);
+		      h3_ltpt_lem_loh_dijet->Fill(matched_jets.at(0).at(0),matched_jets.at(0).at(2), matched_jets.at(0).at(3),scalefactor);
+		    }
+		}
+	      
 	      h3_pt_lem_loh->Fill(matched_jets.at(j).at(1),matched_jets.at(j).at(2), matched_jets.at(j).at(3),scalefactor);
 
 	      h3_pt_em_oh->Fill(matched_jets.at(j).at(1),matched_jets.at(j).at(5), matched_jets.at(j).at(6),scalefactor);
@@ -290,7 +292,6 @@ int cuteff(int lo, int hi, int type)
 	      h3s_tpt_lem_loh->Fill(matched_jets.at(j).at(0),matched_jets.at(j).at(2), matched_jets.at(j).at(3),scalefactor);
 	      
 	    }
-	}
     }
 
   TFile* outf = TFile::Open(("../cuteff/cuteff_"+to_string(lo)+"_"+to_string(hi)+"_"+samplename+".root").c_str(),"RECREATE");
