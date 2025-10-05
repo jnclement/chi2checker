@@ -82,22 +82,36 @@ void Pal2()
 
 void Pal1()
 {
+  /*
   const int ncol = 50;
   const int nstp = 3;
   double red[nstp] = {0.,1.,1.};
   double grn[nstp] = {0.,1.,0.};
   double blu[nstp] = {1.,1.,0.};
   double stp[nstp] = {0,2./27,1};
-  static Int_t colors[ncol];
+  */
+  const Int_t nColors = 255;
+  static Int_t colors[nColors];
+  const Int_t nStops = 5;
+   
+  // Number of colors in the final palette (for a smooth gradient)
+
+  
+  // Define the color stop positions (from 0.0 to 1.0)
+   // 0.0 is the low end of the data, 1.0 is the high end
+  Double_t stops[nStops] = {0.00, 0.25, 0.50, 0.75, 1.00};
+  Double_t red[nStops]   = {0.9, 1.00, 1.00, 0.50, 0.0};
+  Double_t green[nStops] = {1.00, 1.00, 0.00, 0.00, 0.0};
+  Double_t blue[nStops]  = {0.9, 0.00, 1.00, 1.00, 0.50};
   static Bool_t initialized = kFALSE;
   if (!initialized) {
-    Int_t FI = TColor::CreateGradientColorTable(nstp, stp, red, grn, blu, ncol);
-    for (int i = 0; i < ncol; i++)
+    Int_t FI = TColor::CreateGradientColorTable(nStops, stops, red, green, blue, nColors);
+    for (int i = 0; i < nColors; i++)
       colors[i] = FI + i;
     initialized = kTRUE;
     return;
   }
-  gStyle->SetPalette(ncol, colors);
+  gStyle->SetPalette(nColors, colors);
 }
 
 void Pal3()
@@ -202,43 +216,62 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
       
     }
   //TColor::CreateGradientColorTable(nstp, stp, red, grn, blu, ncol);
-  event_disrt[0]->GetXaxis()->SetTitle("EMCal #eta Bin");
-  event_disrt[0]->GetYaxis()->SetTitle("EMCal #phi Bin");
-  event_disrt[1]->GetXaxis()->SetTitle("IHCal #eta Bin");
-  event_disrt[1]->GetYaxis()->SetTitle("IHCal #phi Bin");
-  event_disrt[2]->GetXaxis()->SetTitle("OHCal #eta Bin");
-  event_disrt[2]->GetYaxis()->SetTitle("OHCal #phi Bin");
+  event_disrt[0]->GetXaxis()->SetTitle("EMCal #eta");
+  event_disrt[0]->GetYaxis()->SetTitle("EMCal #phi");
+  event_disrt[1]->GetXaxis()->SetTitle("IHCal #eta");
+  event_disrt[1]->GetYaxis()->SetTitle("IHCal #phi");
+  event_disrt[2]->GetXaxis()->SetTitle("OHCal #eta");
+  event_disrt[2]->GetYaxis()->SetTitle("OHCal #phi");
   for(int i=0; i<3; ++i)
     {
-      event_disrt[i]->GetZaxis()->SetTitleOffset(1);
-      event_disrt[i]->GetYaxis()->SetTitleOffset(1);
+      event_disrt[i]->GetZaxis()->SetTitleOffset(0.95);
+      event_disrt[i]->GetYaxis()->SetTitleOffset(1.2);
       event_disrt[i]->GetZaxis()->SetTitle("Tower Energy [GeV]");
       event_disrt[i]->GetZaxis()->SetRangeUser(-2,25);
       //event_disrt[i]->GetXaxis()->SetNdivisions(4,kFALSE);
-      event_disrt[i]->GetXaxis()->SetTitleSize(0.04);
-      event_disrt[i]->GetYaxis()->SetTitleSize(0.04);
-      event_disrt[i]->GetZaxis()->SetTitleSize(0.04);
-      event_disrt[i]->GetXaxis()->SetTitleOffset(1);
-      event_disrt[i]->GetXaxis()->SetLabelSize(0.04);
-      event_disrt[i]->GetYaxis()->SetLabelSize(0.04);
-      event_disrt[i]->GetZaxis()->SetLabelSize(0.04);
-      event_disrt[i]->GetXaxis()->SetLabelOffset(0.02);
+      event_disrt[i]->GetXaxis()->SetTitleSize(0.075);
+      event_disrt[i]->GetYaxis()->SetTitleSize(0.075);
+      event_disrt[i]->GetZaxis()->SetTitleSize(0.075);
+      event_disrt[i]->GetXaxis()->SetTitleOffset(0.65);
+      event_disrt[i]->GetXaxis()->SetLabelOffset(0.01);
+      event_disrt[i]->GetXaxis()->SetBinLabel(1,"-1.1");
+      event_disrt[i]->GetXaxis()->SetBinLabel(i==0?48:12,"0");
+      event_disrt[i]->GetXaxis()->SetBinLabel(i==0?96:24,"1.1");
+      event_disrt[i]->GetYaxis()->SetBinLabel(i==0?128:32,"0");
+      event_disrt[i]->GetYaxis()->SetBinLabel(i==0?192:48,"#pi/2");
+      event_disrt[i]->GetYaxis()->SetBinLabel(i==0?256:64,"#pi");
+      event_disrt[i]->GetYaxis()->SetBinLabel(i==0?64:16,"-#pi/2");
+      event_disrt[i]->GetYaxis()->SetBinLabel(1,"-#pi");
+      event_disrt[i]->GetXaxis()->LabelsOption("h");
+      event_disrt[i]->GetXaxis()->SetLabelSize(0.1);
+      event_disrt[i]->GetYaxis()->SetLabelSize(0.1);
+      event_disrt[i]->GetZaxis()->SetLabelSize(0.075);
     }
-  event_sum->GetXaxis()->SetTitle("Calo Sum #eta Bin");
-  event_sum->GetYaxis()->SetTitle("Calo Sum #phi Bin");
-  event_sum->GetZaxis()->SetTitleOffset(1);
-  event_sum->GetYaxis()->SetTitleOffset(1);
+
+  event_sum->GetXaxis()->SetBinLabel(1,"-1.1");
+  event_sum->GetXaxis()->SetBinLabel(12,"0");
+  event_sum->GetXaxis()->SetBinLabel(24,"1.1");
+  event_sum->GetYaxis()->SetBinLabel(32,"0");
+  event_sum->GetYaxis()->SetBinLabel(48,"#pi/2");
+  event_sum->GetYaxis()->SetBinLabel(64,"#pi");
+  event_sum->GetYaxis()->SetBinLabel(16,"-#pi/2");
+  event_sum->GetYaxis()->SetBinLabel(1,"-#pi");
+  event_sum->GetXaxis()->LabelsOption("h");
+  event_sum->GetXaxis()->SetTitle("Calo Sum #eta");
+  event_sum->GetYaxis()->SetTitle("Calo Sum #phi");
+  event_sum->GetZaxis()->SetTitleOffset(0.95);
+  event_sum->GetYaxis()->SetTitleOffset(1.2);
   event_sum->GetZaxis()->SetTitle("Tower Energy [GeV]");
   event_sum->GetZaxis()->SetRangeUser(-2,25);
   //event_sum->GetXaxis()->SetNdivisions(4,kFALSE);
-  event_sum->GetXaxis()->SetTitleSize(0.04);
-  event_sum->GetYaxis()->SetTitleSize(0.04);
-  event_sum->GetZaxis()->SetTitleSize(0.04);
-  event_sum->GetXaxis()->SetTitleOffset(1);
-  event_sum->GetXaxis()->SetLabelSize(0.04);
-  event_sum->GetYaxis()->SetLabelSize(0.04);
-  event_sum->GetZaxis()->SetLabelSize(0.04);
-  event_sum->GetXaxis()->SetLabelOffset(0.02);
+  event_sum->GetXaxis()->SetTitleSize(0.075);
+  event_sum->GetYaxis()->SetTitleSize(0.075);
+  event_sum->GetZaxis()->SetTitleSize(0.075);
+  event_sum->GetXaxis()->SetTitleOffset(0.65);
+  event_sum->GetXaxis()->SetLabelSize(0.1);
+  event_sum->GetYaxis()->SetLabelSize(0.1);
+  event_sum->GetZaxis()->SetLabelSize(0.075);
+  event_sum->GetXaxis()->SetLabelOffset(0.01);
   event_sum->Reset();
   
   TExec* ex1 = new TExec("ex1","Pal1();");
@@ -328,7 +361,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   gPad->SetRightMargin(0.2);
   gPad->SetLeftMargin(0.2);
   event_sum->SetContour(ncol);
-  
+  rainbow?ex3->Draw("same"):ex1->Draw("same");
   event_sum->Draw("COLZ");
   rainbow?ex3->Draw("same"):ex1->Draw("same");
   event_sum->Draw("colz same");
@@ -359,14 +392,14 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
     }
   full_string += fails;
   
-  drawText(full_string.c_str(),0.05,0.925,0,kBlack,0.02);
+  //drawText(full_string.c_str(),0.05,0.925,0,kBlack,0.02);
 
   std::stringstream secondss;
   secondss << std::fixed << std::setprecision(2) << "E_{lead}="<<jet_e[maxindex]<<", E_{sl}="<<jet_e[slindex]<<", p_{T}^{lead}=" << maxE << ", p_{T}^{sl}=" << slE << ". " << (isblt?"Bad livetime region.":"Good livetime region.") << "  t_{lead}="<<lt*17.6 << " ns, t_{sub}="<<st*17.6 << " ns.";
 
   std::string secondstring = secondss.str();
   
-  drawText(secondstring.c_str(),0.05,0.9,0,kBlack,0.02);
+  //drawText(secondstring.c_str(),0.05,0.9,0,kBlack,0.02);
   
   c->cd(4);
   float maxJetE = 0;
@@ -376,11 +409,11 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 	{
 	  maxJetE = jet_pt[k];
 	}
-      if(jet_pt[k] < jetcut) continue;
+      if(jet_pt[k] < 15) continue;
       std::stringstream e_stream;
       e_stream << std::fixed << std::setprecision(2) << jet_pt[k];
       std::string e_string = e_stream.str();
-      drawText((e_string+" GeV").c_str(),12,((jet_ph[k]+(jet_ph[k]<0?2*M_PI:0))/(2*M_PI))*64,0,kBlack,0.04,42,false);
+      drawText((e_string+" GeV").c_str(),12,((jet_ph[k]+(jet_ph[k]<0?2*M_PI:0))/(2*M_PI))*64,0,kBlack,0.06,42,false);
 
     }
   //c->Update();
@@ -409,14 +442,17 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   c->cd(4);
   gPad->SetLogz();
   event_sum->GetZaxis()->SetRangeUser(0.05,25);
+  event_sum->Draw("COLZ");
+  rainbow?ex3->Draw("same"):ex1->Draw("same");
+  event_sum->Draw("colz same");
   gPad->Update();
   if(maxJetE > minjetdraw) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+(past?"_failtime":"_passtime")+"_log.png").c_str());
   /*
   for(int i=0; i<3; ++i)
     {
       c->cd(i+1);
-      chi2s[i]->GetYaxis()->SetTitle("Tower #phi Bin");
-      chi2s[i]->GetXaxis()->SetTitle("Tower #eta Bin");
+      chi2s[i]->GetYaxis()->SetTitle("Tower #phi");
+      chi2s[i]->GetXaxis()->SetTitle("Tower #eta");
       chi2s[i]->GetZaxis()->SetTitle("#chi^{2} Value");
       chi2s[i]->GetZaxis()->SetRangeUser(0.1,1e8);
       chi2s[i]->Draw("COLZ");
@@ -433,8 +469,8 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
       
       c->cd(i+1);
       gPad->SetLogz(0);
-      jcons[i]->GetYaxis()->SetTitle("Jet Constituent #phi Bin");
-      jcons[i]->GetXaxis()->SetTitle("Jet Constituent #eta Bin");
+      jcons[i]->GetYaxis()->SetTitle("Jet Constituent #phi");
+      jcons[i]->GetXaxis()->SetTitle("Jet Constituent #eta");
       jcons[i]->GetZaxis()->SetTitle("Jet Constituent T/F Value");
       jcons[i]->GetZaxis()->SetRangeUser(0,1);
       jcons[i]->Draw("COLZ");
@@ -449,8 +485,8 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
     { 
       c->cd(i+1);
       gPad->SetLogz(0);
-      times[i]->GetYaxis()->SetTitle("Tower #phi Bin");
-      times[i]->GetXaxis()->SetTitle("Tower #eta Bin");
+      times[i]->GetYaxis()->SetTitle("Tower #phi");
+      times[i]->GetXaxis()->SetTitle("Tower #eta");
       times[i]->GetZaxis()->SetTitle("Tower Fitted Time");
       times[i]->Draw("COLZ");
     }

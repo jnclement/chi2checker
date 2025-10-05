@@ -128,7 +128,7 @@ int cuteff(int lo, int hi, int type)
   float scalefactor = 7.2695e-9;
   if(type==2) scalefactor = 1.034e-11;
   if(type==3) scalefactor = 2.502e-6;
-
+  scalefactor = 1;
   string tempinfilename;
   string listname = "chi2files";
   string samplename;
@@ -185,9 +185,13 @@ int cuteff(int lo, int hi, int type)
 
   TH3D* h3_pt_lem_loh = new TH3D("h3_pt_lem_loh",";p_{T}^{reco} [GeV];E_{reco}^{EM}/E_{reco};E_{reco}^{OH}/E_{reco}",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
 
+  TH3D* h3_pt_lem_loh_nomatch = new TH3D("h3_pt_lem_loh_nomatch",";p_{T}^{reco} [GeV];E_{reco}^{EM}/E_{reco};E_{reco}^{OH}/E_{reco}",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
+
   TH3D* h3_pt_em_oh = new TH3D("h3_pt_em_oh",";p_{T}^{reco} [GeV];E_{reco}^{EM}/E_{reco};E_{reco}^{OH}/E_{reco}",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
 
   TH3D* h3_tpt_lem_loh = new TH3D("h3_tpt_lem_loh",";p_{T}^{truth} [GeV];E_{reco}^{EM}/E_{reco} Matched;E_{reco}^{OH}/E_{reco} Matched",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
+
+    TH3D* h3_tpt_lem_loh_nomatch = new TH3D("h3_tpt_lem_loh_nomatch",";p_{T}^{truth} [GeV];E_{reco}^{EM}/E_{reco} Matched;E_{reco}^{OH}/E_{reco} Matched",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
 
   TH3D* h3_pt_tpt_loh = new TH3D("h3_pt_tpt_loh",";p_{T}^{reco} [GeV];p_{T}^{truth};E_{reco}^{OH}/E_{reco}",100,0,100,100,0,100,120,-0.1,1.1);
   TH3D* h3_pt_tpt_lem = new TH3D("h3_pt_tpt_lem",";p_{T}^{truth} [GeV];p_{T}^{truth};E_{reco}^{EM}/E_{reco} Matched",100,0,100,100,0,100,120,-0.1,1.1);
@@ -195,7 +199,11 @@ int cuteff(int lo, int hi, int type)
   TH3D* h3_pt_tpt_loh_etacut = new TH3D("h3_pt_tpt_loh_etacut",";p_{T}^{reco} [GeV];p_{T}^{truth};E_{reco}^{OH}/E_{reco}",100,0,100,100,0,100,120,-0.1,1.1);
   TH3D* h3_pt_tpt_lem_etacut = new TH3D("h3_pt_tpt_lem_etacut",";p_{T}^{truth} [GeV];p_{T}^{truth};E_{reco}^{EM}/E_{reco} Matched",100,0,100,100,0,100,120,-0.1,1.1);
 
+
   TH3D* h3_pt_lem_loh_etacut = new TH3D("h3_pt_lem_loh_etacut",";p_{T}^{reco} [GeV];E_{reco}^{EM}/E_{reco};E_{reco}^{OH}/E_{reco}",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
+
+    TH3D* h3_pt_lem_loh_etacut_dijet = new TH3D("h3_pt_lem_loh_etacut_dijet",";p_{T}^{reco} [GeV];E_{reco}^{EM}/E_{reco};E_{reco}^{OH}/E_{reco}",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
+    
   TH3D* h3_tpt_lem_loh_etacut = new TH3D("h3_tpt_lem_loh_etacut",";p_{T}^{truth} [GeV];E_{reco}^{EM}/E_{reco} Matched;E_{reco}^{OH}/E_{reco} Matched",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
 
   TH3D* h3_pt_lem_loh_z100 = new TH3D("h3_pt_lem_loh_z100",";p_{T}^{reco} [GeV];E_{reco}^{EM}/E_{reco};E_{reco}^{OH}/E_{reco}",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
@@ -221,15 +229,13 @@ int cuteff(int lo, int hi, int type)
       jet_tree->GetEntry(i);
       std::vector<vector<float>> recojets = {};
       std::vector<vector<float>> truthjets = {};
-
-      for(int j=0; j<jet_n; ++j)
-	{
-	  std::vector<float> jet = {jet_pt[j], jet_eta[j], jet_phi[j], frcem[j], frcoh[j], 0};
-	  recojets.push_back(jet);
-	}
+      float lrpt = 0;
+      //if(type==1 && lrpt > 71) continue;
+      //if(type==3 && lrpt > 60) continue;
       float lpt = 0;
       for(int j=0; j<tjet_n; ++j)
 	{
+	  h3_tpt_lem_loh_nomatch->Fill(tjet_pt[j], 0.5,0.5);
 	  std::vector<float> jet = {tjet_pt[j], tjet_eta[j], tjet_phi[j]};
 	  if(tjet_pt[j] > lpt) lpt = tjet_pt[j];
 	  truthjets.push_back(jet);
@@ -237,12 +243,19 @@ int cuteff(int lo, int hi, int type)
       if(type==1 && (lpt < 52 || lpt > 71)) continue;
       if(type==2 && lpt < 71) continue;
       if(type==3 && lpt > 52) continue;
-      
+      for(int j=0; j<jet_n; ++j)
+	{
+	  h3_pt_lem_loh_nomatch->Fill(jet_pt[j], frcem[j], frcoh[j]);
+	  std::vector<float> jet = {jet_pt[j], jet_eta[j], jet_phi[j], frcem[j], frcoh[j], 0};
+	  if(jet_pt[j] > lrpt) lrpt = jet_pt[j];
+	  recojets.push_back(jet);
+	}
+
       std::vector<vector<float>> matched_jets = match_truth_reco(truthjets,recojets);
 	  
 	  for(int j=0; j<matched_jets.size(); ++j)
 	    {
-	      if(matched_jets.at(j).at(1)/matched_jets.at(j).at(0) > 1.5) continue;
+	      //if(matched_jets.at(j).at(1)/matched_jets.at(j).at(0) > 1.75) continue;
 	      if(i==0)
 		{
 	      	  h3_lpt_lem_loh->Fill(matched_jets.at(0).at(1),matched_jets.at(0).at(2), matched_jets.at(0).at(3),scalefactor);
@@ -283,6 +296,7 @@ int cuteff(int lo, int hi, int type)
 		{
 		  h3_pt_lem_loh_dijet->Fill(matched_jets.at(j).at(1),matched_jets.at(j).at(2), matched_jets.at(j).at(3),scalefactor);
 		  h3_tpt_lem_loh_dijet->Fill(matched_jets.at(j).at(0),matched_jets.at(j).at(2), matched_jets.at(j).at(3),scalefactor);
+		  h3_pt_lem_loh_etacut_dijet->Fill(matched_jets.at(j).at(1),matched_jets.at(j).at(2), matched_jets.at(j).at(3),scalefactor);
 		}
 
 	      if(type==1 && matched_jets.at(j).at(1) > 74) continue;
@@ -301,6 +315,9 @@ int cuteff(int lo, int hi, int type)
   h3_pt_lem_loh->Write();
   h3_tpt_lem_loh->Write();
 
+  h3_pt_lem_loh_nomatch->Write();
+  h3_tpt_lem_loh_nomatch->Write();
+
   h3_pt_tpt_lem->Write();
   h3_pt_tpt_loh->Write();
   h3_pt_tpt_lem_etacut->Write();
@@ -311,6 +328,8 @@ int cuteff(int lo, int hi, int type)
 
   h3_pt_lem_loh_etacut->Write();
   h3_tpt_lem_loh_etacut->Write();
+
+  h3_pt_lem_loh_etacut_dijet->Write();
 
   h3s_pt_lem_loh->Write();
   h3s_tpt_lem_loh->Write();

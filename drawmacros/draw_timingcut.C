@@ -1,5 +1,5 @@
 #include <../dlUtility.h>
-
+int _singlespec = 0;
 int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vector<int>> zbounds, int axis, std::vector<int> colors, std::vector<int> markers, std::vector<string> numlabels, string title)
 {
 
@@ -57,8 +57,8 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
     }
 
   TCanvas* can = new TCanvas("","",1500,1500);
-  ratioPanelCanvas(can,0.3);
-  can->cd(1);
+  if(!_singlespec) ratioPanelCanvas(can,0.3);
+  can->cd(_singlespec?1:0);
   gPad->SetTopMargin(0.2);
   gPad->SetRightMargin(0.05);
   gPad->SetLogy();
@@ -73,7 +73,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   den1->SetMarkerStyle(20);
   den1->SetMarkerSize(2);
   leg->AddEntry(den1,"Dijet cut only","p");
-
+  den1->GetXaxis()->SetTitle("Uncalibrated p_{T}^{jet} [GeV]");
   
   for(int i=0; i<nums1.size(); ++i)
     {
@@ -104,26 +104,30 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   den1->GetYaxis()->SetRangeUser(0.1001,den1->GetMaximum()*1.5);
   den1->Draw("PE");
 
-  for(int i=0; i<nums1.size(); ++i)
+  if(!_singlespec)
     {
-      nums1.at(i)->Draw("SAME PE");
-      outs1.at(i)->Draw("SAME PE");
+      for(int i=0; i<nums1.size(); ++i)
+	{
+	  nums1.at(i)->Draw("SAME PE");
+	  outs1.at(i)->Draw("SAME PE");
+	}
+      leg->Draw();
+      /*
+      can->cd(2);
+      for(int i=0; i<effs1.size(); ++i)
+	{
+	  effs1.at(i)->GetYaxis()->SetRangeUser(0,1.199);
+	  effs1.at(i)->GetXaxis()->SetRangeUser(30,100);
+	  effs1.at(i)->GetXaxis()->SetLabelSize(0.1);
+	  effs1.at(i)->GetYaxis()->SetLabelSize(0.1);
+	  effs1.at(i)->GetXaxis()->SetTitleSize(0.1);
+	  effs1.at(i)->GetYaxis()->SetTitleSize(0.1);
+	  if(i==0) effs1.at(i)->Draw("PE");
+	  else effs1.at(i)->Draw("SAME PE");
+	}
+      */
+      
     }
-  leg->Draw();
-  can->cd(2);
-  for(int i=0; i<effs1.size(); ++i)
-    {
-      effs1.at(i)->GetYaxis()->SetRangeUser(0,1.199);
-      effs1.at(i)->GetXaxis()->SetRangeUser(30,100);
-      effs1.at(i)->GetXaxis()->SetLabelSize(0.1);
-      effs1.at(i)->GetYaxis()->SetLabelSize(0.1);
-      effs1.at(i)->GetXaxis()->SetTitleSize(0.1);
-      effs1.at(i)->GetYaxis()->SetTitleSize(0.1);
-      if(i==0) effs1.at(i)->Draw("PE");
-      else effs1.at(i)->Draw("SAME PE");
-    }
-
-
   can->cd(0);
 
   maintexts(0.98,0.6,0,0.03);
@@ -140,8 +144,9 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
 }
 
 
-int draw_timingcut()
+int draw_timingcut(int singlespec = 0)
 {
+  _singlespec = singlespec;
   gStyle->SetPadTickX(1);
   gStyle->SetPadTickY(1);
   gStyle->SetOptStat(0);
@@ -159,7 +164,7 @@ int draw_timingcut()
   std::vector<int> markers = {20};
   std::vector<string> numlabels = {"-8 ns<t_{lead}<4 ns && |#Delta t|<3 ns"};
 
-  drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"../../images/dnp/timing_cut.png");
+  drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"../../images/dnp/timing_cut_"+to_string(singlespec)+".png");
   
   return 0;
 }

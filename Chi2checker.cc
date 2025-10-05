@@ -439,9 +439,10 @@ Chi2checker::Chi2checker(const std::string &filename, const std::string &name, c
   if(_doall60 && _dowf) _wff = new TFile(_wfilename.c_str(),"RECREATE");
   if(_doall60 && _dowf) _wff->cd();
   if(_doall60 && _dowf) _wft->SetDirectory(_wff);
-  if(_doall60 || !_isdat) _f = new TFile(_filename.c_str(), "RECREATE");
-  if(_doall60 || !_isdat) _f->cd();
-  if(_doall60 || !_isdat) jet_tree->SetDirectory(_f);
+  //if(_doall60 || !_isdat)
+  _f = new TFile(_filename.c_str(), "RECREATE");
+  _f->cd();
+  jet_tree->SetDirectory(_f);
 }
 
 //____________________________________________________________________________..
@@ -498,9 +499,9 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("jet_et",_jet_et,"jet_et[jet_n]/F");
   jet_tree->Branch("jet_pt",_jet_pt,"jet_pt[jet_n]/F");
   jet_tree->Branch("jet_t",_jet_t,"jet_t[jet_n]/F");
-  jet_tree->Branch("jet_t_em",_jet_t_em,"jet_t_em[jet_n]/F");
-  jet_tree->Branch("jet_t_ih",_jet_t_ih,"jet_t_ih[jet_n]/F");
-  jet_tree->Branch("jet_t_oh",_jet_t_oh,"jet_t_oh[jet_n]/F");
+  //jet_tree->Branch("jet_t_em",_jet_t_em,"jet_t_em[jet_n]/F");
+  //jet_tree->Branch("jet_t_ih",_jet_t_ih,"jet_t_ih[jet_n]/F");
+  //jet_tree->Branch("jet_t_oh",_jet_t_oh,"jet_t_oh[jet_n]/F");
   jet_tree->Branch("jet_eta",_jet_eta,"jet_eta[jet_n]/F");
   jet_tree->Branch("jet_phi",_jet_phi,"jet_phi[jet_n]/F");
 
@@ -512,6 +513,7 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("tjet_eta",_tjet_eta,"tjet_eta[tjet_n]/F");
   jet_tree->Branch("tjet_phi",_tjet_phi,"tjet_phi[tjet_n]/F");
     }
+  /*
   jet_tree->Branch("emtow",_emtow,"emtow[96][256]/F");
   jet_tree->Branch("ihtow",_ihtow,"ihtow[24][64]/F");
   jet_tree->Branch("ohtow",_ohtow,"ohtow[24][64]/F");
@@ -531,7 +533,7 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("chi2em",_chi2em,"chi2em[96][256]/F");
   jet_tree->Branch("chi2ih",_chi2ih,"chi2ih[24][64]/F");
   jet_tree->Branch("chi2oh",_chi2oh,"chi2oh[24][64]/F");
-
+  */
   if(_dotruthpar) jet_tree->Branch("truthparenergy",&_truthparenergy);
   if(_dotruthpar) jet_tree->Branch("truthpareta",&_truthpareta);
   if(_dotruthpar) jet_tree->Branch("truthparphi",&_truthparphi);

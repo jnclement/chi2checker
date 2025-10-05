@@ -113,7 +113,7 @@ int draw_spec(int lo = 56, int hi = 70)
 
   TFile* inf = TFile::Open("../../timing/hadded_timing_dat.root","READ");
 
-  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get("dath3_apt_dt_t_dijet");
+  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get("dath3_apt_dt_t_both");
 
   h3_pt_lem_loh->GetZaxis()->SetTitle("t_{lead} [ns]");
 
