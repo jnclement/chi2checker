@@ -904,7 +904,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   geom[2] = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
 
 
-  MbdPmtContainer* mbdpmt = findNode::getClass<MbdPmtContainerV1>(topNode,"MbdPmtContainer");
+  MbdPmtContainer* mbdpmt = findNode::getClass<MbdPmtContainer>(topNode,"MbdPmtContainer");
 
 
   _mbdavgt[0] = 0;
@@ -1578,7 +1578,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	}
       
       
-      if((maxJetE > 30 && (!loETCut || !dPhiCut)) || maxJetE > 40 || _doall60 || !_isdat)
+      if((maxJetE > 10 && (!loETCut || !dPhiCut)) || maxJetE > 10 || _doall60 || !_isdat)
 	{
 
 	  for(int j=0; j<12; ++j)

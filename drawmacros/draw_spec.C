@@ -88,8 +88,8 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   line2->Draw();
 
   maintexts(0.98,0.6,0,0.03);
-  //drawText("Jet30,50,70 PYTHIA",0.6,0.87,0,kBlack,0.03);
-  drawText("No z_{vtx} cut (non-reconstructed included)",0.05,0.87,0,kBlack,0.03);
+  drawText("Background included",0.6,0.87,0,kBlack,0.03);
+  drawText("No reconstructed z_{vtx} requirement",0.05,0.87,0,kBlack,0.03);
   //drawText("Truth-reco matched jets",0.05,0.91,0,kBlack,0.03);
 
   can->SaveAs(title.c_str());
@@ -113,7 +113,7 @@ int draw_spec(int lo = 56, int hi = 70)
 
   TFile* inf = TFile::Open("../../timing/hadded_timing_dat.root","READ");
 
-  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get("dath3_apt_dt_t_both");
+  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get("dath3_pt_dt_lt_dijet");
 
   h3_pt_lem_loh->GetZaxis()->SetTitle("t_{lead} [ns]");
 
@@ -124,13 +124,13 @@ int draw_spec(int lo = 56, int hi = 70)
   std::vector<int> markers = {21,20,71};//, 21};//, 71, 72, 88};
   std::vector<string> numlabels = {"Jets 30<p_{T}^{uncalib}<45 GeV","Jets 45<p_{T}^{uncalib}<55 GeV","Jets 55<p_{T}^{uncalib}<70 GeV"};//"EM fraction < 0.9 only","EM fraction > 0.1 only","OH fraction < 0.9 only","OH Fraction > 0.1 only","EM frac <0.9 && OH frac > 0.1"};
 
-  drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"../../images/dnp/data_dt_proj1d.png","",{-3,3});//,"dN_{jet}/d#Delta t_{l,sl} [ns^{-1}]");
+  drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"../../images/dnp/data_dt_proj1d.pdf","",{-3,3});//,"dN_{jet}/d#Delta t_{l,sl} [ns^{-1}]");
 
   axis.at(0) = 2;
   axis.at(1) = 2;
   axis.at(2) = 2;
   
-  drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"../../images/dnp/data_t_proj1d.png","",{-8,4});//,"dN_{jet}/dt_{jet} [ns^{-1}]");
+  drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"../../images/dnp/data_t_proj1d.pdf","",{-8,4});//,"dN_{jet}/dt_{jet} [ns^{-1}]");
 
 
   TCanvas* can = new TCanvas("","",1500,750);
@@ -144,7 +144,7 @@ int draw_spec(int lo = 56, int hi = 70)
   TBox* box = new TBox(-8,-3,4,3);
   box->SetFillStyle(0);
   box->SetLineColor(kBlue);
-  box->SetLineWidth(5);
+  box->SetLineWidth(3);
   h3_pt_lem_loh->GetXaxis()->SetRange(lo,hi);
   TH2D* h2_t_dt = (TH2D*)(h3_pt_lem_loh->Project3D("yz"));
   h2_t_dt->GetXaxis()->SetTitle("t_{lead} [ns]");
@@ -157,7 +157,7 @@ int draw_spec(int lo = 56, int hi = 70)
   box->Draw();
   maintexts(0.98,0.6,0,0.03);
   drawText(("Jets "+to_string(lo-1)+"<p_{T}^{uncalib}<"+to_string(hi)+" GeV").c_str(),0.6,0.87,0,kBlack,0.03);
-  drawText("No z_{vtx} cut (non-reconstructed included)",0.05,0.87,0,kBlack,0.03);
-  can->SaveAs(("../../images/dnp/data_t_dt_proj2d_"+to_string(lo-1)+"-"+to_string(hi)+".png").c_str());
+  drawText("No reconstructed z_{vtx} requirement",0.05,0.87,0,kBlack,0.03);
+  can->SaveAs(("../../images/dnp/data_t_dt_proj2d_"+to_string(lo-1)+"-"+to_string(hi)+".pdf").c_str());
   return 0;
 }

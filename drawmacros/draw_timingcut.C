@@ -132,7 +132,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
 
   maintexts(0.98,0.6,0,0.03);
   //drawText("Jet30,50,70 PYTHIA",0.6,0.87,0,kBlack,0.03);
-  drawText("No z_{vtx} cut (non-reconstructed included)",0.1,0.87,0,kBlack,0.03);
+  drawText("No reconstructed z_{vtx} requirement",0.1,0.87,0,kBlack,0.03);
   //drawText("Truth-reco matched jets",0.05,0.91,0,kBlack,0.03);
 
   can->SaveAs(title.c_str());
@@ -164,7 +164,7 @@ int draw_timingcut(int singlespec = 0)
   std::vector<int> markers = {20};
   std::vector<string> numlabels = {"-8 ns<t_{lead}<4 ns && |#Delta t|<3 ns"};
 
-  drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"../../images/dnp/timing_cut_"+to_string(singlespec)+".png");
+  drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"../../images/dnp/timing_cut_"+to_string(singlespec)+".pdf");
   
   return 0;
 }

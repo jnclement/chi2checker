@@ -339,6 +339,8 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
       event_disrt[j]->Draw("COLZ");
       rainbow?ex3->Draw("same"):ex1->Draw("same");
       event_disrt[j]->Draw("colz same");
+
+      /*
       
       bchi2[j]->Draw("col same0");
       ex5->Draw();
@@ -351,7 +353,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
       deads[j]->Draw("col same0");
       ex2->Draw();
       deads[j]->Draw("col same0");
-      
+      */
     }
   
   c->cd(4);
@@ -413,7 +415,9 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
       std::stringstream e_stream;
       e_stream << std::fixed << std::setprecision(2) << jet_pt[k];
       std::string e_string = e_stream.str();
-      drawText((e_string+" GeV").c_str(),12,((jet_ph[k]+(jet_ph[k]<0?2*M_PI:0))/(2*M_PI))*64,0,kBlack,0.06,42,false);
+      float drawbin = (((jet_ph[k]+(jet_ph[k]<0?2*M_PI:0))/(2*M_PI))*64);
+      drawbin += (drawbin>55?-5:5);
+      drawText((e_string+" GeV").c_str(),12,drawbin,0,kBlack,0.06,42,false);
 
     }
   //c->Update();
@@ -429,7 +433,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   if(maxJetE > 130) dirstring = "gr130";
   float minjetdraw = 50;
   bool past = !(abs(lt-st)*17.6<2.5 && abs(lt*17.6+2.0) < 5.0);
-  if(maxJetE > minjetdraw) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+(past?"_failtime":"_passtime")+".png").c_str());
+  //if(maxJetE > minjetdraw) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+(past?"_failtime":"_passtime")+".pdf").c_str());
 
 
   for(int i=0; i<3; ++i)
@@ -442,11 +446,13 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   c->cd(4);
   gPad->SetLogz();
   event_sum->GetZaxis()->SetRangeUser(0.05,25);
+  /*
   event_sum->Draw("COLZ");
   rainbow?ex3->Draw("same"):ex1->Draw("same");
   event_sum->Draw("colz same");
+  */
   gPad->Update();
-  if(maxJetE > minjetdraw) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+(past?"_failtime":"_passtime")+"_log.png").c_str());
+  if(maxJetE > minjetdraw) c->SaveAs(("../images/disp/"+to_string(runnum)+"_"+to_string(evtnum)+"_allcalo_"+dirstring+"_"+whichcut+"_"+(isblt?"blt":"glt")+"_"+(rainbow?"rainbow":"normal")+(past?"_failtime":"_passtime")+"_log.pdf").c_str());
   /*
   for(int i=0; i<3; ++i)
     {
