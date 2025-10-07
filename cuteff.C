@@ -121,6 +121,7 @@ int cuteff(int lo, int hi, int type)
   float tjet_eta[100];
   float jet_phi[100];
   float tjet_phi[100];
+  int mbdhit[2];
   float zvtx;
   
   TChain* jet_tree = new TChain("jet_tree");
@@ -135,6 +136,8 @@ int cuteff(int lo, int hi, int type)
   if(type == 1) samplename = "50";
   if(type == 2) samplename = "70";
   if(type == 3) samplename = "30";
+  if(type == 4) samplename = "20";
+  if(type == 5) samplename = "10";
   listname += samplename+".txt";
 
   ifstream chi2list(listname);
@@ -169,6 +172,7 @@ int cuteff(int lo, int hi, int type)
   jet_tree->SetBranchStatus("tjet_eta",1);
   jet_tree->SetBranchStatus("tjet_phi",1);
   jet_tree->SetBranchStatus("zvtx",1);
+  jet_tree->SetBranchStatus("mbdhit",1);
 
   jet_tree->SetBranchAddress("failscut",&failscut);
   jet_tree->SetBranchAddress("jet_n",&jet_n);
@@ -182,12 +186,16 @@ int cuteff(int lo, int hi, int type)
   jet_tree->SetBranchAddress("tjet_eta",tjet_eta);
   jet_tree->SetBranchAddress("tjet_phi",tjet_phi);
   jet_tree->SetBranchAddress("zvtx",&zvtx);
-
+  jet_tree->SetBranchAddress("mbdhit",mbdhit);
+  
   TH3D* h3_pt_lem_loh = new TH3D("h3_pt_lem_loh",";p_{T}^{reco} [GeV];E_{reco}^{EM}/E_{reco};E_{reco}^{OH}/E_{reco}",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
 
   TH3D* h3_pt_lem_loh_nomatch = new TH3D("h3_pt_lem_loh_nomatch",";p_{T}^{reco} [GeV];E_{reco}^{EM}/E_{reco};E_{reco}^{OH}/E_{reco}",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
 
   TH3D* h3_pt_em_oh = new TH3D("h3_pt_em_oh",";p_{T}^{reco} [GeV];E_{reco}^{EM}/E_{reco};E_{reco}^{OH}/E_{reco}",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
+
+  TH1D* mbdnum = new TH1D("mbdnum",";p_{T}^{lead} [GeV];Counts",100,0,100);
+  TH1D* mbdden = new TH1D("mbdden",";p_{T}^{lead} [GeV];Counts",100,0,100);
 
   TH3D* h3_tpt_lem_loh = new TH3D("h3_tpt_lem_loh",";p_{T}^{truth} [GeV];E_{reco}^{EM}/E_{reco} Matched;E_{reco}^{OH}/E_{reco} Matched",100,0,100,120,-0.1,1.1,120,-0.1,1.1);
 
@@ -240,9 +248,14 @@ int cuteff(int lo, int hi, int type)
 	  if(tjet_pt[j] > lpt) lpt = tjet_pt[j];
 	  truthjets.push_back(jet);
 	}
+      mbdden->Fill(lpt);
+      if(mbdhit[0] && mbdhit[1]) mbdnum->Fill(lpt);
       if(type==1 && (lpt < 52 || lpt > 71)) continue;
       if(type==2 && lpt < 71) continue;
-      if(type==3 && lpt > 52) continue;
+      if(type==3 && (lpt > 52 || lpt < 35)) continue;
+      if(type==4 && (lpt < 22 || lpt > 35)) continue;
+      if(type==5 && lpt > 22) continue;
+      if((i+1)%100 == 0) cout << "good lpt" << endl;
       for(int j=0; j<jet_n; ++j)
 	{
 	  h3_pt_lem_loh_nomatch->Fill(jet_pt[j], frcem[j], frcoh[j]);
@@ -250,7 +263,7 @@ int cuteff(int lo, int hi, int type)
 	  if(jet_pt[j] > lrpt) lrpt = jet_pt[j];
 	  recojets.push_back(jet);
 	}
-
+      
       std::vector<vector<float>> matched_jets = match_truth_reco(truthjets,recojets);
 	  
 	  for(int j=0; j<matched_jets.size(); ++j)
@@ -312,6 +325,9 @@ int cuteff(int lo, int hi, int type)
 
   outf->cd();
 
+  mbdnum->Write();
+  mbdden->Write();
+  
   h3_pt_lem_loh->Write();
   h3_tpt_lem_loh->Write();
 
