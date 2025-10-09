@@ -106,6 +106,7 @@ class Chi2checker : public SubsysReco
   int _maxETowIsZS;
   float _ohPhiBinMaxFrac;
   float _zvtx;
+  float _tzvtx;
   long long unsigned int _triggervec;
   unsigned int _bbfqavec;
   unsigned int _elmbgvec;

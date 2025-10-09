@@ -118,7 +118,7 @@ void Pal3()
 {
   gStyle->SetPalette(kRainbow);
 }
-
+/*
 void drawText(const char *text, float xp, float yp, bool isRightAlign=0, int textColor=kBlack, double textSize=0.04, int textFont = 42, bool isNDC=true){
   // when textfont 42, textSize=0.04                                                                                                                         
   // when textfont 43, textSize=18                                                                                                                           
@@ -144,8 +144,10 @@ void sphenixtext(float xpos = 0.7, float ypos = 0.96, int ra = 0, float textsize
 {
   drawText("#bf{#it{sPHENIX}} Internal", xpos, ypos, ra, kBlack, textsize);
 }
+*/
+#include "dlUtility.h"
 int cancount = 0;
-void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24][64], float* jet_pt, float* jet_et, float* jet_ph, float* jet_t, int jet_n, float zvtx, int failscut, int runnum, int evtnum, float* frcoh, float* frcem, float* jet_e, int isbadem[96][256], int isbadih[24][64], int isbadoh[24][64], int ishotem[96][256], int ishotih[24][64], int ishotoh[24][64], int nocalem[96][256], int nocalih[24][64], int nocaloh[24][64], float jconem[24][64], float jconih[24][64], float jconoh[24][64], int isblt, float jetcut, float chi2em[96][256], float chi2ih[24][64], float chi2oh[24][64], float emt[96][256], float iht[24][64], float oht[24][64], bool rainbow = false)
+void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24][64], float* jet_pt, float* jet_et, float* jet_ph, float* jet_t, int jet_n, float zvtx, int failscut, int runnum, int evtnum, float* frcoh, float* frcem, float* jet_e, int isbadem[96][256], int isbadih[24][64], int isbadoh[24][64], int ishotem[96][256], int ishotih[24][64], int ishotoh[24][64], int nocalem[96][256], int nocalih[24][64], int nocaloh[24][64], float jconem[24][64], float jconih[24][64], float jconoh[24][64], int isblt, float jetcut, float chi2em[96][256], float chi2ih[24][64], float chi2oh[24][64], float emt[96][256], float iht[24][64], float oht[24][64], bool rainbow = false, int isdat = 1, int iscosmic = 0)
 {
 
   int maxindex = 0;
@@ -188,7 +190,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   double stp[nstp] = {0,2./27,1};;// = {0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0};
   
 
-  TCanvas* c = new TCanvas("","",1900,1000);
+  TCanvas* c = new TCanvas("","",3000,1500);
   c->Divide(4,1,0,0.1);
   
   TH2D* event_sum = new TH2D("event_sum","Calorimeter Sum",24,-0.5,23.5,64,-0.5,63.5);
@@ -216,6 +218,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
       
     }
   //TColor::CreateGradientColorTable(nstp, stp, red, grn, blu, ncol);
+  event_sum->Reset();
   event_disrt[0]->GetXaxis()->SetTitle("EMCal #eta");
   event_disrt[0]->GetYaxis()->SetTitle("EMCal #phi");
   event_disrt[1]->GetXaxis()->SetTitle("IHCal #eta");
@@ -224,11 +227,12 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   event_disrt[2]->GetYaxis()->SetTitle("OHCal #phi");
   for(int i=0; i<3; ++i)
     {
-      event_disrt[i]->GetZaxis()->SetTitleOffset(0.95);
+      event_disrt[i]->Reset();
+      event_disrt[i]->GetZaxis()->SetTitleOffset(0.97);
       event_disrt[i]->GetYaxis()->SetTitleOffset(1.2);
       event_disrt[i]->GetZaxis()->SetTitle("Tower Energy [GeV]");
       event_disrt[i]->GetZaxis()->SetRangeUser(-2,25);
-      //event_disrt[i]->GetXaxis()->SetNdivisions(4,kFALSE);
+
       event_disrt[i]->GetXaxis()->SetTitleSize(0.075);
       event_disrt[i]->GetYaxis()->SetTitleSize(0.075);
       event_disrt[i]->GetZaxis()->SetTitleSize(0.075);
@@ -246,6 +250,9 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
       event_disrt[i]->GetXaxis()->SetLabelSize(0.1);
       event_disrt[i]->GetYaxis()->SetLabelSize(0.1);
       event_disrt[i]->GetZaxis()->SetLabelSize(0.075);
+      event_disrt[i]->GetXaxis()->SetNdivisions(4,0,0,kFALSE);
+      event_disrt[i]->GetYaxis()->SetTickLength(0);
+      event_disrt[i]->GetXaxis()->SetTickLength(0);
     }
 
   event_sum->GetXaxis()->SetBinLabel(1,"-1.1");
@@ -259,11 +266,11 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   event_sum->GetXaxis()->LabelsOption("h");
   event_sum->GetXaxis()->SetTitle("Calo Sum #eta");
   event_sum->GetYaxis()->SetTitle("Calo Sum #phi");
-  event_sum->GetZaxis()->SetTitleOffset(0.95);
+  event_sum->GetZaxis()->SetTitleOffset(0.97);
   event_sum->GetYaxis()->SetTitleOffset(1.2);
   event_sum->GetZaxis()->SetTitle("Tower Energy [GeV]");
   event_sum->GetZaxis()->SetRangeUser(-2,25);
-  //event_sum->GetXaxis()->SetNdivisions(4,kFALSE);
+  
   event_sum->GetXaxis()->SetTitleSize(0.075);
   event_sum->GetYaxis()->SetTitleSize(0.075);
   event_sum->GetZaxis()->SetTitleSize(0.075);
@@ -272,8 +279,10 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   event_sum->GetYaxis()->SetLabelSize(0.1);
   event_sum->GetZaxis()->SetLabelSize(0.075);
   event_sum->GetXaxis()->SetLabelOffset(0.01);
-  event_sum->Reset();
   
+  event_sum->GetXaxis()->SetNdivisions(4,0,0,kFALSE);
+  event_sum->GetYaxis()->SetTickLength(0);
+  event_sum->GetXaxis()->SetTickLength(0);
   TExec* ex1 = new TExec("ex1","Pal1();");
   TExec* ex2 = new TExec("ex2","Pal2();");
   TExec* ex3 = new TExec("ex3","Pal3();");
@@ -282,7 +291,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   
   for(int j=0; j<3; ++j)
     {
-      event_disrt[j]->Reset();
+
       for(int eta=0; eta<(j==0?96:24); ++eta)
 	{
 	  for(int phi = 0; phi<(j==0?256:64); ++phi)
@@ -331,7 +340,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
       
       c->cd(j+1);
       gPad->SetLogz(0);
-      gPad->SetRightMargin(0.2);
+      gPad->SetRightMargin(j==0?0.22:0.2);
       gPad->SetLeftMargin(0.2);
       gPad->SetTopMargin(0.05);
       
@@ -368,8 +377,8 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
   rainbow?ex3->Draw("same"):ex1->Draw("same");
   event_sum->Draw("colz same");
   c->cd(0);
-  sphenixtext(0.96,0.96,1,0.04);
-  
+  //sphenixtext(0.96,0.96,1,0.04);
+  maintexts(0.97,0.5,0,0.04,isdat,1);
   std::string fails = "";
   std::string whichcut = "";
   if(failscut == 0)
@@ -543,13 +552,13 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 }
 
 
-int drawcalo(int lo, int hi, int dosave = 0, string listfilename = "chi2filesdat.txt", int rainbow = 0, int rundraw = -1, int evtdraw = -1)
+int drawcalo(int lo, int hi, int dosave = 0, string listfilename = "chi2filesdat.txt", int rainbow = 0, int rundraw = -1, int evtdraw = -1, int isdat = 1, int iscosmic = 0)
 {
   cancount = lo;
   //TFile* evtfile = TFile::Open("../chi2/hadded_chi2file_20250902.root","READ");
   _dosave = dosave;
   TFile* outf;
-  if(dosave) outf = TFile::Open(("../savedhists/savedhists_20250929_"+to_string(lo)+"_"+to_string(hi)+".root").c_str(),"RECREATE");
+  if(dosave) outf = TFile::Open(("../savedhists/savedhists_20251009_"+to_string(lo)+"_"+to_string(hi)+".root").c_str(),"RECREATE");
   TTree* outt;
   if(dosave) outt = new TTree("outt","an output tree");
   if(dosave) outt->SetDirectory(outf);
@@ -800,7 +809,7 @@ int drawcalo(int lo, int hi, int dosave = 0, string listfilename = "chi2filesdat
 	  outt->Fill();
 	}
       //if((evtnum != evtdraw || runnum != rundraw) && evtnum > -1 && rundraw > -1) continue;
-      drawCalo(emtow,ihtow,ohtow,jet_pt,jet_eta,jet_phi,jet_t,jet_n,zvtx,failscut,runnum,evtnum,frcoh,frcem,jet_e,isbadem,isbadih,isbadoh,ishotem,ishotih,ishotoh,nocalem,nocalih,nocaloh,jconem,jconih,jconoh,isblt,jetcut,chi2em,chi2ih,chi2oh,emt,iht,oht,rainbow?true:false);
+      //drawCalo(emtow,ihtow,ohtow,jet_pt,jet_eta,jet_phi,jet_t,jet_n,zvtx,failscut,runnum,evtnum,frcoh,frcem,jet_e,isbadem,isbadih,isbadoh,ishotem,ishotih,ishotoh,nocalem,nocalih,nocaloh,jconem,jconih,jconoh,isblt,jetcut,chi2em,chi2ih,chi2oh,emt,iht,oht,rainbow?true:false,isdat,iscosmic);
     }
   if(dosave) outf->Write();
   

@@ -62,7 +62,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   gPad->SetTopMargin(0.2);
   gPad->SetRightMargin(0.05);
   gPad->SetLogy();
-  TLegend* leg = new TLegend(0.25,0.6,0.93,0.8);
+  TLegend* leg = new TLegend(_singlespec?0.5:0.25,_singlespec?0.35:0.6,_singlespec?0.83:0.93,_singlespec?0.6:0.8);
   leg->SetFillStyle(0);
   leg->SetLineWidth(0);
   leg->SetNColumns(2);
@@ -72,24 +72,36 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   den1->SetLineWidth(2);
   den1->SetMarkerStyle(20);
   den1->SetMarkerSize(2);
-  leg->AddEntry(den1,"Dijet cut only","p");
+  leg->AddEntry(den1,"#splitline{Dijet cut only}{(jets + background)}","p");
   den1->GetXaxis()->SetTitle("Uncalibrated p_{T}^{jet} [GeV]");
-  
+  den1->Scale(1./100);
+  std::vector<TH1D*> subs1 = {};
   for(int i=0; i<nums1.size(); ++i)
     {
+      nums1.at(i)->Scale(1./100);
+      outs1.at(i)->Scale(1./100);
       nums1.at(i)->SetMarkerColor(colors.at(i)+2);
       nums1.at(i)->SetLineColor(colors.at(i)+2);
       nums1.at(i)->SetLineWidth(2);
       nums1.at(i)->SetMarkerStyle(markers.at(i));
       nums1.at(i)->SetMarkerSize(2);
-      leg->AddEntry(nums1.at(i),numlabels.at(i).c_str(),"p");
-      leg->AddEntry((TObject*)0,"","");
+      subs1.push_back((TH1D*)(nums1.at(i)->Clone((nums1.at(i)->GetName()+to_string(i)+"sub").c_str())));
+      subs1.at(i)->Add(outs1.at(i),-1);
+      subs1.at(i)->SetMarkerColor(kMagenta+2);
+      subs1.at(i)->SetLineColor(kMagenta+2);
+      subs1.at(i)->SetMarkerStyle(71);
+      if(!_singlespec)
+	{
+	  leg->AddEntry(nums1.at(i),numlabels.at(i).c_str(),"p");
+	  leg->AddEntry(subs1.at(i),"Signal - surviving bg.","p");
+	  //leg->AddEntry((TObject*)0,"","");
+	}
       outs1.at(i)->SetMarkerColor(kOrange+2);
       outs1.at(i)->SetLineColor(kOrange+2);
       outs1.at(i)->SetLineWidth(2);
       outs1.at(i)->SetMarkerStyle(markers.at(i));
       outs1.at(i)->SetMarkerSize(2);
-      leg->AddEntry(outs1.at(i),"#splitline{Surviving background}{estimate}","p");
+      if(!_singlespec) leg->AddEntry(outs1.at(i),"#splitline{Surviving background}{estimate}","p");
       
       effs1.at(i)->SetMarkerColor(colors.at(i)+2);
       effs1.at(i)->SetLineColor(colors.at(i)+2);
@@ -98,20 +110,22 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
       effs1.at(i)->SetMarkerSize(2);
     }
 
-  den1->GetYaxis()->SetTitle("Counts");
+  den1->GetYaxis()->SetTitle("Scaled Counts");
+  den1->GetYaxis()->SetTitleOffset(_singlespec?1.2:1.5);
   effs1.at(0)->GetXaxis()->SetTitle("Uncalibrated p_{T}^{jet} [GeV]");
   den1->GetXaxis()->SetRangeUser(30,100);
-  den1->GetYaxis()->SetRangeUser(0.1001,den1->GetMaximum()*1.5);
+  den1->GetYaxis()->SetRangeUser(_singlespec?0.02:0.001001,den1->GetMaximum()*2);
   den1->Draw("PE");
-
+  leg->Draw();
   if(!_singlespec)
     {
       for(int i=0; i<nums1.size(); ++i)
 	{
 	  nums1.at(i)->Draw("SAME PE");
 	  outs1.at(i)->Draw("SAME PE");
+	  subs1.at(i)->Draw("SAME PE");
 	}
-      leg->Draw();
+
       /*
       can->cd(2);
       for(int i=0; i<effs1.size(); ++i)
@@ -130,9 +144,9 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
     }
   can->cd(0);
 
-  maintexts(0.98,0.6,0,0.03);
+  maintexts(_singlespec?0.75:0.97,0.5,0,0.03,1,1);
   //drawText("Jet30,50,70 PYTHIA",0.6,0.87,0,kBlack,0.03);
-  drawText("No reconstructed z_{vtx} requirement",0.1,0.87,0,kBlack,0.03);
+  drawText("No reconstructed z_{vtx} requirement",0.5,_singlespec?0.65:0.87,0,kBlack,0.03);
   //drawText("Truth-reco matched jets",0.05,0.91,0,kBlack,0.03);
 
   can->SaveAs(title.c_str());

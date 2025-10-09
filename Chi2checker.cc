@@ -24,6 +24,7 @@
 #include <globalvertex/MbdVertex.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
+#include <g4main/PHG4VtxPoint.h>
 #include <mbd/MbdPmtHit.h>
 #include <jetbackground/TowerBackgroundv1.h>
 #include <cmath>
@@ -472,6 +473,7 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("subjet_ET",&_subjet_ET,"subjet_ET/F");
   */
   jet_tree->Branch("zvtx",&_zvtx,"zvtx/F");
+  if(!_isdat) jet_tree->Branch("tzvtx",&_tzvtx,"tzvtx/F");
   //jet_tree->Branch("jetcompE",_jetcompE,"jetcompE[3][512]/F");
   //jet_tree->Branch("jetcompEta",_jetcompEta,"jetcompEta[3][512]/F");
   //jet_tree->Branch("jetcompPhi",_jetcompPhi,"jetcompPhi[3][512]/F");
@@ -513,10 +515,11 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("tjet_eta",_tjet_eta,"tjet_eta[tjet_n]/F");
   jet_tree->Branch("tjet_phi",_tjet_phi,"tjet_phi[tjet_n]/F");
     }
-  /*
+  
   jet_tree->Branch("emtow",_emtow,"emtow[96][256]/F");
   jet_tree->Branch("ihtow",_ihtow,"ihtow[24][64]/F");
   jet_tree->Branch("ohtow",_ohtow,"ohtow[24][64]/F");
+  /*
   jet_tree->Branch("isbadem",_isbadem,"isbadem[96][256]/I");
   jet_tree->Branch("isbadih",_isbadih,"isbadih[24][64]/I");
   jet_tree->Branch("isbadoh",_isbadoh,"isbadoh[24][64]/I");
@@ -526,10 +529,13 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("nocalem",_nocalem,"nocalem[96][256]/I");
   jet_tree->Branch("nocalih",_nocalih,"nocalih[24][64]/I");
   jet_tree->Branch("nocaloh",_nocaloh,"nocaloh[24][64]/I");
+  */
   jet_tree->Branch("jconem",_jconem,"jconem[24][64]/F");
   jet_tree->Branch("jconih",_jconih,"jconih[24][64]/F");
   jet_tree->Branch("jconoh",_jconoh,"jconoh[24][64]/F");
+  
   jet_tree->Branch("isblt",&_isbadlive,"isblt/I");
+  /*
   jet_tree->Branch("chi2em",_chi2em,"chi2em[96][256]/F");
   jet_tree->Branch("chi2ih",_chi2ih,"chi2ih[24][64]/F");
   jet_tree->Branch("chi2oh",_chi2oh,"chi2oh[24][64]/F");
@@ -538,7 +544,7 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   if(_dotruthpar) jet_tree->Branch("truthpareta",&_truthpareta);
   if(_dotruthpar) jet_tree->Branch("truthparphi",&_truthparphi);
   if(_dotruthpar) jet_tree->Branch("truthparpt",&_truthparpt);
-  if(_dotruthpar) jet_tree->Branch("truthparid",&_truthparid);
+  if(_dotruthpar) jet_tree->Branch("truthparid",&_truthparid,"truthparid/I");
   
   if(_dowf)
     {
@@ -686,6 +692,14 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   if(_debug > 1) cout << endl << endl << endl << "Chi2checker: Beginning event processing" << endl;
   if(_nprocessed % 1000 == 0) cout << "processing event " << _nprocessed << endl;
 
+
+  PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  if (!_isdat)
+    {
+      PHG4VtxPoint *gvertex = truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
+      _tzvtx = gvertex->get_z();
+    }
+  
   if(_isdat)
     {
       

@@ -87,7 +87,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   line1->Draw();
   line2->Draw();
 
-  maintexts(0.98,0.6,0,0.03);
+  maintexts(0.98,0.6,0,0.03,1,1);
   drawText("Background included",0.6,0.87,0,kBlack,0.03);
   drawText("No reconstructed z_{vtx} requirement",0.05,0.87,0,kBlack,0.03);
   //drawText("Truth-reco matched jets",0.05,0.91,0,kBlack,0.03);
@@ -153,11 +153,13 @@ int draw_spec(int lo = 56, int hi = 70)
   h2_t_dt->Rebin2D(4,4);
   h2_t_dt->GetXaxis()->SetRangeUser(-50,50);
   h2_t_dt->GetYaxis()->SetRangeUser(-25,25);
+  h2_t_dt->GetYaxis()->SetTitleSize(0.05);
+  h2_t_dt->GetXaxis()->SetTitleSize(0.045);
   h2_t_dt->Draw("COLZ");
   box->Draw();
-  maintexts(0.98,0.6,0,0.03);
-  drawText(("Jets "+to_string(lo-1)+"<p_{T}^{uncalib}<"+to_string(hi)+" GeV").c_str(),0.6,0.87,0,kBlack,0.03);
-  drawText("No reconstructed z_{vtx} requirement",0.05,0.87,0,kBlack,0.03);
+  maintexts(0.96,0.6,0,0.04,1,1);
+  drawText(("Jets "+to_string(lo-1)+"<p_{T}^{uncalib}<"+to_string(hi)+" GeV").c_str(),0.4,0.75,0,kBlack,0.06);
+  drawText("No reconstructed z_{vtx} requirement",0.05,0.87,0,kBlack,0.04);
   can->SaveAs(("../../images/dnp/data_t_dt_proj2d_"+to_string(lo-1)+"-"+to_string(hi)+".pdf").c_str());
   return 0;
 }
