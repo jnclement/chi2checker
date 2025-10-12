@@ -132,32 +132,6 @@ bool check_bad_jet_eta(float jet_eta, float zertex, float jet_radius) {
   return jet_eta < minlimit || jet_eta > maxlimit;
 }
 
-void drawText(const char *text, float xp, float yp, bool isRightAlign=0, int textColor=kBlack, double textSize=0.04, int textFont = 42, bool isNDC=true){
-  // when textfont 42, textSize=0.04                                                                                                                         
-  // when textfont 43, textSize=18                                                                                                                           
-  TLatex *tex = new TLatex(xp,yp,text);
-  tex->SetTextFont(textFont);
-  //   if(bold)tex->SetTextFont(43);                                                                                                                         
-  tex->SetTextSize(textSize);
-  tex->SetTextColor(textColor);
-  tex->SetLineWidth(1);
-  if(isNDC) tex->SetNDC();
-  if(isRightAlign) tex->SetTextAlign(31);
-  tex->Draw();
-  //delete tex;
-}
-
-void sqrt_snn_text(float xp = 0.7, float yp = 0.8, bool isRightAlign=0, double textsize = 0.04)
-{
-  drawText("#sqrt{S_{NN}} = 200 GeV",xp,yp,isRightAlign,kBlack,textsize);
-}
-
-void sphenixtext(float xpos = 0.7, float ypos = 0.96, int ra = 0, float textsize = 0.04)
-{
-  drawText("#bf{#it{sPHENIX}} Internal", xpos, ypos, ra, kBlack, textsize);
-}
-
-
 float Chi2checker::bintoeta_hc(int etabin)
 {
   return (2.2*etabin)/24 - 1.1;
@@ -177,250 +151,6 @@ float bintophi_em(int phibin)
   return (2*M_PI*phibin)/256;
 }
 
-void Chi2checker::drawCalo(TowerInfoContainer** towers, float* jet_e, float* jet_et, float* jet_ph, int jet_n, float jet_ecc, float jet_lfrac, RawTowerGeomContainer** geom, float zvtx, int failscut, int runnum, int evtnum, float frcoh, float frcem, float emtot, float ohtot, float maxJetE)
-{
-  std::stringstream full_stream;
-  full_stream << std::fixed << std::setprecision(3) << "Run " << runnum << ", event " << evtnum << ", EM fraction: " << frcem << ", OH fraction: " << frcoh << ", z_{vtx} = " <<  std::setprecision(1) << zvtx << " ";
-  std::string full_string = full_stream.str();
-
-  gStyle->SetOptStat(0);
-  gStyle->SetOptTitle(0);
-  gStyle->SetNumberContours(50);
-  int ncircle = 64;
-  const int ncol = 50;
-  const int nstp = 3;
-  double red[nstp] = {0.,1.,1.};// = {1, 1, 1, 1, 1, 1, 1, 1};
-  double grn[nstp] = {0.,1.,0.};// = {1, 0.875, 0.75, 0.625, 0.5, 0.375, 0.25, 0.125, 0};
-  double blu[nstp] = {1.,1.,0.};// = {1, 0.875, 0.75, 0.625, 0.5, 0.375, 0.25, 0.125, 0};
-  double stp[nstp] = {0,2./27,1};;// = {0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0};
-  
-
-  
-  TCanvas* c = new TCanvas("","",1900,1000);
-  c->Divide(4,1,0,0.1);
-  
-  TH2D* event_sum = new TH2D("event_sum","Calorimeter Sum",24,-0.5,23.5,64,-0.5,63.5);
-  TH2D* event_disrt[3];
-  for(int i=0; i<3; ++i)
-    {
-      int nbinx = (i==0?96:24);
-      int nbiny = (i==0?256:64);
-      event_disrt[i] = new TH2D(("event_display_rt"+to_string(i)).c_str(),"",nbinx,-0.5,nbinx-0.5,nbiny,-0.5,nbiny-0.5);
-
-    }
-  TColor::CreateGradientColorTable(nstp, stp, red, grn, blu, ncol);
-  event_disrt[0]->GetXaxis()->SetTitle("EMCal #eta");
-  event_disrt[0]->GetYaxis()->SetTitle("EMCal #phi");
-  event_disrt[1]->GetXaxis()->SetTitle("IHCal #eta");
-  event_disrt[1]->GetYaxis()->SetTitle("IHCal #phi");
-  event_disrt[2]->GetXaxis()->SetTitle("OHCal #eta");
-  event_disrt[2]->GetYaxis()->SetTitle("OHCal #phi");
-  for(int i=0; i<3; ++i)
-    {
-      event_disrt[i]->GetZaxis()->SetTitleOffset(1);
-      event_disrt[i]->GetYaxis()->SetTitleOffset(1);
-      event_disrt[i]->GetZaxis()->SetTitle("Uncorrected Tower Energy [GeV]");
-      event_disrt[i]->GetZaxis()->SetRangeUser(-2,25);
-      event_disrt[i]->GetXaxis()->SetNdivisions(4,kFALSE);
-      event_disrt[i]->GetXaxis()->SetTitleSize(0.04);
-      event_disrt[i]->GetYaxis()->SetTitleSize(0.04);
-      event_disrt[i]->GetZaxis()->SetTitleSize(0.04);
-      event_disrt[i]->GetXaxis()->SetTitleOffset(1);
-      event_disrt[i]->GetXaxis()->SetLabelSize(0.04);
-      event_disrt[i]->GetYaxis()->SetLabelSize(0.04);
-      event_disrt[i]->GetZaxis()->SetLabelSize(0.04);
-      event_disrt[i]->GetXaxis()->SetLabelOffset(0.02);
-    }
-  event_sum->GetXaxis()->SetTitle("Calo Sum #eta");
-  event_sum->GetYaxis()->SetTitle("Calo Sum #phi");
-  event_sum->GetZaxis()->SetTitleOffset(1);
-  event_sum->GetYaxis()->SetTitleOffset(1);
-  event_sum->GetZaxis()->SetTitle("Uncorrected Tower Energy [GeV]");
-  event_sum->GetZaxis()->SetRangeUser(-2,25);
-  event_sum->GetXaxis()->SetNdivisions(4,kFALSE);
-  event_sum->GetXaxis()->SetTitleSize(0.04);
-  event_sum->GetYaxis()->SetTitleSize(0.04);
-  event_sum->GetZaxis()->SetTitleSize(0.04);
-  event_sum->GetXaxis()->SetTitleOffset(1);
-  event_sum->GetXaxis()->SetLabelSize(0.04);
-  event_sum->GetYaxis()->SetLabelSize(0.04);
-  event_sum->GetZaxis()->SetLabelSize(0.04);
-  event_sum->GetXaxis()->SetLabelOffset(0.02);
-  event_sum->Reset();
-  for(int j=0; j<3; ++j)
-    {
-      event_disrt[j]->Reset();
-      for(int k=0; k<(j==0?24576:1536); ++k)
-	{
-	  TowerInfo* tower = towers[j]->get_tower_at_channel(k);
-	  int key = towers[j]->encode_key(k);
-	  float eta = towers[j]->getTowerEtaBin(key);
-	  float phi = towers[j]->getTowerPhiBin(key);
-	  event_disrt[j]->Fill(eta,phi,tower->get_energy());
-	  if(j==0)event_sum->Fill(eta/4,phi/4,tower->get_energy());
-	  else event_sum->Fill(eta,phi,tower->get_energy());
-	  /*
-	  if(j==1)
-	    {
-	      
-	      const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, towers[j]->getTowerEtaBin(key), towers[j]->getTowerPhiBin(key));
-	      RawTowerGeom *tower_geom = geom[j]->get_tower_geometry(geomkey); //encode tower geometry
-	      float newx = tower_geom->get_center_x();
-	      float newy = tower_geom->get_center_y();
-	      float newz = tower_geom->get_center_z() - zvtx;
-	
-	      eta = asinh(newz/sqrt(newx*newx+newy*newy));//getEtaFromBinEM()+0.012;
-			  
-	      phi = tower_geom->get_phi()+M_PI;//bintophi_hc(towers[j]->getTowerPhiBin(key))+0.048;
-	    }
-	  else if(j==2)
-	    {
-	      const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, towers[j]->getTowerEtaBin(key), towers[j]->getTowerPhiBin(key));
-	      RawTowerGeom *tower_geom = geom[j]->get_tower_geometry(geomkey); //encode tower geometry
-	      float newx = tower_geom->get_center_x();
-	      float newy = tower_geom->get_center_y();
-	      float newz = tower_geom->get_center_z() - zvtx;
-	      eta = asinh(newz/sqrt(newx*newx+newy*newy));//getEtaFromBinEM()+0.012;
-	      phi = tower_geom->get_phi()+M_PI;//
-	    }
-	  else
-	    {
-	      const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, towers[j]->getTowerEtaBin(key), towers[j]->getTowerPhiBin(key));
-	      RawTowerGeom *tower_geom = geom[1]->get_tower_geometry(geomkey); //encode tower geometry
-
-	      float radius = 93.5;
-	      float ihEta = tower_geom->get_eta();
-	      float emZ = radius/(tan(2*atan(exp(-ihEta))));
-	      float newz = emZ - zvtx;
-	      float newTheta = atan2(radius,newz);
-	      float towerEta = -log(tan(0.5*newTheta));
-	      eta = towerEta;
-	      phi = tower_geom->get_phi()+M_PI;//bintophi_em(towers[j]->getTowerPhiBin(key))+0.012;
-	    }
-	  */
-
-	}
-
-
-      c->cd(j+1);
-      gPad->SetLogz(0);
-      gPad->SetRightMargin(0.2);
-      gPad->SetLeftMargin(0.2);
-      gPad->SetTopMargin(0.05);
-      event_disrt[j]->SetContour(ncol);
-      event_disrt[j]->Draw("COLZ");
-
-    }
-  c->cd(4);
-  gPad->SetLogz(0);            
-  gPad->SetTopMargin(0.05);                                                       
-  gPad->SetRightMargin(0.2);
-  gPad->SetLeftMargin(0.2);
-  event_sum->SetContour(ncol);
-  event_sum->Draw("COLZ");
-  c->cd(0);
-  sphenixtext(0.96,0.96,1,0.04);
-
-  std::stringstream ecc_stream;
-  ecc_stream << std::fixed << std::setprecision(3) << jet_ecc;
-  std::string ecc_string = ecc_stream.str();
-  //drawText(("#epsilon_{max jet}="+ecc_string).c_str(),0.1,0.95);
-
-  std::stringstream lfrac_stream;
-  lfrac_stream << std::fixed << std::setprecision(3) << jet_lfrac;
-  std::string lfrac_string = lfrac_stream.str();
-  //drawText(("E_{max layer,jet}/E_{max jet}="+lfrac_string).c_str(),0.4,0.95);
-
-  std::stringstream z_stream;
-  z_stream << std::fixed << std::setprecision(1) << zvtx;
-  std::string z_string = z_stream.str();
-  //  drawText(("z_{vtx}="+z_string).c_str(),0.25,0.95);
-  
-  std::string fails = "";
-  std::string whichcut = "";
-  if(failscut == 0)
-    {
-      fails = "Passes dijet cut";
-      whichcut = "dijet";
-    }
-  else if(failscut == 1)
-    {
-      fails = "Passes frac. cut";
-      whichcut = "frac";
-    }
-  else
-    {
-      fails = "Passes both";
-      whichcut = "both";
-    }
-  full_string += fails;
-  
-  //drawText(fails.c_str(),0.7,0.95);
-  drawText(full_string.c_str(),0.05,0.95,0,kBlack,0.02);
-  c->cd(4);
-  maxJetE = 0;
-  for(int k=0; k<jet_n; ++k)
-    {
-      if(maxJetE < jet_e[k])
-	{
-	  maxJetE = jet_e[k];
-	}
-      for(int l=0; l<ncircle; ++l)
-	{
-	  float eta = jet_et[k]+0.4*cos(2*l*M_PI/ncircle);
-	  float phi = jet_ph[k]+0.4*sin(2*l*M_PI/ncircle);
-	  phi += M_PI;
-	  if(eta > 2.2 || eta < -2.2) continue;
-	  if(phi > 2*M_PI) phi -= 2*M_PI;
-	  if(phi < 0) phi += 2*M_PI;
-	  TMarker* circlemarker = new TMarker(eta,phi,20);
-	  circlemarker->SetMarkerSize(0.3);
-	  circlemarker->SetMarkerColor(kBlue);
-	  //circlemarker->Draw();
-        }
-      std::stringstream e_stream;
-      e_stream << std::fixed << std::setprecision(2) << jet_e[k];
-      std::string e_string = e_stream.str();
-      drawText((e_string+" GeV").c_str(),12,((jet_ph[k]/*+(jet_ph[k]+M_PI>3.84?-0.53:0.43)*/+(jet_ph[k]<0?2*M_PI:0))/(2*M_PI))*64,/*(jet_et[k]>0?1:*/0/*)*/,kBlack,0.04,42,false);
-
-    }
-  //c->Update();
-  string dirstring = "";
-  for(int i=46; i<101; ++i)
-    {
-      if(maxJetE < i)
-	{
-	  dirstring = to_string(i-1)+"to"+to_string(i);
-	  break;
-	}
-    }
-  if(maxJetE > 100) dirstring = "gr100";
-      
-  c->SaveAs(("/sphenix/user/jocl/projects/run2024_earlydata/run/output/smg/candidate_"+to_string(runnum)+"_"+dirstring+"_"+_name+"_"+whichcut+"_"+to_string(cancount)+".png").c_str());
-  cout << "Saved" << endl;
-  cancount++;
-
-  for(int i=0; i<3; ++i)
-    {
-      c->cd(i+1);
-      gPad->SetLogz();
-      event_disrt[i]->GetZaxis()->SetRangeUser(0.05,25);
-      gPad->Update();
-    }
-  c->cd(4);
-  gPad->SetLogz();
-  event_sum->GetZaxis()->SetRangeUser(0.05,25);
-  gPad->Update();
-  c->SaveAs(("/sphenix/user/jocl/projects/run2024_earlydata/run/output/smg/candidate_"+to_string(runnum)+"_"+dirstring+"_"+_name+"_"+whichcut+"_"+to_string(cancount)+"_log.png").c_str());
-  /*
-  delete c;
-  delete event_sum;
-  for(int i=0; i<3; ++i)
-    {
-      delete event_disrt[i];
-    }
-  */
-}
 
 //____________________________________________________________________________..
 Chi2checker::Chi2checker(const std::string &filename, const std::string &name, const int debug, const std::string &wfilename, const int dowf, const bool isdat, const int doall60, const int dotruthpar):
@@ -583,7 +313,7 @@ int Chi2checker::Init(PHCompositeNode *topNode)
     }
   jet_tree->Branch("mbdavgt",_mbdavgt,"mbdavgt[2]/F");
   
-  jet_tree->Branch("mbdhit",&_mbdhit,"mbdhit[2]/i");
+  jet_tree->Branch("mbdhit",_mbdhit,"mbdhit[2]/i");
 
   for(int i=0; i<nemx; ++i)
     {
@@ -952,139 +682,6 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
     }
 
   
-
-
-
-
-
-
-
-  
-  //TowerInfoContainer* emcrt = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
-  /*
-  JetContainer* emjets = findNode::getClass<JetContainerv1>(topNode, "emtowjet");
-  JetContainer* ohjets = findNode::getClass<JetContainerv1>(topNode, "ohtowjet");
-
-  _nLayerEm = 0;
-  _nLayerOh = 0;
-  _n2pc = 0;
-
-  if(emjets)
-    {
-      int tocheck = emjets->size();
-      for(int i=0; i<tocheck; ++i)
-	{
-	  Jet* jet = emjets->get_jet(i);
-	  if(jet)
-	    {
-	      float testJetET = jet->get_e()/cosh(jet->get_eta());
-	      if(testJetET < 8) continue;
-	      _emLayerJetEta[_nLayerEm] = jet->get_eta();
-	      if(check_bad_jet_eta(_emLayerJetEta[_nLayerEm],zvtx,0.4)) continue;
-	      _emLayerJetPhi[_nLayerEm] = jet->get_phi();
-	      _emLayerJetET[_nLayerEm] = testJetET;
-	      _nLayerEm++;
-	    }
-	}
-    }
-
-  if(ohjets)
-    {
-      int tocheck = ohjets->size();
-      for(int i=0; i<tocheck; ++i)
-	{
-	  Jet* jet = ohjets->get_jet(i);
-	  if(jet)
-	    {
-	      float testJetET = jet->get_e()/cosh(jet->get_eta());
-	      if(testJetET < 5) continue;
-	      _ohLayerJetEta[_nLayerOh] = jet->get_eta();
-	      if(check_bad_jet_eta(_ohLayerJetEta[_nLayerOh],zvtx,0.4)) continue;
-	      _ohLayerJetPhi[_nLayerOh] = jet->get_phi();
-	      _ohLayerJetET[_nLayerOh] = testJetET;
-	      _nLayerOh++;
-	    }
-	}
-    }
-  */
-  /*
-  int nchan = 1536;
-  vector<vector<float>> emTowAbove1GeV;
-  vector<vector<float>> ohTowAbove1GeV;
-  _l2pcEta = 0;
-  float maxTowET = 0;
-  if(towers[0])
-    {
-      for(int i=0; i<nchan; ++i)
-	{
-	  TowerInfo* tower = towers[0]->get_tower_at_channel(i);
-	  if(!tower->get_isGood()) continue;
-	  int key = towers[0]->encode_key(i);
-	  const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, towers[0]->getTowerEtaBin(key), towers[0]->getTowerPhiBin(key));
-	  RawTowerGeom *tower_geom = geom[1]->get_tower_geometry(geomkey);
-	  float radius = 93.5;//tower_geom->get_center_radius();
-	  float ihEta = tower_geom->get_eta();
-	  float emZ = radius/(tan(2*atan(exp(-ihEta))));
-	  float newz = emZ - zvtx;//tower_geom->get_center_z() - zvtx;
-	  float newTheta = atan2(radius,newz);
-	  float towerEta = -log(tan(0.5*newTheta));
-	  float towerPhi = tower_geom->get_phi();
-	  float towerET = tower->get_energy();
-	  if(towerET < 1) continue;
-	  if(towerET > maxTowET)
-	    {
-	      maxTowET = towerET;
-	      _l2pcEta = towerEta;
-	    }
-	  vector<float> toPush = {towerEta, towerPhi};
-	  emTowAbove1GeV.push_back(toPush);
-	}
-    }
-  nchan = 1536;
-  if(towers[2])
-    {
-      for(int i=0; i<nchan; ++i)
-	{
-	  TowerInfo* tower = towers[2]->get_tower_at_channel(i);
-	  if(!tower->get_isGood()) continue;
-	  int key = towers[2]->encode_key(i);
-	  const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, towers[2]->getTowerEtaBin(key), towers[2]->getTowerPhiBin(key));
-	  RawTowerGeom *tower_geom = geom[2]->get_tower_geometry(geomkey); //encode tower geometry                                                                                      
-
-	  float radius = tower_geom->get_center_radius();
-	  float newz = tower_geom->get_center_z() - zvtx;
-	  float newTheta = atan2(radius,newz);
-	  float towerEta = -log(tan(0.5*newTheta));
-	  float towerPhi = tower_geom->get_phi();
-	  //if(!_printedPhi) cout << "Phi tower : " << towerPhi << endl;
-	  float towerET = tower->get_energy();
-	  if(towerET < 1) continue;
-	  if(towerET > maxTowET)
-	    {
-	      maxTowET = towerET;
-	      _l2pcEta = towerEta;
-	    }
-	  vector<float> toPush = {towerEta, towerPhi};
-	  ohTowAbove1GeV.push_back(toPush);
-	}
-    }
-  _printedPhi = true;
-  _n2pc = 0;
-  for(int i=0; i<emTowAbove1GeV.size(); ++i)
-    {
-      for(int j=0; j<ohTowAbove1GeV.size(); ++j)
-	{
-	  if(_n2pc > 1000) break;
-	  _dPhi2pc[_n2pc] = emTowAbove1GeV.at(i).at(1) - ohTowAbove1GeV.at(j).at(1);
-	  if(_dPhi2pc[_n2pc] > M_PI) _dPhi2pc[_n2pc] -= 2*M_PI;
-	  if(_dPhi2pc[_n2pc] < -M_PI) _dPhi2pc[_n2pc] += 2*M_PI;
-	  _dEta2pc[_n2pc] = emTowAbove1GeV.at(i).at(0) - ohTowAbove1GeV.at(j).at(0);
-	  ++_n2pc;
-	}
-    }
-  */
-  //float fracEM = 0;
-  //float fracOH = 0;
   _maxTowE = 0;
   _subTowE = 0;
   _maxTowDiff = 0;
@@ -1151,6 +748,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	      float sigPhiPhi = 0;
 	      //if(_debug > 5) cout << "jet E/eta: " << testJetE  << " " << jet->get_eta() << endl;
 	      if(jet->get_pt() < 1) continue;
+	      if(jet->get_e() < 1) continue;
 	      //if(_debug > 3) cout << "got a candidate jet" << endl;
 	      _alljetfrcem[_jet_n] = 0;
 	      _alljetfrcoh[_jet_n] = 0;
@@ -1670,7 +1268,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	    }
 	  _failscut = failsall;
 	  //drawCalo(towers, _jet_pt, _jet_eta, _jet_phi, _jet_n, jet_ecc, jet_lfrac, geom, zvtx, failsall, runnumber, evtnum, _frcoh, _frcem, maxLayerE[0], maxLayerE[1], maxJetE);
-	  cout << "jet_tree = " << jet_tree << endl;
+	  //cout << "jet_tree = " << jet_tree << endl;
 	  if(_dowf)
 	    {
 	      for(int p=6001; p<6129; ++p)
@@ -1704,7 +1302,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			      _emwf[etabin][phibin][s] = 0;
 			    }
 			}
-		      cout << endl;
+		      //cout << endl;
 		    }
 		}
 	      
@@ -1740,7 +1338,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			      _ihwf[etabin][phibin][s] = 0;
 			    }
 			}
-		      cout << endl;
+		      //cout << endl;
 		    }
 		}
 	      
@@ -1776,14 +1374,14 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 			      _ohwf[etabin][phibin][s] = 0;
 			    }
 			}
-		      cout << endl;
+		      //cout << endl;
 		    }
 		}
-	      cout << "done writing to arrays" << endl;
+	      //cout << "done writing to arrays" << endl;
 	      _wft->Fill();
 	    }
 	  jet_tree->Fill();
-	  cout << "drew calo" << endl;
+	  //cout << "drew calo" << endl;
 	}
       
       
@@ -1827,11 +1425,12 @@ int Chi2checker::End(PHCompositeNode *topNode)
   cout << "ending run" << endl;
   if(jet_tree->GetEntries() > 0)
     {
-      if(!_doall60 && _isdat) _f = new TFile(_filename.c_str(), "RECREATE");
+      //if(!_doall60 && _isdat) _f = new TFile(_filename.c_str(), "RECREATE");
       cout << "file created" << endl;
-      if(!_doall60 && _isdat) _f->cd();
+      //if(!_doall60 && _isdat) _f->cd();
       cout << "cded to file" << endl;
-      if(!_doall60 && _isdat) jet_tree->SetDirectory(_f);
+      jet_tree->SetDirectory(_f);
+      _f->cd();
       cout << "tree set to directory of file" << endl;
       jet_tree->Write();
       cout << "tree written" << endl;

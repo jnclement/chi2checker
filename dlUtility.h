@@ -140,7 +140,7 @@ void zcut_text(int zcut, float xp = 0.7, float yp =0.8, bool isRightAlign=0, dou
 //use lambda functions below (overkill)
 void antikt_text(float r, float xp = 0.7, float yp = 0.8, bool isRightAlign=0, double textsize = 0.04)
 {
-  drawText(("Anti-k_{t} R="+([r]{ std::ostringstream oss; oss << std::fixed << std::setprecision(1) << r; return oss.str(); }())+" Jets").c_str(),xp,yp,isRightAlign,kBlack,textsize);
+  drawText(("anti-k_{t} R="+([r]{ std::ostringstream oss; oss << std::fixed << std::setprecision(1) << r; return oss.str(); }())+" Jets").c_str(),xp,yp,isRightAlign,kBlack,textsize);
 }
 
 void dijet_cut_text(float xp = 0.7, float yp = 0.8, bool isRightAlign=0, double textsize = 0.04)
@@ -153,9 +153,9 @@ void et_cut_text(float minet, float xp = 0.7, float yp = 0.8, bool isRightAlign=
   drawText(("E_{T}^{jet} > "+([minet]{ std::ostringstream oss; oss << std::fixed << std::setprecision(1) << minet; return oss.str(); }())+" GeV").c_str(),xp,yp,isRightAlign,kBlack,textsize);
 }
 
-void sqrt_s_text(float xp = 0.7, float yp = 0.8, bool isRightAlign=0, double textsize = 0.04)
+void sqrt_s_text(float xp = 0.7, float yp = 0.8, bool isRightAlign=0, double textsize = 0.04, bool isdat = 1)
 {
-  drawText("p+p #sqrt{s} = 200 GeV",xp,yp,isRightAlign,kBlack,textsize);
+  drawText(isdat?"p+p #sqrt{s}=200 GeV":"PYTHIA p+p #sqrt{s}=200 GeV",xp,yp,isRightAlign,kBlack,textsize);
 }
 
 void sphenixtext(float xpos = 0.7, float ypos = 0.96, int ra = 0, float textsize = 0.04)
@@ -168,15 +168,20 @@ void sphenixwip(float xpos = 0.7, float ypos = 0.96, int ra = 0, float textsize 
   drawText("#bf{#it{sPHENIX}} Work in Progress", xpos, ypos, ra, kBlack, textsize);
 }
 
+void sphenixswip(float xpos = 0.7, float ypos = 0.96, int ra = 0, float textsize = 0.04)
+{
+  drawText("#bf{#it{sPHENIX}} Simulation Work in Progress", xpos, ypos, ra, kBlack, textsize);
+}
+
 void sphenixprelim(float xpos = 0.8, float ypos = 0.96, int ra = 1, float textsize = 0.04)
 {
   drawText("#bf{#it{sPHENIX}} Preliminary", xpos, ypos, ra, kBlack, textsize);
 }
 
-void maintexts(/*bool isdat, */float ystart = 0.96, float xpos = 0.7, int ra = 0, float textsize = 0.03)
+void maintexts(float ystart = 0.96, float xpos = 0.7, int ra = 0, float textsize = 0.03, bool isdat = 1, int iswip = 0)
 {
-  sphenixtext(xpos,ystart,ra,textsize);
-  sqrt_s_text(xpos,ystart-8*textsize/7,ra,textsize);
+  iswip?(isdat?sphenixwip(xpos,ystart,ra,textsize):sphenixswip(xpos,ystart,ra,textsize)):sphenixtext(xpos,ystart,ra,textsize);
+  sqrt_s_text(xpos,ystart-8*textsize/7,ra,textsize,isdat);
   antikt_text(0.4,xpos,ystart-16*textsize/7,ra,textsize);
   //drawText(isdat?"Data":"Simulation",xpos,ystart-2*textsize,ra,kBlack,textsize);
 }
