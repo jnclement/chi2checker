@@ -634,7 +634,21 @@ int drawcalo(int lo, int hi, int dosave = 0, string listfilename = "chi2filesdat
   while(std::getline(chi2list,tempinfilename))
     {
       //cout << "Read: " << tempinfilename << endl;
-      jet_tree->Add(tempinfilename.c_str());
+      TFile* f = TFile::Open(tempinfilename.c_str(),"READ");
+      if(f && !f->IsZombie())
+	{
+	  jet_tree->Add(tempinfilename.c_str());
+	  f->Close();
+	  delete f;
+	}
+      else
+	{
+	  if(f)
+	    {
+	      f->Close();
+	      delete f;
+	    }
+	}
       ++counter;
       if(counter >= hi)
 	{
@@ -758,9 +772,9 @@ int drawcalo(int lo, int hi, int dosave = 0, string listfilename = "chi2filesdat
       if(flag) continue;
       ++wfte;
       */
-      if((failscut > 2 || failscut < 0)) continue; // && i % 100 != 0 && evtdraw < 0) continue;
+      //if((failscut > 2 || failscut < 0)) continue; // && i % 100 != 0 && evtdraw < 0) continue;
       ++nhist;
-      if(dosave && failscut <= 2 && failscut >= 0)
+      if(dosave)
 	{
 	  outmbdhit[0] = mbdhit[0];
 	  outmbdhit[1] = mbdhit[1];
