@@ -66,6 +66,7 @@
 #include <pdbcalbase/PdbParameterMap.h>
 #include <calobase/TowerInfoDefs.h>
 #include <ffarawobjects/CaloPacketv1.h>
+#include <phparameter/PHParameters.h>
 using namespace std;
 static const float radius_EM = 93.5;
 static const float minz_EM = -130.23;
@@ -514,20 +515,6 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   PHCompositeNode* parNode = dynamic_cast<PHCompositeNode*>(itNode.findFirst("PHCompositeNode","PAR"));
   PdbParameterMap* flagNode;
   
-  if(parNode) flagNode = findNode::getClass<PdbParameterMap>(parNode, "HasBeamBackground");
-  else
-    {
-      cout << "No parNode! Abort run." << endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
-  
-  
-  if(flagNode) _cutParams.FillFrom(flagNode);
-  else
-    {
-      cout << "No flagNode - abort run" << endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
 
   MbdVertexMap* mbdvtxmap = findNode::getClass<MbdVertexMapv1>(topNode, "MbdVertexMap");
   //GlobalVertexMap* gvtxmap = NULL; //findNode::getClass<GlobalVertexMapv1>(topNode, "GlobalVertexMap");
@@ -1057,7 +1044,35 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       _bbfqavec = 0;
       _elmbgvec = 0;
 
+      if(parNode) flagNode = findNode::getClass<PdbParameterMap>(parNode, "HasBeamBackground");
+      else
+	{
+	  cout << "No parNode! Abort run." << endl;
+	  return Fun4AllReturnCodes::ABORTRUN;
+	}
+      
+      
+      if(flagNode) _cutParams.FillFrom(flagNode);
+      else
+	{
+	  cout << "No flagNode for bbfqa - abort run" << endl;
+	  return Fun4AllReturnCodes::ABORTRUN;
+	}
       _bbfqavec = _cutParams.get_int_param("HasBeamBackground_StreakSidebandFilter") << 5;
+
+      flagNode = findNode::getClass<PdbParameterMap>(parNode, "TimingCutParams");
+  
+      if(flagNode) _cutParams.FillFrom(flagNode);
+      else
+	{
+	  cout << "No flagNode for timing cuts - abort run" << endl;
+	  return Fun4AllReturnCodes::ABORTRUN;
+	}
+      
+      _bbfqavec |= (_cutParams.get_int_param("failsLeadtCut") & 1) << 4;
+      _bbfqavec |= (_cutParams.get_int_param("failsDeltatCut") & 1) << 3;
+      _bbfqavec |= (_cutParams.get_int_param("failsMbdDtCut") & 1) << 2;
+      _bbfqavec |= (_cutParams.get_int_param("failsAnyTimeCut") & 1) << 1;
       //if(_bbfqavec) cout << "bbfqavec: " << _bbfqavec <<  " and >> 5: " << (_bbfqavec >> 5) << endl;
 	  //}
       _maxTowDiff = _maxTowE - _subTowE;

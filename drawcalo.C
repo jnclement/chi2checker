@@ -558,7 +558,7 @@ int drawcalo(int lo, int hi, int dosave = 0, string listfilename = "chi2filesdat
   //TFile* evtfile = TFile::Open("../chi2/hadded_chi2file_20250902.root","READ");
   _dosave = dosave;
   TFile* outf;
-  if(dosave) outf = TFile::Open(("../savedhists/savedhists_20251009_"+to_string(lo)+"_"+to_string(hi)+".root").c_str(),"RECREATE");
+  if(dosave) outf = TFile::Open(("../savedhists/savedhists_20251020_"+to_string(lo)+"_"+to_string(hi)+".root").c_str(),"RECREATE");
   TTree* outt;
   if(dosave) outt = new TTree("outt","an output tree");
   if(dosave) outt->SetDirectory(outf);
@@ -689,6 +689,7 @@ int drawcalo(int lo, int hi, int dosave = 0, string listfilename = "chi2filesdat
   jet_tree->SetBranchStatus("ihtow",1);
   jet_tree->SetBranchStatus("ohtow",1);
   jet_tree->SetBranchStatus("zvtx",1);
+  /*
   jet_tree->SetBranchStatus("isbadem",1);
   jet_tree->SetBranchStatus("isbadih",1);
   jet_tree->SetBranchStatus("isbadoh",1);
@@ -698,7 +699,7 @@ int drawcalo(int lo, int hi, int dosave = 0, string listfilename = "chi2filesdat
   jet_tree->SetBranchStatus("ishotem",1);
   jet_tree->SetBranchStatus("ishotih",1);
   jet_tree->SetBranchStatus("ishotoh",1);
-
+  */
   
   jet_tree->SetBranchAddress("jet_n",&jet_n);
   jet_tree->SetBranchAddress("runnum",&runnum);
@@ -716,7 +717,7 @@ int drawcalo(int lo, int hi, int dosave = 0, string listfilename = "chi2filesdat
   jet_tree->SetBranchAddress("ohtow",ohtow);
   jet_tree->SetBranchAddress("zvtx",&zvtx);
 
-  
+  /*
   jet_tree->SetBranchAddress("isbadem",isbadem);
   jet_tree->SetBranchAddress("isbadih",isbadih);
   jet_tree->SetBranchAddress("isbadoh",isbadoh);
@@ -735,9 +736,10 @@ int drawcalo(int lo, int hi, int dosave = 0, string listfilename = "chi2filesdat
   jet_tree->SetBranchAddress("chi2ih",chi2ih);
   jet_tree->SetBranchAddress("chi2oh",chi2oh);
   */
+  
+  jet_tree->SetBranchAddress("mbdavgt",avgt);
+  jet_tree->SetBranchAddress("mbdhit",mbdhit);
   /*
-  wft->SetBranchAddress("mbdavgt",avgt);
-  wft->SetBranchAddress("mbdhit",mbdhit);
   wft->SetBranchAddress("runnum",&rnwf);
   wft->SetBranchAddress("evtnum",&enwf);
   wft->SetBranchAddress("emt",emt);

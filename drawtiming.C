@@ -189,7 +189,7 @@ int drawtiming(int lobinx, int hibinx, int lobiny, int hibiny, int lobinz, int h
 	}
     }
   */
-  TCanvas* d = new TCanvas("","",1000,1500);
+  TCanvas* d = new TCanvas("","",1500,1500);
   ratioPanelCanvas(d, 0.3);
 
   TLegend* leg = new TLegend(0.5,0.6,0.9,0.8);
@@ -199,28 +199,28 @@ int drawtiming(int lobinx, int hibinx, int lobiny, int hibiny, int lobinz, int h
   gPad->SetTopMargin(0.2);
   h_ratio_dijetcut->SetMarkerColor(kRed+2);
   h_ratio_dijetcut->SetMarkerStyle(20);
-  h_ratio_dijetcut->SetMarkerSize(1.5);
+  h_ratio_dijetcut->SetMarkerSize(2);
   h_ratio_dijetcut->SetLineColor(kRed+2);
   h_ratio_all->SetMarkerColor(kRed+2);
   h_ratio_all->SetMarkerStyle(20);
-  h_ratio_all->SetMarkerSize(1.5);
+  h_ratio_all->SetMarkerSize(2);
   h_ratio_all->SetLineColor(kRed+2);
   h_spectrum_tdijetcut->SetMarkerColor(kRed+2);
   h_spectrum_tdijetcut->SetMarkerStyle(20);
-  h_spectrum_tdijetcut->SetMarkerSize(1.5);
+  h_spectrum_tdijetcut->SetMarkerSize(2);
   h_spectrum_tdijetcut->SetLineColor(kRed+2);
   h_spectrum_tall->SetMarkerColor(kRed+2);
   h_spectrum_tall->SetMarkerStyle(20);
-  h_spectrum_tall->SetMarkerSize(1.5);
+  h_spectrum_tall->SetMarkerSize(2);
   h_spectrum_tall->SetLineColor(kRed+2);
   
   h_spectrum_all->SetMarkerColor(kAzure+2);
   h_spectrum_all->SetMarkerStyle(20);
-  h_spectrum_all->SetMarkerSize(1.5);
+  h_spectrum_all->SetMarkerSize(2);
   h_spectrum_all->SetLineColor(kAzure+2);
   h_spectrum_dijetcut->SetMarkerColor(kAzure+2);
   h_spectrum_dijetcut->SetMarkerStyle(20);
-  h_spectrum_dijetcut->SetMarkerSize(1.5);
+  h_spectrum_dijetcut->SetMarkerSize(2);
   h_spectrum_dijetcut->SetLineColor(kAzure+2);
 
   leg->AddEntry(h_spectrum_tdijetcut,"Timing cut","p");

@@ -1,9 +1,5 @@
 #ifndef CHI2TREEMAKER_H
 #define CHI2TREEMAKER_H
-#include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfoContainerv1.h>
-#include <calobase/TowerInfoContainerv2.h>
-#include <calobase/TowerInfoContainerv3.h>
 #include <fun4all/SubsysReco.h>
 #include <gsl/gsl_rng.h>
 #include <string>
@@ -11,7 +7,6 @@
 #include "TTree.h"
 #include "TFile.h"
 #include "TH2D.h"
-#include <calobase/RawTowerGeomContainer.h>
 #include <phparameter/PHParameters.h>
 #include <globalvertex/GlobalVertex.h>
 class PHCompositeNode;
