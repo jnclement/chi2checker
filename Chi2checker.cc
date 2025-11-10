@@ -652,12 +652,14 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	      if(pmt->get_q() > 0.4)
 		{
 		  ++_mbdhit[i/64];
-		  _mbdavgt[i/64] += pmt->get_time();
+		  //_mbdavgt[i/64] += pmt->get_time();
 		}
 	    }
 	}
+      /*
       _mbdavgt[0]/=_mbdhit[0];
       _mbdavgt[1]/=_mbdhit[1];
+      */
     }
   else
     {
@@ -667,6 +669,17 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	  return Fun4AllReturnCodes::ABORTRUN;
 	}
     }
+
+  MbdOut * mbdout = static_cast<MbdOut*>(findNode::getClass<MbdOut>(topNode,"MbdOut"));
+  if(mbdout){
+    //m_mbd_t0 = mbdout->get_t0();
+    _mbdavgt[1] = mbdout->get_time(0); // south side
+    _mbdavgt[0] = mbdout->get_time(1); // north side
+  }
+
+  if(std::isnan(_mbdavgt[0])) _mbdavgt[0] = -9999;
+  if(std::isnan(_mbdavgt[1])) _mbdavgt[1] = -9999;
+  
 
   
   _maxTowE = 0;
@@ -1069,10 +1082,10 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	  return Fun4AllReturnCodes::ABORTRUN;
 	}
       
-      _bbfqavec |= (_cutParams.get_int_param("failsLeadtCut") & 1) << 4;
-      _bbfqavec |= (_cutParams.get_int_param("failsDeltatCut") & 1) << 3;
-      _bbfqavec |= (_cutParams.get_int_param("failsMbdDtCut") & 1) << 2;
-      _bbfqavec |= (_cutParams.get_int_param("failsAnyTimeCut") & 1) << 1;
+      _bbfqavec |= (_cutParams.get_int_param("passLeadtCut") & 1) << 4;
+      _bbfqavec |= (_cutParams.get_int_param("passDeltatCut") & 1) << 3;
+      _bbfqavec |= (_cutParams.get_int_param("passMbdDtCut") & 1) << 2;
+      _bbfqavec |= (_cutParams.get_int_param("failAnyTimeCut") & 1) << 1;
       //if(_bbfqavec) cout << "bbfqavec: " << _bbfqavec <<  " and >> 5: " << (_bbfqavec >> 5) << endl;
 	  //}
       _maxTowDiff = _maxTowE - _subTowE;

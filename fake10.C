@@ -5,7 +5,7 @@ void fake10(string filename, bool issim = false, string simstr = "dat") {
    gStyle->SetOptTitle(0);
    gStyle->SetOptDate(111);
   
-   TFile *f  = new TFile(filename.c_str());
+   TFile *f  = TFile::Open(filename.c_str(),"READ");
    TTree *outt = static_cast <TTree *> (f->Get("outt"));
 
    Int_t           passfrac;
@@ -330,7 +330,7 @@ void fake10(string filename, bool issim = false, string simstr = "dat") {
     hleadtimeYESMBDwdijetP->Draw("same");    
 
 
-    TFile* outf = new TFile(("hists_out_"+simstr+".root").c_str());
+    TFile* outf = TFile::Open(("hists_out_"+simstr+".root").c_str(),"RECREATE");
 
     outf->cd();
 

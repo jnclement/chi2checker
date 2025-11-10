@@ -558,7 +558,16 @@ int drawcalo(int lo, int hi, int dosave = 0, string listfilename = "chi2filesdat
   //TFile* evtfile = TFile::Open("../chi2/hadded_chi2file_20250902.root","READ");
   _dosave = dosave;
   TFile* outf;
-  if(dosave) outf = TFile::Open(("../savedhists/savedhists_20251020_"+to_string(lo)+"_"+to_string(hi)+".root").c_str(),"RECREATE");
+  string simtype = "jet10";
+  if(listfilename.find("jet30") != string::npos)
+    {
+      simtype = "jet30";
+    }
+  else if(listfilename.find("jet50") != string::npos)
+    {
+      simtype = "jet50";
+    }
+  if(dosave) outf = TFile::Open(("../savedhists/savedhists_20251108_"+to_string(lo)+"_"+to_string(hi)+"_"+(isdat?"dat":simtype)+".root").c_str(),"RECREATE");
   TTree* outt;
   if(dosave) outt = new TTree("outt","an output tree");
   if(dosave) outt->SetDirectory(outf);
@@ -629,6 +638,7 @@ int drawcalo(int lo, int hi, int dosave = 0, string listfilename = "chi2filesdat
   for(int i=0; i<lo; ++i)
     {
       std::getline(chi2list,tempinfilename);
+      cout << i << endl;
     }
   int counter = lo;
   while(std::getline(chi2list,tempinfilename))
@@ -640,6 +650,7 @@ int drawcalo(int lo, int hi, int dosave = 0, string listfilename = "chi2filesdat
 	  jet_tree->Add(tempinfilename.c_str());
 	  f->Close();
 	  delete f;
+	  cout << "File " << tempinfilename << " is good" << endl;
 	}
       else
 	{
@@ -647,9 +658,15 @@ int drawcalo(int lo, int hi, int dosave = 0, string listfilename = "chi2filesdat
 	    {
 	      f->Close();
 	      delete f;
+	      cout << "File " << tempinfilename << " is bad" << endl;
+	    }
+	  else
+	    {
+	      cout << "File " << tempinfilename << " does not exist???" << endl;
 	    }
 	}
       ++counter;
+      cout << counter << " " << jet_tree->GetEntries() << endl;
       if(counter >= hi)
 	{
 	  break;
@@ -817,7 +834,7 @@ int drawcalo(int lo, int hi, int dosave = 0, string listfilename = "chi2filesdat
 	      float newz = jetz + zvtx;
 	      float newtheta = atan2(radius,newz);
 	      float neweta = -log(tan(0.5*newtheta));
-	      jetkin[j][1] = neweta;
+	      jetkin[j][1] = jet_eta[j];
 	      jetkin[j][2] = jet_phi[j];
 	      jetkin[j][3] = jet_e[j];
 	      jetkin[j][4] = jet_t[j];
