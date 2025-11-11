@@ -1,4 +1,4 @@
-void fake10(string filename, bool issim = false, string simstr = "dat") {
+int fake10(string filename, bool issim = false, string simstr = "dat") {
 
    gROOT->SetStyle("Plain");
    gStyle->SetOptStat(0);
@@ -50,6 +50,9 @@ void fake10(string filename, bool issim = false, string simstr = "dat") {
      hspectra[i]  = new TH1D(("hspectra"+to_string(i)+simstr).c_str(),fooname,nbins,binb);
    }
 
+   int npx = 0;
+   int ncx = 0;
+   int npd = 0;
    // no other cuts...
    TH1D *hleadtimeNOMBD = new TH1D(("hleadtimeNOMBD"+simstr).c_str(),"hleadtimeNOMBD",300,-30.0,30.0);
    TH1D *hleadtimeYESMBD = new TH1D(("hleadtimeYESMBD"+simstr).c_str(),"hleadtimeYESMBD",300,-30.0,30.0);   
@@ -160,6 +163,7 @@ void fake10(string filename, bool issim = false, string simstr = "dat") {
       if (jetkin[subleadingjetindex][3]/jetkin[leadingjetindex][3] > 0.3) DijetPartner = true;
 
       if (DijetPartner) {
+	++npx;
 	// Returns the difference in the range [-pi, pi]
 	double phi1 = jetkin[leadingjetindex][2];
 	double phi2 = jetkin[subleadingjetindex][2];
@@ -167,14 +171,26 @@ void fake10(string filename, bool issim = false, string simstr = "dat") {
 	double diff = fmod(phi2 - phi1 + TMath::Pi(), two_pi);
 	if (diff < 0) diff += two_pi;
 	double wrap_radians = diff - TMath::Pi();
-	if (!(wrap_radians > (3.0/4.0)*TMath::Pi())) DijetPartner = false;   // fails if not on opposite side 3pi/4
+	//if (!(wrap_radians > (3.0/4.0)*TMath::Pi())) DijetPartner = false;   // fails if not on opposite side 3pi/4
+	float dphi = fabs(phi1-phi2);
+	if(dphi > M_PI) dphi = 2*M_PI-dphi;
+	if(dphi < 3*M_PI/4) DijetPartner = false;
+	if(DijetPartner)
+	  {
+	    ++npd;
+	  }
+	else
+	  {
+	    ++ncx;
+	  }
       }
+
 
       // dijet timing cut
       if(!issim)
 	{
 	  double dijetTimediff = 17.6*jetkin[leadingjetindex][4] - 17.6*jetkin[subleadingjetindex][4];
-	  if (TMath::Abs(dijetTimediff) > 2.0) DijetPartner = false;
+	  if (TMath::Abs(dijetTimediff) > 3.0) DijetPartner = false;
 	}
       //========================
       // IF DijetPartner = true (then passed xJ cut, delta-phi cut, delta-t cut on pair!
@@ -243,7 +259,7 @@ void fake10(string filename, bool issim = false, string simstr = "dat") {
    gPad->SetTicks(1);
 
    TH1D *hratio[10];
-   for (int i=0;i<4;i++) {
+   for (int i=0;i<10;i++) {
      snprintf(fooname,100,"hratio%d",i);
      hratio[i]  = new TH1D(("hratio"+to_string(i)+simstr).c_str(),fooname,nbins,binb);
      hratio[i]->SetLineColor(icolor[i]);
@@ -346,5 +362,9 @@ void fake10(string filename, bool issim = false, string simstr = "dat") {
 	hspectra[i]->Write();
 	if(i<10) hratio[i]->Write();
       }
-    
+
+    outf->Write();
+    outf->Close();
+    cout << npx << " " << ncx << " " << npd << endl;
+    return 0;
 }
