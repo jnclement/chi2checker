@@ -1,6 +1,8 @@
-int fake10(string filename, bool issim = false, string simstr = "dat") {
+int fake10(string filename, bool issim = false, bool dofrac = false, string simstr = "dat") {
 
-   gROOT->SetStyle("Plain");
+  if(dofrac) simstr += "frac";
+  
+  gROOT->SetStyle("Plain");
    gStyle->SetOptStat(0);
    gStyle->SetOptTitle(0);
    gStyle->SetOptDate(111);
@@ -60,7 +62,9 @@ int fake10(string filename, bool issim = false, string simstr = "dat") {
    TH1D *hleadtimeYESMBDwdijet = new TH1D(("hleadtimeYESMBDwdijet"+simstr).c_str(),"hleadtimeYESMBDwdijet",300,-30.0,30.0);   
    TH1D *hleadtimeNOMBDwdijetP = new TH1D(("hleadtimeNOMBDwdijetP"+simstr).c_str(),"hleadtimeNOMBDwdijetP",300,-30.0,30.0);
    TH1D *hleadtimeYESMBDwdijetP = new TH1D(("hleadtimeYESMBDwdijetP"+simstr).c_str(),"hleadtimeYESMBDwdijetP",300,-30.0,30.0);
-
+   TH3D* htdtmbdt = new TH3D(("htdtmbdt"+simstr).c_str(),";Jet t [ns];#Delta t [ns]; MBD - t_{lead} [ns];Counts",300,-30,30,300,-30,30,300,-30,30);
+   TH3D* hpttmbdt = new TH3D(("hpttmbdt"+simstr).c_str(),";p_{T}^{lead} [GeV];t_{lead} [ns];MBD - t_{lead} [ns]",60,0,60,300,-30,30,300,-30,30);
+   TH3D* hptdtmbdt = new TH3D(("hptdtmbdt"+simstr).c_str(),";p_{T}^{lead} [GeV];#Delta t [ns];MBD - t_{lead} [ns]",60,0,60,300,-30,30,300,-30,30);
    TH1D *hfracgood0 = new TH1D(("hfracgood0"+simstr).c_str(),"hfracgood0",100,-0.5,1.5);
    TH1D *hfracbad0 = new TH1D(("hfracbad0"+simstr).c_str(),"hfracbad0",100,-0.5,1.5);   
    
@@ -99,7 +103,7 @@ int fake10(string filename, bool issim = false, string simstr = "dat") {
       // check on (a) leading time status
       // check on (b) MBD hit status
 
-      bool PassLeadTime = false;
+      bool PassLeadTime = true;
       bool PassLeadTimeONLY = false;      
       bool MBDboth = true;
       bool MBDeither = false;
@@ -109,7 +113,7 @@ int fake10(string filename, bool issim = false, string simstr = "dat") {
 	  frac[leadingjetindex][1] < 0.10 || frac[leadingjetindex][1]>0.9) PassMinimalFrac = false;
 
       double jetleadtime = 17.6*(jetkin[leadingjetindex][4]);
-      if (TMath::Abs(jetleadtime + 2.0) < 6.0 || issim) PassLeadTime = true;
+      //if (TMath::Abs(jetleadtime + 2.0) < 6.0 || issim) PassLeadTime = true;
       if (TMath::Abs(jetleadtime + 2.0) < 6.0 || issim) PassLeadTimeONLY = true;      
       hleadtimeNOMBD->Fill(jetleadtime);
       
@@ -138,16 +142,16 @@ int fake10(string filename, bool issim = false, string simstr = "dat") {
       }
 
       jetleadtimeMBD = mbdoffset + mbdtime - 17.6*jetkin[leadingjetindex][4];
-      if (TMath::Abs(jetleadtimeMBD) > 2.5 && !issim) PassLeadTime = false;
+      if (TMath::Abs(jetleadtimeMBD) > 3.0 && !issim /*&& mbdtime > -99*/) PassLeadTime = false;
       hleadtimeYESMBD->Fill(jetleadtimeMBD);
 
       if (zvtx == 0) MBDboth = false;
 
       // jet pT spectra - no cuts, with time requirement, with MBD requirements
-      hspectra[0]->Fill(jetkin[leadingjetindex][0]);   //  raw
-      if (PassLeadTime) hspectra[1]->Fill(jetkin[leadingjetindex][0]);   //  lead time cut
+      //hspectra[0]->Fill(jetkin[leadingjetindex][0]);   //  raw
+      //if (PassLeadTime) hspectra[1]->Fill(jetkin[leadingjetindex][0]);   //  lead time cut
       //      if (PassLeadTime && MBDeither) hspectra[2]->Fill(jetkin[leadingjetindex][0]);   //  lead time cut
-      if (PassLeadTime && MBDboth) hspectra[3]->Fill(jetkin[leadingjetindex][0]);   //  lead time cut            
+      //if (PassLeadTime && MBDboth) hspectra[3]->Fill(jetkin[leadingjetindex][0]);   //  lead time cut            
 
       // now is there a dijet partner (what requirements do we want to apply....)
 
@@ -160,7 +164,12 @@ int fake10(string filename, bool issim = false, string simstr = "dat") {
       }
       // minimum subleading jet, xJ > 0.3 (energy)
       bool DijetPartner = false;
-      if (jetkin[subleadingjetindex][3]/jetkin[leadingjetindex][3] > 0.3) DijetPartner = true;
+      bool DijetAndt = false;
+      if (jetkin[subleadingjetindex][3]/jetkin[leadingjetindex][3] > 0.3)
+	{
+	  DijetPartner = true;
+	  DijetAndt = true;
+	}
 
       if (DijetPartner) {
 	++npx;
@@ -174,7 +183,11 @@ int fake10(string filename, bool issim = false, string simstr = "dat") {
 	//if (!(wrap_radians > (3.0/4.0)*TMath::Pi())) DijetPartner = false;   // fails if not on opposite side 3pi/4
 	float dphi = fabs(phi1-phi2);
 	if(dphi > M_PI) dphi = 2*M_PI-dphi;
-	if(dphi < 3*M_PI/4) DijetPartner = false;
+	if(dphi < 3*M_PI/4)
+	  {
+	    DijetAndt = false;
+	    DijetPartner = false;
+	  }
 	if(DijetPartner)
 	  {
 	    ++npd;
@@ -187,31 +200,44 @@ int fake10(string filename, bool issim = false, string simstr = "dat") {
 
 
       // dijet timing cut
+      double dijetTimediff = 17.6*jetkin[leadingjetindex][4] - 17.6*jetkin[subleadingjetindex][4];
       if(!issim)
 	{
-	  double dijetTimediff = 17.6*jetkin[leadingjetindex][4] - 17.6*jetkin[subleadingjetindex][4];
-	  if (TMath::Abs(dijetTimediff) > 3.0) DijetPartner = false;
+
+	  if (TMath::Abs(dijetTimediff) > 3.0) DijetAndt = false;
 	}
+
+      htdtmbdt->Fill(jetleadtime,dijetTimediff,jetleadtimeMBD);
+      hpttmbdt->Fill(jetkin[leadingjetindex][0],jetleadtime,jetleadtimeMBD);
+      if(DijetPartner) hptdtmbdt->Fill(jetkin[leadingjetindex][0],dijetTimediff,jetleadtimeMBD);
       //========================
       // IF DijetPartner = true (then passed xJ cut, delta-phi cut, delta-t cut on pair!
       //========================      
 
-      if (DijetPartner) {
+      if (DijetAndt) {
 	hleadtimeNOMBDwdijet->Fill(jetleadtime);
 	hleadtimeYESMBDwdijet->Fill(jetleadtimeMBD);
 	if (PassLeadTimeONLY) hleadtimeNOMBDwdijetP->Fill(jetleadtime);
 	if (MBDeither && PassLeadTime) hleadtimeYESMBDwdijetP->Fill(jetleadtimeMBD);			
       }
-      
-      if (DijetPartner) hspectra[4]->Fill(jetkin[leadingjetindex][0]);
 
-      if (MBDboth && PassLeadTime) hspectra[6]->Fill(jetkin[leadingjetindex][0]);
-      if (MBDboth && PassLeadTime && DijetPartner) hspectra[7]->Fill(jetkin[leadingjetindex][0]);      
+      if(!dofrac || (dofrac && PassMinimalFrac))
+	{
+      if (MBDboth && PassLeadTime && DijetPartner && PassLeadTimeONLY) hspectra[6]->Fill(jetkin[leadingjetindex][0]);
+      if (MBDboth && PassLeadTime && DijetAndt) hspectra[5]->Fill(jetkin[leadingjetindex][0]);
+      if (MBDboth && PassLeadTime && PassLeadTimeONLY) hspectra[4]->Fill(jetkin[leadingjetindex][0]);
+      if (MBDboth && PassLeadTime && DijetPartner) hspectra[3]->Fill(jetkin[leadingjetindex][0]);
+      if (MBDboth && PassLeadTime && DijetPartner && PassMinimalFrac) hspectra[15]->Fill(jetkin[leadingjetindex][0]);
+      if (PassLeadTimeONLY && DijetAndt) hspectra[0]->Fill(jetkin[leadingjetindex][0]);
+      if (PassLeadTimeONLY && DijetAndt && PassLeadTime) hspectra[1]->Fill(jetkin[leadingjetindex][0]);
+      
+      if (MBDboth && PassLeadTime) hspectra[2]->Fill(jetkin[leadingjetindex][0]);
+      if (MBDboth && PassLeadTime && PassLeadTimeONLY && DijetAndt) hspectra[7]->Fill(jetkin[leadingjetindex][0]);      
 
       if (MBDboth && PassLeadTime && PassMinimalFrac) hspectra[16]->Fill(jetkin[leadingjetindex][0]);
-      if (MBDboth && PassLeadTime && PassMinimalFrac && DijetPartner) hspectra[17]->Fill(jetkin[leadingjetindex][0]);      
+      if (MBDboth && PassLeadTime && PassLeadTimeONLY && PassMinimalFrac && DijetAndt) hspectra[17]->Fill(jetkin[leadingjetindex][0]);      
       
-      if (DijetPartner && PassLeadTimeONLY) {
+      if (DijetAndt && PassLeadTimeONLY) {
 	hspectra[8]->Fill(jetkin[leadingjetindex][0]);
 	if (MBDboth) {
 	  hspectra[9]->Fill(jetkin[leadingjetindex][0]);
@@ -219,15 +245,41 @@ int fake10(string filename, bool issim = false, string simstr = "dat") {
 	} else {
 	  hfracbad0->Fill(frac[leadingjetindex][0]);
 	}
-      } 
+      }
 
-      if (DijetPartner && PassLeadTimeONLY && PassMinimalFrac) {
+      if(PassLeadTimeONLY)
+	{
+	  hspectra[10]->Fill(jetkin[leadingjetindex][0]);
+	  if(MBDboth)
+	    {
+	      hspectra[11]->Fill(jetkin[leadingjetindex][0]);
+	    }
+	  if(DijetAndt)
+	    {
+	      hspectra[12]->Fill(jetkin[leadingjetindex][0]);
+	    }
+	}
+
+      if(PassLeadTimeONLY && PassMinimalFrac)
+	{
+	  if(MBDboth)
+	    {
+	      hspectra[13]->Fill(jetkin[leadingjetindex][0]);
+	    }
+	  if(DijetAndt)
+	    {
+	      hspectra[14]->Fill(jetkin[leadingjetindex][0]);
+	    }
+	}
+      
+      if (DijetAndt && PassLeadTimeONLY && PassMinimalFrac) {
 	hspectra[18]->Fill(jetkin[leadingjetindex][0]);
 	if (MBDboth) {
 	  hspectra[19]->Fill(jetkin[leadingjetindex][0]);
 	} else {
 	}
-      } 
+      }
+	}
       
    } // end loop over events
 
@@ -346,7 +398,7 @@ int fake10(string filename, bool issim = false, string simstr = "dat") {
     hleadtimeYESMBDwdijetP->Draw("same");    
 
 
-    TFile* outf = TFile::Open(("hists_out_"+simstr+".root").c_str(),"RECREATE");
+    TFile* outf = TFile::Open(("hists_mbdtimereq_out_"+simstr+".root").c_str(),"RECREATE");
 
     outf->cd();
 
@@ -356,7 +408,9 @@ int fake10(string filename, bool issim = false, string simstr = "dat") {
     hleadtimeYESMBDwdijet->Write();
     hleadtimeNOMBDwdijetP->Write();
     hleadtimeYESMBDwdijetP->Write();
-
+    htdtmbdt->Write();
+    hpttmbdt->Write();
+    hptdtmbdt->Write();
     for(int i=0; i<20; ++i)
       {
 	hspectra[i]->Write();
