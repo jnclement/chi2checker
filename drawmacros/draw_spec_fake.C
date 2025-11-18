@@ -91,7 +91,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   line2->Draw();
 
   maintexts(0.8,0.625,0,0.03,1,0);
-  drawText("#Delta t cut applied",0.625,0.69,0,kBlack,0.03);
+  drawText("#Delta t \& t_{lead} cuts applied",0.625,0.69,0,kBlack,0.03);
   drawText("No reconstructed",0.625,0.65,0,kBlack,0.03);
   drawText("z_{vtx} requirement",0.625,0.61,0,kBlack,0.03);
   //drawText("Truth-reco matched jets",0.05,0.91,0,kBlack,0.03);
@@ -117,7 +117,7 @@ int draw_spec_fake(int lo = 45, int hi = 60)
 
   TFile* inf = TFile::Open("../hists_mbdtimereq_out_dat.root","READ");
 
-  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get("hptdtmbdtdat");
+  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get("hptdtmbdt_ltc_mbdbothdat");
 
   //h3_pt_lem_loh->GetZaxis()->SetTitle("t_{lead} [ns]");
 
@@ -163,9 +163,9 @@ int draw_spec_fake(int lo = 45, int hi = 60)
   */
   h2_t_dt->Draw("COLZ");
   box->Draw();
-  maintexts(0.7,0.4,0,0.04,1,0);
-  drawText(("Jets "+to_string(lo-1)+"<p_{T}^{uncalib}<"+to_string(hi)+" GeV").c_str(),0.4,0.75,0,kBlack,0.04);
-  drawText("No reconstructed z_{vtx} requirement",0.4,0.55,0,kBlack,0.04);
+  maintexts(0.7,0.3,0,0.04,1,0);
+  drawText(("Jets "+to_string(lo-1)+"<p_{T}^{uncalib}<"+to_string(hi)+" GeV").c_str(),0.3,0.75,0,kBlack,0.04);
+  drawText("No reconstructed z_{vtx} requirement",0.3,0.55,0,kBlack,0.04);
   can->SaveAs(("../../images/mbd/data_dt_mbdt_proj2d_"+to_string(lo-1)+"-"+to_string(hi)+".pdf").c_str());
   return 0;
 }

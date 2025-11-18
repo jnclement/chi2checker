@@ -80,7 +80,7 @@ int draw_fake(int toad = 0, int mbdtimereq = 0)
 
   TCanvas* c = new TCanvas("","",1000,1000);
   c->cd();
-  int todivide[13] = {0,0,2,2,2,2,2,2,8,8,10,10,10};
+  int todivide[13] = {0,0,2,2,2,0,6,6,8,8,10,10,10};
   for(int i=0; i<ntype; ++i)
     {
       for(int j=0; j<13; ++j)
@@ -90,7 +90,7 @@ int draw_fake(int toad = 0, int mbdtimereq = 0)
 	}
     }
   cout << "madeit" << endl;
-  string ytitles[13] = {"Should not be drawn","Dijet-dt \& t \& MBD-t / Dijet dt \& t","Should not be drawn","MBD-coinc \& MBD-t \& Dijet / MBD-coinc \& MBD-t","MBD-coinc \& MBD-t \& t / MBD-coinc \& MBD-t","MBD-coinc \& MBD-t \& Dijet-dt / MBD-coinc \& MBD-t","MBD-coinc \& MBD-t \& Dijet \& t / MBD-coinc \& MBD-t","MBD-coinc \& MBD-t \& Dijet-dt \& t / MBD-coinc \& MBD-t","Should not be drawn","Dijet-dt \& t \& MBD-coinc / Dijet-dt \& t","Should not be drawn","t \& MBD-coinc / t","t \& Dijet-dt / t"};
+  string ytitles[13] = {"Should not be drawn","Dijet-dt \& t \& MBD-t / Dijet dt \& t","Should not be drawn","MBD-coinc \& MBD-t \& Dijet dt \& t / MBD-coinc \& Dijet dt \& t","MBD-coinc \& MBD-t \& t \& Dijet dt / MBD-coinc \& Dijet dt \& t","Dijet-dt \& t \& MBD-t / Dijet dt \& t","MBD-coinc \& MBD-t \& Dijet \& t / MBD-coinc \& MBD-t","MBD-coinc \& MBD-t \& Dijet-dt \& t / MBD-coinc \& MBD-t","Should not be drawn","Dijet-dt \& t \& MBD-coinc / Dijet-dt \& t","Should not be drawn","t \& MBD-coinc / t","t \& Dijet-dt / t"};
   TLegend *tleg = new TLegend(0.11,0.13,0.23,0.23,"","brNDC");
   tleg->SetLineWidth(0);
   tleg->SetFillStyle(0);
@@ -98,7 +98,7 @@ int draw_fake(int toad = 0, int mbdtimereq = 0)
   int colors[2] = {kSpring+2,kMagenta+2};
   for(int j=0; j<13; ++j)
     {
-      if(j==0 || j==2 || j==8 || j==10) continue;
+      if(j==0 || j==2 || j==8 || j==6 || j==10) continue;
       for(int i=0; i<ntype; ++i)
 	{
 	  cout << i << " " << j << endl;
@@ -115,10 +115,10 @@ int draw_fake(int toad = 0, int mbdtimereq = 0)
 	      tleg->AddEntry(hratio[1][1],"Sim","p");
 	    }
 	  if(i==0) hratio[i][j]->Draw("PE");
-	  else if(j!=1) hratio[i][j]->Draw("SAME PE");
+	  //else if(j!=1) hratio[i][j]->Draw("SAME PE");
 
 	}
-      if(j!=1) tleg->Draw();
+      //if(j!=1) tleg->Draw();
       c->SaveAs(("ratios"+mbdtimereqstr+"_"+toadstr+to_string(j)+".pdf").c_str());
     }
   
