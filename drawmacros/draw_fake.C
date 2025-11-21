@@ -25,7 +25,9 @@ int draw_fake(int toad = 0, int mbdtimereq = 0)
   TH1D* hleadtimeNOMBDwdijetP[ntype];
   TH1D* hleadtimeYESMBDwdijetP[ntype];
   TH1D* hratio[ntype][13];
-
+  TH1D* hfrac[2];
+  hfrac[0] = (TH1D*)(f[0]->Get(("hfracgood0dat")));
+  hfrac[1] = (TH1D*)(f[0]->Get(("hfracbad0dat")));
   float scfs[3] = {3.997e6/7.2695,2.502e3/7.2695,1};
   
   for(int i=0; i<4; ++i)
@@ -148,5 +150,15 @@ int draw_fake(int toad = 0, int mbdtimereq = 0)
 
   c->SaveAs("mbdt.pdf");
   cout << (projz->Integral(1,135) + projz->Integral(166,300))/projz->Integral(1,300) << endl;
+
+  hfrac[1]->Divide(hfrac[1],hfrac[0],1,1,"B");
+  hfrac[1]->SetMarkerStyle(20);
+  hfrac[1]->SetMarkerSize(1);
+  hfrac[1]->SetLineColor(kRed);
+  hfrac[1]->GetYaxis()->SetTitle("Fraction in Negative Side Tail");
+  hfrac[1]->GetXaxis()->SetTitle("Run Number");
+  hfrac[1]->Draw("PE");
+  hfrac[1]->GetYaxis()->SetTitleOffset(1.5);
+  c->SaveAs("frachist.pdf");
   return 0;
 }

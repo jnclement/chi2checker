@@ -108,33 +108,35 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
 }
 
 
-int draw_spec_fake(int lo = 45, int hi = 60)
+int draw_spec_fake(int mbdint = 0, int lo = 46, int hi = 60)
 {
   gStyle->SetPadTickX(1);
   gStyle->SetPadTickY(1);
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
+  string mbdstr = "";
+  if(mbdint==1) mbdstr = "_mbdboth";
+  if(mbdint==2) mbdstr = "_mbdeither";
+  TFile* inf = TFile::Open("../hists_mbdtimereq_out_datsam.root","READ");
 
-  TFile* inf = TFile::Open("../hists_mbdtimereq_out_dat.root","READ");
-
-  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get("hptdtmbdt_ltc_mbdbothdat");
+  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get(("hpttmbdt_dtc"+mbdstr+"dat").c_str());
 
   //h3_pt_lem_loh->GetZaxis()->SetTitle("t_{lead} [ns]");
-
-  std::vector<vector<int>> ybounds = {{16,30},{31,45},{46,60}};
-  std::vector<vector<int>> zbounds = {{136,165},{136,165},{136,165}};
+  //136,165
+  std::vector<vector<int>> ybounds = {{11,20},{21,40},{41,60}};
+  std::vector<vector<int>> zbounds = {{126,175},{126,175},{126,175}};
   std::vector<int> axis = {1,1,1};
   std::vector<int> colors = {kAzure,kOrange,kMagenta};//, kAzure};//, kViolet, kOrange, kGray};
   std::vector<int> markers = {21,20,71};//, 21};//, 71, 72, 88};
-  std::vector<string> numlabels = {"Jets 15<p_{T}^{uncalib}<30 GeV","Jets 30<p_{T}^{uncalib}<45 GeV","Jets 45<p_{T}^{uncalib}<60 GeV"};//"EM fraction < 0.9 only","EM fraction > 0.1 only","OH fraction < 0.9 only","OH Fraction > 0.1 only","EM frac <0.9 && OH frac > 0.1"};
+  std::vector<string> numlabels = {"Jets 10<p_{T}^{uncalib}<20 GeV","Jets 20<p_{T}^{uncalib}<40 GeV","Jets 40<p_{T}^{uncalib}<60 GeV"};//"EM fraction < 0.9 only","EM fraction > 0.1 only","OH fraction < 0.9 only","OH Fraction > 0.1 only","EM frac <0.9 && OH frac > 0.1"};
 
-  drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"../../images/mbd/data_dt_proj1d.pdf","",{-3,3});//,"dN_{jet}/d#Delta t_{l,sl} [ns^{-1}]");
+  drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"../../images/mbd/data_t_proj1d"+mbdstr+".pdf","",{-8,4});//,"dN_{jet}/d#Delta t_{l,sl} [ns^{-1}]");
 
   axis.at(0) = 2;
   axis.at(1) = 2;
   axis.at(2) = 2;
   
-  drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"../../images/mbd/data_mbdt_proj1d.pdf","",{-3,3});
+  drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"../../images/mbd/data_mbdt_proj1d"+mbdstr+".pdf","",{-10,10});
 
 
   TCanvas* can = new TCanvas("","",1500,1500);
@@ -166,6 +168,6 @@ int draw_spec_fake(int lo = 45, int hi = 60)
   maintexts(0.7,0.3,0,0.04,1,0);
   drawText(("Jets "+to_string(lo-1)+"<p_{T}^{uncalib}<"+to_string(hi)+" GeV").c_str(),0.3,0.75,0,kBlack,0.04);
   drawText("No reconstructed z_{vtx} requirement",0.3,0.55,0,kBlack,0.04);
-  can->SaveAs(("../../images/mbd/data_dt_mbdt_proj2d_"+to_string(lo-1)+"-"+to_string(hi)+".pdf").c_str());
+  can->SaveAs(("../../images/mbd/data_dt_mbdt_proj2d_"+to_string(lo-1)+"-"+to_string(hi)+mbdstr+".pdf").c_str());
   return 0;
 }

@@ -1,4 +1,4 @@
-int fake10(string filename, bool issim = false, bool dofrac = false, string simstr = "dat") {
+int fake10(string filename, bool issim = false, bool dofrac = false, string simstr = "dat", bool samtime = false) {
 
   if(dofrac) simstr += "frac";
   
@@ -6,7 +6,17 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
    gStyle->SetOptStat(0);
    gStyle->SetOptTitle(0);
    gStyle->SetOptDate(111);
-  
+   std::map<int, float> rntmap = {};
+
+   ifstream file = ifstream("/sphenix/user/samfred/projects/mbdt0/histmaking/MbdPmt.corr");
+   string line;
+   while (getline(file,line)) {
+     int irunnum;
+     float t0;
+     istringstream iss(line);
+     iss >> irunnum >> t0;
+     rntmap[irunnum] = t0;
+   }
    TFile *f  = TFile::Open(filename.c_str(),"READ");
    TTree *outt = static_cast <TTree *> (f->Get("outt"));
 
@@ -65,15 +75,25 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
    TH3D* htdtmbdt = new TH3D(("htdtmbdt"+simstr).c_str(),";Jet t [ns];#Delta t [ns]; MBD - t_{lead} [ns];Counts",300,-30,30,300,-30,30,300,-30,30);
    TH3D* hpttmbdt = new TH3D(("hpttmbdt"+simstr).c_str(),";p_{T}^{lead} [GeV];t_{lead} [ns];MBD - t_{lead} [ns]",60,0,60,300,-30,30,300,-30,30);
    TH3D* hptdtmbdt = new TH3D(("hptdtmbdt"+simstr).c_str(),";p_{T}^{lead} [GeV];#Delta t [ns];MBD - t_{lead} [ns]",60,0,60,300,-30,30,300,-30,30);
+   TH3D* hptdtmbdt2 = new TH3D(("hptdtmbdt2"+simstr).c_str(),";p_{T}^{lead} [GeV];#Delta t [ns];MBD t (offset corrected) [ns]",60,0,60,300,-30,30,300,-30,30);
 
    TH3D* hpttmbdt_dtc = new TH3D(("hpttmbdt_dtc"+simstr).c_str(),";p_{T}^{lead} [GeV];t_{lead} [ns];MBD - t_{lead} [ns]",60,0,60,300,-30,30,300,-30,30);
    TH3D* hptdtmbdt_ltc = new TH3D(("hptdtmbdt_ltc"+simstr).c_str(),";p_{T}^{lead} [GeV];#Delta t [ns];MBD - t_{lead} [ns]",60,0,60,300,-30,30,300,-30,30);
 
    TH3D* hpttmbdt_dtc_mbdboth = new TH3D(("hpttmbdt_dtc_mbdboth"+simstr).c_str(),";p_{T}^{lead} [GeV];t_{lead} [ns];MBD - t_{lead} [ns]",60,0,60,300,-30,30,300,-30,30);
    TH3D* hptdtmbdt_ltc_mbdboth = new TH3D(("hptdtmbdt_ltc_mbdboth"+simstr).c_str(),";p_{T}^{lead} [GeV];#Delta t [ns];MBD - t_{lead} [ns]",60,0,60,300,-30,30,300,-30,30);
+   TH3D* hptdtmbdt_ltc_mbdboth2 = new TH3D(("hptdtmbdt_ltc_mbdboth2"+simstr).c_str(),";p_{T}^{lead} [GeV];#Delta t [ns];MBD t (offset corrected) [ns]",60,0,60,300,-30,30,300,-30,30);
+
+   TH3D* hpttmbdt_dtc_mbdeither = new TH3D(("hpttmbdt_dtc_mbdeither"+simstr).c_str(),";p_{T}^{lead} [GeV];t_{lead} [ns];MBD - t_{lead} [ns]",60,0,60,300,-30,30,300,-30,30);
+   TH3D* hptdtmbdt_ltc_mbdeither = new TH3D(("hptdtmbdt_ltc_mbdeither"+simstr).c_str(),";p_{T}^{lead} [GeV];#Delta t [ns];MBD - t_{lead} [ns]",60,0,60,300,-30,30,300,-30,30);
+   TH3D* hptdtmbdt_ltc_mbdeither2 = new TH3D(("hptdtmbdt_ltc_mbdeither2"+simstr).c_str(),";p_{T}^{lead} [GeV];#Delta t [ns];MBD t (offset corrected) [ns]",60,0,60,300,-30,30,300,-30,30);
    
-   TH1D *hfracgood0 = new TH1D(("hfracgood0"+simstr).c_str(),"hfracgood0",100,-0.5,1.5);
-   TH1D *hfracbad0 = new TH1D(("hfracbad0"+simstr).c_str(),"hfracbad0",100,-0.5,1.5);   
+   TH1D *hfracgood0 = new TH1D(("hfracgood0"+simstr).c_str(),"hfracgood0",6576,47288.5,53864.5);
+   TH1D *hfracbad0 = new TH1D(("hfracbad0"+simstr).c_str(),"hfracbad0",6576,47288.5,53864.5);
+
+   TH2D *hrnt = new TH2D(("hrnt"+simstr).c_str(),";Run Number;MBD Time (No Offset Correction) [ns]",6576,47288.5,53864.5,300,-30,30);
+   TH2D *hrnto = new TH2D(("hrnto"+simstr).c_str(),";Run Number;MBD Time (Offset Corrected) [ns]",6576,47288.5,53864.5,300,-30,30);
+   TH2D *hrntj = new TH2D(("hrntj"+simstr).c_str(),";Run Number;MBD - t_{lead} [ns]",6576,47288.5,53864.5,300,-30,30);
    
    //=========================================================
    // LOOP OVER EVENTS
@@ -138,6 +158,8 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
       if (run > 48600 && run < 49375) mbdoffset += -7.5;
       if (run > 48180 && run < 48270) mbdoffset += -7.5;
       if (run > 48050 && run < 48090) mbdoffset += -7.5;
+      if(rntmap.count(run) && samtime) mbdoffset = -rntmap[run];
+      else if(samtime && !rntmap.count(run)) continue;
 
       if (avgt[0] > -99 && avgt[1] < -99) mbdtime = avgt[0];
       if (avgt[0] < -99 && avgt[1] > -99) mbdtime = avgt[1];
@@ -150,7 +172,9 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 
       jetleadtimeMBD = mbdoffset + mbdtime - 17.6*jetkin[leadingjetindex][4];
       bool PassLeadTimeWIDE = true;
+      bool inTailLeadTime = false;
       if (TMath::Abs(jetleadtimeMBD) > 3.0 && !issim /*&& mbdtime > -99*/) PassLeadTime = false;
+      if (jetleadtimeMBD < -3.0 && jetleadtimeMBD > -30.0) inTailLeadTime = true;
       if (TMath::Abs(jetleadtimeMBD) > 10.0 && !issim /*&& mbdtime > -99*/) PassLeadTimeWIDE = false;
       hleadtimeYESMBD->Fill(jetleadtimeMBD);
 
@@ -219,12 +243,26 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
       htdtmbdt->Fill(jetleadtime,dijetTimediff,jetleadtimeMBD);
       hpttmbdt->Fill(jetkin[leadingjetindex][0],jetleadtime,jetleadtimeMBD);
       if(DijetAndt) hpttmbdt_dtc->Fill(jetkin[leadingjetindex][0],jetleadtime,jetleadtimeMBD);
-      if(DijetAndt & MBDboth) hpttmbdt_dtc_mbdboth->Fill(jetkin[leadingjetindex][0],jetleadtime,jetleadtimeMBD);
+      if(DijetAndt && MBDboth) hpttmbdt_dtc_mbdboth->Fill(jetkin[leadingjetindex][0],jetleadtime,jetleadtimeMBD);
+      if(DijetAndt && !MBDboth && MBDeither) hpttmbdt_dtc_mbdeither->Fill(jetkin[leadingjetindex][0],jetleadtime,jetleadtimeMBD);
       if(DijetPartner)
 	{
 	  hptdtmbdt->Fill(jetkin[leadingjetindex][0],dijetTimediff,jetleadtimeMBD);
-	  if(PassLeadTimeONLY) hptdtmbdt_ltc->Fill(jetkin[leadingjetindex][0],dijetTimediff,jetleadtimeMBD);
-	  if(PassLeadTimeONLY && MBDboth) hptdtmbdt_ltc_mbdboth->Fill(jetkin[leadingjetindex][0],dijetTimediff,jetleadtimeMBD);
+	  if(PassLeadTimeONLY)
+	    {
+	      hptdtmbdt_ltc->Fill(jetkin[leadingjetindex][0],dijetTimediff,jetleadtimeMBD);
+	      hptdtmbdt2->Fill(jetkin[leadingjetindex][0],dijetTimediff,mbdtime+mbdoffset);
+	    }
+	  if(PassLeadTimeONLY && MBDboth)
+	    {
+	      hptdtmbdt_ltc_mbdboth->Fill(jetkin[leadingjetindex][0],dijetTimediff,jetleadtimeMBD);
+	      hptdtmbdt_ltc_mbdboth2->Fill(jetkin[leadingjetindex][0],dijetTimediff,mbdtime+mbdoffset);
+	    }
+	  if(PassLeadTimeONLY && !MBDboth && MBDeither)
+	    {
+	      hptdtmbdt_ltc_mbdeither->Fill(jetkin[leadingjetindex][0],dijetTimediff,jetleadtimeMBD);
+	      hptdtmbdt_ltc_mbdeither2->Fill(jetkin[leadingjetindex][0],dijetTimediff,mbdtime+mbdoffset);
+	    }
 	}
       //========================
       // IF DijetPartner = true (then passed xJ cut, delta-phi cut, delta-t cut on pair!
@@ -242,9 +280,9 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 	  
       if (MBDboth && PassLeadTime && DijetPartner && PassMinimalFrac) hspectra[15]->Fill(jetkin[leadingjetindex][0]);
       
-      if (PassLeadTimeONLY && DijetAndt && PassLeadTimeWIDE) hspectra[5]->Fill(jetkin[leadingjetindex][0]);
-      if (PassLeadTimeONLY && DijetAndt && PassLeadTime) hspectra[1]->Fill(jetkin[leadingjetindex][0]);
-      if (PassLeadTimeONLY && DijetAndt) hspectra[0]->Fill(jetkin[leadingjetindex][0]);
+      if (MBDeither && !MBDboth && PassLeadTimeONLY && DijetAndt && PassLeadTimeWIDE) hspectra[5]->Fill(jetkin[leadingjetindex][0]);
+      if (MBDeither && !MBDboth && PassLeadTimeONLY && DijetAndt && PassLeadTime) hspectra[1]->Fill(jetkin[leadingjetindex][0]);
+      if (MBDeither && !MBDboth && PassLeadTimeONLY && DijetAndt) hspectra[0]->Fill(jetkin[leadingjetindex][0]);
       
       if (MBDboth && PassLeadTimeWIDE && DijetAndt && PassLeadTimeONLY) hspectra[4]->Fill(jetkin[leadingjetindex][0]);
       if (MBDboth && PassLeadTime && DijetAndt && PassLeadTimeONLY) hspectra[3]->Fill(jetkin[leadingjetindex][0]);
@@ -260,11 +298,13 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
       
       if (DijetAndt && PassLeadTimeONLY) {
 	hspectra[8]->Fill(jetkin[leadingjetindex][0]);
+	hfracgood0->Fill(run);
+	hrnt->Fill(run,mbdtime);
+	hrnto->Fill(run,mbdtime+mbdoffset);
+	hrntj->Fill(run,jetleadtimeMBD);
+	if(inTailLeadTime) hfracbad0->Fill(run);
 	if (MBDboth) {
 	  hspectra[9]->Fill(jetkin[leadingjetindex][0]);
-	  hfracgood0->Fill(frac[leadingjetindex][0]);
-	} else {
-	  hfracbad0->Fill(frac[leadingjetindex][0]);
 	}
       }
 
@@ -419,7 +459,7 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
     hleadtimeYESMBDwdijetP->Draw("same");    
 
 
-    TFile* outf = TFile::Open(("hists_mbdtimereq_out_"+simstr+".root").c_str(),"RECREATE");
+    TFile* outf = TFile::Open(("hists_mbdtimereq_out_"+simstr+(samtime?"sam":"")+".root").c_str(),"RECREATE");
 
     outf->cd();
 
@@ -432,12 +472,22 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
     htdtmbdt->Write();
     hpttmbdt->Write();
     hptdtmbdt->Write();
+    hptdtmbdt2->Write();
 
     hpttmbdt_dtc->Write();
     hptdtmbdt_ltc->Write();
 
     hpttmbdt_dtc_mbdboth->Write();
     hptdtmbdt_ltc_mbdboth->Write();
+    hptdtmbdt_ltc_mbdboth2->Write();
+    hpttmbdt_dtc_mbdeither->Write();
+    hptdtmbdt_ltc_mbdeither->Write();
+    hptdtmbdt_ltc_mbdeither2->Write();
+    hfracgood0->Write();
+    hfracbad0->Write();
+    hrnt->Write();
+    hrnto->Write();
+    hrntj->Write();
     for(int i=0; i<20; ++i)
       {
 	hspectra[i]->Write();
