@@ -13,10 +13,12 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   std::vector<TH1D*> outs1 = {};
   TH1D* den1;
 
-  if(axis==0) den1 = hist3->ProjectionX((string(hist3->GetName())+"_den").c_str(),0,-1,0,-1,"e");
+  if(axis==0) den1 = hist3->ProjectionX((string(hist3->GetName())+"_den").c_str(),1,hist3->GetYaxis()->GetNbins(),1,hist3->GetZaxis()->GetNbins(),"e");
   if(axis==1) den1 = hist3->ProjectionX((string(hist3->GetName())+"_den").c_str(),0,-1,0,-1,"e");
   if(axis==2) den1 = hist3->ProjectionX((string(hist3->GetName())+"_den").c_str(),0,-1,0,-1,"e");
 
+  TH1D* temph = hist3->ProjectionX((string(hist3->GetName())+"_temph").c_str(),ybounds.at(0).at(0),ybounds.at(0).at(1),1,hist3->GetZaxis()->GetNbins(),"e");
+  temph->Rebin(2);
   den1->Rebin(2);
   
   for(int i=0; i<ybounds.size(); ++i)
@@ -38,12 +40,12 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
       if(axis==1) ybins = hist3->GetNbinsZ();
       if(axis==2) ybins = hist3->GetNbinsY();
 
-      if(axis==0) outs1.push_back(hist3->ProjectionX((string(hist3->GetName())+"_outside").c_str(),0,-1,0,-1,"e"));
+      if(axis==0) outs1.push_back(hist3->ProjectionX((string(hist3->GetName())+"_outside").c_str(),1,hist3->GetYaxis()->GetNbins(),1,hist3->GetZaxis()->GetNbins(),"e"));
       if(axis==1) outs1.push_back(hist3->ProjectionY((string(hist3->GetName())+"_outside").c_str(),0,-1,0,-1,"e"));
       if(axis==2) outs1.push_back(hist3->ProjectionZ((string(hist3->GetName())+"_outside").c_str(),0,-1,0,-1,"e"));
 
       outs1.at(i)->Add(nums1.at(i),-1);
-      outs1.at(i)->Scale(1./53.5);
+      outs1.at(i)->Scale(120./900.);
     }
 
   std::vector<TH1D*> effs1 = {};
@@ -59,10 +61,10 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   TCanvas* can = new TCanvas("","",1500,1500);
   if(!_singlespec) ratioPanelCanvas(can,0.3);
   can->cd(_singlespec?1:0);
-  gPad->SetTopMargin(0.1);
+  gPad->SetTopMargin(0.05);
   gPad->SetRightMargin(0.05);
   gPad->SetLogy();
-  TLegend* leg = new TLegend(_singlespec?0.5:0.25,_singlespec?0.35:0.7,_singlespec?0.83:0.93,_singlespec?0.7:0.9);
+  TLegend* leg = new TLegend(_singlespec?0.5:0.25,_singlespec?0.35:0.7,_singlespec?0.83:0.93,_singlespec?0.6:0.9);
   leg->SetFillStyle(0);
   leg->SetLineWidth(0);
   leg->SetNColumns(2);
@@ -72,7 +74,16 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   den1->SetLineWidth(2);
   den1->SetMarkerStyle(20);
   den1->SetMarkerSize(2);
-  leg->AddEntry(den1,"#splitline{Dijet cut only}{(jets + background)}","p");
+  leg->AddEntry(den1,"#splitline{MBD time required only}{(jets + background)}","p");
+
+  temph->SetMarkerColor(kGreen+2);
+  temph->SetLineColor(kGreen+2);
+  temph->SetLineWidth(2);
+  temph->SetMarkerStyle(20);
+  temph->SetMarkerSize(2);
+  leg->AddEntry(temph,"-8 ns<t_{lead}<4 ns only","p");
+
+  
   den1->GetXaxis()->SetTitle("Uncalibrated p_{T}^{jet} [GeV]");
   //den1->Scale(1./100);
   std::vector<TH1D*> subs1 = {};
@@ -113,8 +124,8 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   den1->GetYaxis()->SetTitle("Counts");
   den1->GetYaxis()->SetTitleOffset(_singlespec?1.2:1.5);
   effs1.at(0)->GetXaxis()->SetTitle("Uncalibrated p_{T}^{jet} [GeV]");
-  den1->GetXaxis()->SetRangeUser(10,100);
-  den1->GetYaxis()->SetRangeUser(_singlespec?0.02:0.05001,den1->GetMaximum()*2);
+  den1->GetXaxis()->SetRangeUser(10,60);
+  den1->GetYaxis()->SetRangeUser(_singlespec?0.02:5,den1->GetMaximum()*2);
   den1->Draw("PE");
   leg->Draw();
   if(!_singlespec)
@@ -125,7 +136,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
 	  outs1.at(i)->Draw("SAME PE");
 	  subs1.at(i)->Draw("SAME PE");
 	}
-
+      temph->Draw("SAME PE");
       /*
       can->cd(2);
       for(int i=0; i<effs1.size(); ++i)
@@ -146,7 +157,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
 
   maintexts(_singlespec?0.75:0.67,0.5,0,0.03,1,0);
   //drawText("Jet30,50,70 PYTHIA",0.6,0.87,0,kBlack,0.03);
-  drawText("No reconstructed z_{vtx} requirement",0.5,_singlespec?0.65:0.57,0,kBlack,0.03);
+  //drawText("No reconstructed z_{vtx} requirement",0.5,_singlespec?0.65:0.47,0,kBlack,0.03);
   //drawText("Truth-reco matched jets",0.05,0.91,0,kBlack,0.03);
 
   can->SaveAs(title.c_str());
@@ -158,7 +169,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
 }
 
 
-int draw_timingcut(int singlespec = 0)
+int draw_timingcut_fake(int singlespec = 0)
 {
   _singlespec = singlespec;
   gStyle->SetPadTickX(1);
@@ -168,17 +179,17 @@ int draw_timingcut(int singlespec = 0)
 
   TFile* inf = TFile::Open("../hists_mbdtimereq_out_datsam.root","READ");
 
-  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get("hpttdtdat");
+  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get("hpttmbdtdat");
   //TH3D* h3_tpt_lem_loh = (TH3D*)inf->Get("simh3_apt_dtem_dtoh_both");
 
   std::vector<vector<int>> ybounds = {{111,170}};
-  std::vector<vector<int>> zbounds = {{136,165}};
+  std::vector<vector<int>> zbounds = {{126,175}};
   int axis = 0;
   std::vector<int> colors = {kAzure};
   std::vector<int> markers = {20};
-  std::vector<string> numlabels = {"-8 ns<t_{lead}<4 ns && |#Delta t|<3 ns"};
+  std::vector<string> numlabels = {"-8 ns<t_{lead}<4 ns && |t_{MBD}-t_{lead}|<5 ns"};
 
-  drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"../../images/dnp/timing_cut_"+to_string(singlespec)+".pdf");
+  drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"../../images/dnp/timing_cut_fake_"+to_string(singlespec)+".pdf");
   
   return 0;
 }
