@@ -87,7 +87,12 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
    TH3D* htdtmbdt = new TH3D(("htdtmbdt"+simstr).c_str(),";Jet t [ns];#Delta t [ns]; MBD - t_{lead} [ns]",300,-30,30,300,-30,30,300,-30,30);
 
    TH3D* hptdtfrac = new TH3D(("hptdtfrac"+simstr).c_str(),";Uncalibrated p_{T}^{leadjet} [GeV];#Delta-t [ns];Lead Jet Energy Fraction in OHCal",100,0,100,200,-10,10,120,-0.1,1.1);
-   TH3D* hpttfrac = new TH3D(("hpttfrac"+simstr).c_str(),";Uncalibrated p_{T}^{leadjet} [GeV];t_{lead} [ns];Lead Jet Energy Fraction in OHCal",100,0,100,400,-20,20,120,-0.1,1.1);
+   TH3D* hpttfrac = new TH3D(("hpttfrac"+simstr).c_str(),";Uncalibrated p_{T}^{leadjet} [GeV];t_{lead} [ns];Lead Jet Energy Fraction in OHCal",100,0,100,200,-10,10,120,-0.1,1.1);
+   TH3D* hptdtemfrac = new TH3D(("hptdtemfrac"+simstr).c_str(),";#Delta-t [ns];t_{lead} [ns];Lead Jet Energy Fraction in EMCal",100,0,100,200,-10,10,120,-0.1,1.1);
+   TH3D* hptdtohfrac = new TH3D(("hptdtohfrac"+simstr).c_str(),";#Delta-t [ns];t_{lead} [ns];Lead Jet Energy Fraction in OHCal",100,0,100,200,-10,10,120,-0.1,1.1);
+
+   TH3D* hptdtemfrac_all = new TH3D(("hptdtemfrac_all"+simstr).c_str(),";#Delta-t [ns];t_{lead} [ns];Lead Jet Energy Fraction in EMCal",100,0,100,200,-10,10,120,-0.1,1.1);
+   TH3D* hptdtohfrac_all = new TH3D(("hptdtohfrac_all"+simstr).c_str(),";#Delta-t [ns];t_{lead} [ns];Lead Jet Energy Fraction in OHCal",100,0,100,200,-10,10,120,-0.1,1.1);
    
    TH3D* hpttdt = new TH3D(("hpttdt"+simstr).c_str(),";Uncalibrated p_{T}^{jet} [GeV];Jet t [ns];#Delta t [ns]",100,0,100,600,-30,30,600,-30,30);
    TH3D* hpttmbdt = new TH3D(("hpttmbdt"+simstr).c_str(),";Uncalibrated p_{T}^{lead} [GeV];t_{lead} [ns];MBD - t_{lead} [ns]",60,0,60,600,-30,30,600,-30,30);
@@ -307,6 +312,25 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 	    }
 	}
 
+      if(DijetPartner)
+	{
+	  hptdtfrac->Fill(jetkin[leadingjetindex][0],dijetTimediff,frac[leadingjetindex][1]);
+	  hpttfrac->Fill(jetkin[leadingjetindex][0],jetleadtime,frac[leadingjetindex][1]);
+	  if(jetleadtime < 4 && jetleadtime > -8)
+	    {
+	      hptdtemfrac->Fill(jetkin[leadingjetindex][0],dijetTimediff,frac[leadingjetindex][0]);
+	      hptdtohfrac->Fill(jetkin[leadingjetindex][0],dijetTimediff,frac[leadingjetindex][1]);
+	    }
+	  for(int j=0; j<njet; ++j)
+	    {
+	      if(jetleadtime < 4 && jetleadtime > -8)
+		{
+		  hptdtemfrac_all->Fill(jetkin[j][0],dijetTimediff,frac[j][0]);
+		  hptdtohfrac_all->Fill(jetkin[j][0],dijetTimediff,frac[j][1]);
+		}
+	    }
+	}
+      
       if(!dofrac || (dofrac && PassMinimalFrac))
 	{
 
@@ -349,8 +373,6 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 
 	  if(DijetPartner)
 	    {
-	      hptdtfrac->Fill(jetkin[leadingjetindex][0],dijetTimediff,frac[leadingjetindex][1]);
-	      hpttfrac->Fill(jetkin[leadingjetindex][0],jetleadtime,frac[leadingjetindex][1]);
 	      for(int j=0; j<njet; ++j)
 		{
 		  hpttdt->Fill(jetkin[j][0],jetleadtime,dijetTimediff);
@@ -555,6 +577,12 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 
     hptdtfrac->Write();
     hpttfrac->Write();
+    hptdtemfrac->Write();
+    hptdtohfrac->Write();
+
+    hptdtemfrac_all->Write();
+    hptdtohfrac_all->Write();
+    
     hpttdt->Write();
     hpttmbdt_dtc->Write();
     hptdtmbdt_ltc->Write();
