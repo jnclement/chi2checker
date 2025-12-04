@@ -1,7 +1,19 @@
+void print_bounds_and_efficiency(string cutname, float* bounds, long long unsigned int* numerator, long long unsigned int* denominator)
+{
+  float eff = ((float)numerator[0])/denominator[0];
+  cout << "Efficiency of cut " << cutname << " in range " << bounds[0] << "-" << bounds[3] << " GeV: " << eff << endl;
+  for(int i=1; i<4; ++i)
+    {
+      eff = ((float)numerator[i])/denominator[i];
+      cout << "Efficiency of cut " << cutname << " in range " << bounds[i-1] << "-" << bounds[i] << " GeV: " << eff << endl;
+    }
+}
+
+
 int fake10(string filename, bool issim = false, bool dofrac = false, string simstr = "dat", bool samtime = false) {
 
   if(dofrac) simstr += "frac";
-  
+  gErrorIgnoreLevel = kError;
   gROOT->SetStyle("Plain");
    gStyle->SetOptStat(0);
    gStyle->SetOptTitle(0);
@@ -27,7 +39,7 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
    Int_t           njet;
    Float_t         jetkin[60][5];
    Float_t         zvtx;
-   Int_t           mbdhit[2];
+   UInt_t           mbdhit[2];
    Float_t         avgt[2];
    Float_t         frac[60][2];   
    
@@ -39,9 +51,9 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
    outt->SetBranchAddress("njet",&njet);
    outt->SetBranchAddress("jetkin",jetkin);
    outt->SetBranchAddress("zvtx",&zvtx);
-   outt->SetBranchAddress("mbdhit",&mbdhit);
-   outt->SetBranchAddress("avgt",&avgt);
-   outt->SetBranchAddress("frac",&frac);   
+   outt->SetBranchAddress("mbdhit",mbdhit);
+   outt->SetBranchAddress("avgt",avgt);
+   outt->SetBranchAddress("frac",frac);   
 
    //=======================
    // DECLARE HISTOGRAMS
@@ -54,7 +66,7 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
    for (int i=0;i<7;i++) binb[i+25] = 25.0 + 2.5 * (float) i;
    for (int i=0;i<4;i++) binb[i+26+6] = 45.0 + 5.0 * (float) i;      
 
-   for (int i=0;i<36;i++) cout << binb[i] << endl;
+   //for (int i=0;i<36;i++) cout << binb[i] << endl;
    TH1D *hspectra[20];
    char fooname[100];
    for (int i=0;i<20;i++) {
@@ -66,39 +78,50 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
    int ncx = 0;
    int npd = 0;
    // no other cuts...
-   TH1D *hleadtimeNOMBD = new TH1D(("hleadtimeNOMBD"+simstr).c_str(),"hleadtimeNOMBD",300,-30.0,30.0);
-   TH1D *hleadtimeYESMBD = new TH1D(("hleadtimeYESMBD"+simstr).c_str(),"hleadtimeYESMBD",300,-30.0,30.0);   
-   TH1D *hleadtimeNOMBDwdijet = new TH1D(("hleadtimeNOMBDwdijet"+simstr).c_str(),"hleadtimeNOMBDwdijet",300,-30.0,30.0);
-   TH1D *hleadtimeYESMBDwdijet = new TH1D(("hleadtimeYESMBDwdijet"+simstr).c_str(),"hleadtimeYESMBDwdijet",300,-30.0,30.0);   
-   TH1D *hleadtimeNOMBDwdijetP = new TH1D(("hleadtimeNOMBDwdijetP"+simstr).c_str(),"hleadtimeNOMBDwdijetP",300,-30.0,30.0);
-   TH1D *hleadtimeYESMBDwdijetP = new TH1D(("hleadtimeYESMBDwdijetP"+simstr).c_str(),"hleadtimeYESMBDwdijetP",300,-30.0,30.0);
-   TH3D* htdtmbdt = new TH3D(("htdtmbdt"+simstr).c_str(),";Jet t [ns];#Delta t [ns]; MBD - t_{lead} [ns];Counts",300,-30,30,300,-30,30,300,-30,30);
-   TH3D* hpttmbdt = new TH3D(("hpttmbdt"+simstr).c_str(),";p_{T}^{lead} [GeV];t_{lead} [ns];MBD - t_{lead} [ns]",60,0,60,300,-30,30,300,-30,30);
-   TH3D* hptdtmbdt = new TH3D(("hptdtmbdt"+simstr).c_str(),";p_{T}^{lead} [GeV];#Delta t [ns];MBD - t_{lead} [ns]",60,0,60,300,-30,30,300,-30,30);
-   TH3D* hptdtmbdt2 = new TH3D(("hptdtmbdt2"+simstr).c_str(),";p_{T}^{lead} [GeV];#Delta t [ns];MBD t (offset corrected) [ns]",60,0,60,300,-30,30,300,-30,30);
+   TH1D *hleadtimeNOMBD = new TH1D(("hleadtimeNOMBD"+simstr).c_str(),"hleadtimeNOMBD",600,-30.0,30.0);
+   TH1D *hleadtimeYESMBD = new TH1D(("hleadtimeYESMBD"+simstr).c_str(),"hleadtimeYESMBD",600,-30.0,30.0);   
+   TH1D *hleadtimeNOMBDwdijet = new TH1D(("hleadtimeNOMBDwdijet"+simstr).c_str(),"hleadtimeNOMBDwdijet",600,-30.0,30.0);
+   TH1D *hleadtimeYESMBDwdijet = new TH1D(("hleadtimeYESMBDwdijet"+simstr).c_str(),"hleadtimeYESMBDwdijet",600,-30.0,30.0);   
+   TH1D *hleadtimeNOMBDwdijetP = new TH1D(("hleadtimeNOMBDwdijetP"+simstr).c_str(),"hleadtimeNOMBDwdijetP",600,-30.0,30.0);
+   TH1D *hleadtimeYESMBDwdijetP = new TH1D(("hleadtimeYESMBDwdijetP"+simstr).c_str(),"hleadtimeYESMBDwdijetP",600,-30.0,30.0);
+   TH3D* htdtmbdt = new TH3D(("htdtmbdt"+simstr).c_str(),";Jet t [ns];#Delta t [ns]; MBD - t_{lead} [ns]",300,-30,30,300,-30,30,300,-30,30);
 
-   TH3D* hpttmbdt_dtc = new TH3D(("hpttmbdt_dtc"+simstr).c_str(),";p_{T}^{lead} [GeV];t_{lead} [ns];MBD - t_{lead} [ns]",60,0,60,300,-30,30,300,-30,30);
-   TH3D* hptdtmbdt_ltc = new TH3D(("hptdtmbdt_ltc"+simstr).c_str(),";p_{T}^{lead} [GeV];#Delta t [ns];MBD - t_{lead} [ns]",60,0,60,300,-30,30,300,-30,30);
+   TH3D* hptdtfrac = new TH3D(("hptdtfrac"+simstr).c_str(),";Uncalibrated p_{T}^{leadjet} [GeV];#Delta-t [ns];Lead Jet Energy Fraction in OHCal",100,0,100,200,-10,10,120,-0.1,1.1);
+   TH3D* hpttfrac = new TH3D(("hpttfrac"+simstr).c_str(),";Uncalibrated p_{T}^{leadjet} [GeV];t_{lead} [ns];Lead Jet Energy Fraction in OHCal",100,0,100,400,-20,20,120,-0.1,1.1);
+   
+   TH3D* hpttdt = new TH3D(("hpttdt"+simstr).c_str(),";Uncalibrated p_{T}^{jet} [GeV];Jet t [ns];#Delta t [ns]",100,0,100,600,-30,30,600,-30,30);
+   TH3D* hpttmbdt = new TH3D(("hpttmbdt"+simstr).c_str(),";Uncalibrated p_{T}^{lead} [GeV];t_{lead} [ns];MBD - t_{lead} [ns]",60,0,60,600,-30,30,600,-30,30);
+   TH3D* hptdtmbdt = new TH3D(("hptdtmbdt"+simstr).c_str(),";Uncalibrated p_{T}^{lead} [GeV];#Delta t [ns];MBD - t_{lead} [ns]",60,0,60,600,-30,30,600,-30,30);
+   TH3D* hptdtmbdt2 = new TH3D(("hptdtmbdt2"+simstr).c_str(),";Uncalibrated p_{T}^{lead} [GeV];#Delta t [ns];MBD t (offset corrected) [ns]",60,0,60,600,-30,30,600,-30,30);
 
-   TH3D* hpttmbdt_dtc_mbdboth = new TH3D(("hpttmbdt_dtc_mbdboth"+simstr).c_str(),";p_{T}^{lead} [GeV];t_{lead} [ns];MBD - t_{lead} [ns]",60,0,60,300,-30,30,300,-30,30);
-   TH3D* hptdtmbdt_ltc_mbdboth = new TH3D(("hptdtmbdt_ltc_mbdboth"+simstr).c_str(),";p_{T}^{lead} [GeV];#Delta t [ns];MBD - t_{lead} [ns]",60,0,60,300,-30,30,300,-30,30);
-   TH3D* hptdtmbdt_ltc_mbdboth2 = new TH3D(("hptdtmbdt_ltc_mbdboth2"+simstr).c_str(),";p_{T}^{lead} [GeV];#Delta t [ns];MBD t (offset corrected) [ns]",60,0,60,300,-30,30,300,-30,30);
+   TH3D* hpttmbdt_dtc = new TH3D(("hpttmbdt_dtc"+simstr).c_str(),";Uncalibrated p_{T}^{lead} [GeV];t_{lead} [ns];MBD - t_{lead} [ns]",60,0,60,600,-30,30,600,-30,30);
+   TH3D* hptdtmbdt_ltc = new TH3D(("hptdtmbdt_ltc"+simstr).c_str(),";Uncalibrated p_{T}^{lead} [GeV];#Delta t [ns];MBD - t_{lead} [ns]",60,0,60,600,-30,30,600,-30,30);
 
-   TH3D* hpttmbdt_dtc_mbdeither = new TH3D(("hpttmbdt_dtc_mbdeither"+simstr).c_str(),";p_{T}^{lead} [GeV];t_{lead} [ns];MBD - t_{lead} [ns]",60,0,60,300,-30,30,300,-30,30);
-   TH3D* hptdtmbdt_ltc_mbdeither = new TH3D(("hptdtmbdt_ltc_mbdeither"+simstr).c_str(),";p_{T}^{lead} [GeV];#Delta t [ns];MBD - t_{lead} [ns]",60,0,60,300,-30,30,300,-30,30);
-   TH3D* hptdtmbdt_ltc_mbdeither2 = new TH3D(("hptdtmbdt_ltc_mbdeither2"+simstr).c_str(),";p_{T}^{lead} [GeV];#Delta t [ns];MBD t (offset corrected) [ns]",60,0,60,300,-30,30,300,-30,30);
+   TH3D* hpttmbdt_dtc_mbdboth = new TH3D(("hpttmbdt_dtc_mbdboth"+simstr).c_str(),";Uncalibrated p_{T}^{lead} [GeV];t_{lead} [ns];MBD - t_{lead} [ns]",60,0,60,600,-30,30,600,-30,30);
+   TH3D* hptdtmbdt_ltc_mbdboth = new TH3D(("hptdtmbdt_ltc_mbdboth"+simstr).c_str(),";Uncalibrated p_{T}^{lead} [GeV];#Delta t [ns];MBD - t_{lead} [ns]",60,0,60,600,-30,30,600,-30,30);
+   TH3D* hptdtmbdt_ltc_mbdboth2 = new TH3D(("hptdtmbdt_ltc_mbdboth2"+simstr).c_str(),";Uncalibrated p_{T}^{lead} [GeV];#Delta t [ns];MBD t (offset corrected) [ns]",60,0,60,600,-30,30,600,-30,30);
+
+   TH3D* hpttmbdt_dtc_mbdeither = new TH3D(("hpttmbdt_dtc_mbdeither"+simstr).c_str(),";Uncalibrated p_{T}^{lead} [GeV];t_{lead} [ns];MBD - t_{lead} [ns]",60,0,60,600,-30,30,600,-30,30);
+   TH3D* hptdtmbdt_ltc_mbdeither = new TH3D(("hptdtmbdt_ltc_mbdeither"+simstr).c_str(),";Uncalibrated p_{T}^{lead} [GeV];#Delta t [ns];MBD - t_{lead} [ns]",60,0,60,600,-30,30,600,-30,30);
+   TH3D* hptdtmbdt_ltc_mbdeither2 = new TH3D(("hptdtmbdt_ltc_mbdeither2"+simstr).c_str(),";Uncalibrated p_{T}^{lead} [GeV];#Delta t [ns];MBD t (offset corrected) [ns]",60,0,60,600,-30,30,600,-30,30);
    
    TH1D *hfracgood0 = new TH1D(("hfracgood0"+simstr).c_str(),"hfracgood0",6576,47288.5,53864.5);
    TH1D *hfracbad0 = new TH1D(("hfracbad0"+simstr).c_str(),"hfracbad0",6576,47288.5,53864.5);
 
-   TH2D *hrnt = new TH2D(("hrnt"+simstr).c_str(),";Run Number;MBD Time (No Offset Correction) [ns]",6576,47288.5,53864.5,300,-30,30);
-   TH2D *hrnto = new TH2D(("hrnto"+simstr).c_str(),";Run Number;MBD Time (Offset Corrected) [ns]",6576,47288.5,53864.5,300,-30,30);
-   TH2D *hrntj = new TH2D(("hrntj"+simstr).c_str(),";Run Number;MBD - t_{lead} [ns]",6576,47288.5,53864.5,300,-30,30);
+   TH2D *hrnt = new TH2D(("hrnt"+simstr).c_str(),";Run Number;MBD Time (No Offset Correction) [ns]",6576,47288.5,53864.5,600,-30,30);
+   TH2D *hrnto = new TH2D(("hrnto"+simstr).c_str(),";Run Number;MBD Time (Offset Corrected) [ns]",6576,47288.5,53864.5,600,-30,30);
+   TH2D *hrntj = new TH2D(("hrntj"+simstr).c_str(),";Run Number;MBD - t_{lead} [ns]",6576,47288.5,53864.5,600,-30,30);
    
    //=========================================================
    // LOOP OVER EVENTS
    //=========================================================
-   
+
+
+   long long unsigned int nDijetPartner[4] = {0};
+   long long unsigned int nPassLeadTime[4] = {0};
+   long long unsigned int nPassDeltat[4] = {0};
+   long long unsigned int nPassBothTime[4] = {0};
+   float bounds[4] = {30,35,40,45};
    Long64_t nentries = outt->GetEntries();
    Long64_t nbytes = 0;
    for (Long64_t i=0; i<nentries;i++) {
@@ -240,6 +263,54 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 	  if (TMath::Abs(dijetTimediff) > 3.0) DijetAndt = false;
 	}
 
+      
+      if(DijetPartner && (PassMinimalFrac || !dofrac))
+	{
+	  for(int j=0; j<njet; ++j)
+	    {
+	      if(jetkin[j][0] > bounds[0] && jetkin[j][0] < bounds[3])
+		{
+		  ++nDijetPartner[0];
+		  if(PassLeadTimeONLY)
+		    {
+		      ++nPassLeadTime[0];
+		    }
+		  if(DijetAndt)
+		    {
+		      ++nPassDeltat[0];
+		    }
+		  if(DijetAndt && PassLeadTimeONLY)
+		    {
+		      ++nPassBothTime[0];
+		    }
+		  for(int k=1; k<4; ++k)
+		    {
+		      if(jetkin[j][0] < bounds[k])
+			{
+			  ++nDijetPartner[k];
+			  if(PassLeadTimeONLY)
+			    {
+			      ++nPassLeadTime[k];
+			    }
+			  if(DijetAndt)
+			    {
+			      ++nPassDeltat[k];
+			    }
+			  if(DijetAndt && PassLeadTimeONLY)
+			    {
+			      ++nPassBothTime[k];
+			    }
+			  break;
+			}
+		    }
+		}
+	    }
+	}
+
+      if(!dofrac || (dofrac && PassMinimalFrac))
+	{
+
+      
       htdtmbdt->Fill(jetleadtime,dijetTimediff,jetleadtimeMBD);
       hpttmbdt->Fill(jetkin[leadingjetindex][0],jetleadtime,jetleadtimeMBD);
       if(DijetAndt) hpttmbdt_dtc->Fill(jetkin[leadingjetindex][0],jetleadtime,jetleadtimeMBD);
@@ -275,9 +346,17 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 	if (MBDeither && PassLeadTime) hleadtimeYESMBDwdijetP->Fill(jetleadtimeMBD);			
       }
 
-      if(!dofrac || (dofrac && PassMinimalFrac))
-	{
-	  
+
+	  if(DijetPartner)
+	    {
+	      hptdtfrac->Fill(jetkin[leadingjetindex][0],dijetTimediff,frac[leadingjetindex][1]);
+	      hpttfrac->Fill(jetkin[leadingjetindex][0],jetleadtime,frac[leadingjetindex][1]);
+	      for(int j=0; j<njet; ++j)
+		{
+		  hpttdt->Fill(jetkin[j][0],jetleadtime,dijetTimediff);
+		}
+	    }
+
       if (MBDboth && PassLeadTime && DijetPartner && PassMinimalFrac) hspectra[15]->Fill(jetkin[leadingjetindex][0]);
       
       if (MBDeither && !MBDboth && PassLeadTimeONLY && DijetAndt && PassLeadTimeWIDE) hspectra[5]->Fill(jetkin[leadingjetindex][0]);
@@ -392,7 +471,7 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 
    }
 
-   hratio[0]->GetXaxis()->SetTitle("Jet Reco p_{T} [GeV]");
+   hratio[0]->GetXaxis()->SetTitle("Jet Reco Uncalibrated p_{T} [GeV]");
    hratio[0]->GetYaxis()->SetTitle("Ratio");
    hratio[0]->GetYaxis()->SetRangeUser(0.0,1.05);
    hratio[0]->GetXaxis()->SetRangeUser(0.0,65.0);
@@ -474,6 +553,9 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
     hptdtmbdt->Write();
     hptdtmbdt2->Write();
 
+    hptdtfrac->Write();
+    hpttfrac->Write();
+    hpttdt->Write();
     hpttmbdt_dtc->Write();
     hptdtmbdt_ltc->Write();
 
@@ -496,6 +578,11 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 
     outf->Write();
     outf->Close();
-    cout << npx << " " << ncx << " " << npd << endl;
+
+    print_bounds_and_efficiency("lead time",bounds,nPassLeadTime,nDijetPartner);
+    print_bounds_and_efficiency("delta t",bounds,nPassDeltat,nDijetPartner);
+    print_bounds_and_efficiency("lead time && delta t",bounds,nPassBothTime,nDijetPartner);
+    
+    //cout << npx << " " << ncx << " " << npd << endl;
     return 0;
 }

@@ -165,7 +165,6 @@ int draw_timingcut(int singlespec = 0)
   gStyle->SetPadTickY(1);
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
-
   TFile* inf = TFile::Open("../hists_mbdtimereq_out_datsam.root","READ");
 
   TH3D* h3_pt_lem_loh = (TH3D*)inf->Get("hpttdtdat");

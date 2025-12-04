@@ -1,5 +1,5 @@
 #include <../dlUtility.h>
-
+int globalusefrac = 0;
 int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vector<int>> zbounds, std::vector<int> axis, std::vector<int> colors, std::vector<int> markers, std::vector<string> numlabels, string title, string ytitle, std::vector<float> linex)
 {
 
@@ -13,6 +13,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   
   for(int i=0; i<ybounds.size(); ++i)
     {
+      if(i>2) break;
       int ylo = ybounds.at(i).at(0);
       int yhi = ybounds.at(i).at(1);
       int zlo = zbounds.at(i).at(0);
@@ -36,7 +37,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
 	  nums1.at(i)->Rebin(2);
 	}
       */
-      if(i==2) nums1.at(2)->Rebin(5);
+      nums1.at(i)->Rebin(5);
       nums1.at(i)->Scale(1./nums1.at(i)->Integral("WIDTH"));
       if(ytitle!="")nums1.at(i)->GetYaxis()->SetTitle(ytitle.c_str());
       else nums1.at(i)->GetYaxis()->SetTitle("Integral Normalized Counts");
@@ -91,9 +92,10 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   line2->Draw();
 
   maintexts(0.8,0.625,0,0.03,1,0);
-  drawText("#Delta t \& t_{lead} cuts applied",0.625,0.69,0,kBlack,0.03);
-  drawText("No reconstructed",0.625,0.65,0,kBlack,0.03);
-  drawText("z_{vtx} requirement",0.625,0.61,0,kBlack,0.03);
+  if(globalusefrac) drawText("Frac cut applied",0.625,0.61,0,kBlack,0.03);
+  //drawText("#Delta t \& t_{lead} cuts applied",0.625,0.69,0,kBlack,0.03);
+  drawText("No reconstructed",0.625,0.69,0,kBlack,0.03);
+  drawText("z_{vtx} requirement",0.625,0.65,0,kBlack,0.03);
   //drawText("Truth-reco matched jets",0.05,0.91,0,kBlack,0.03);
 
   can->SaveAs(title.c_str());
@@ -108,8 +110,9 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
 }
 
 
-int draw_spec_fake(int mbdint = 0, int lo = 46, int hi = 60)
+int draw_spec_fake(int usefrac = 0, int mbdint = 0, int lo = 46, int hi = 60)
 {
+  globalusefrac = usefrac;
   gStyle->SetPadTickX(1);
   gStyle->SetPadTickY(1);
   gStyle->SetOptStat(0);
@@ -117,14 +120,15 @@ int draw_spec_fake(int mbdint = 0, int lo = 46, int hi = 60)
   string mbdstr = "";
   if(mbdint==1) mbdstr = "_mbdboth";
   if(mbdint==2) mbdstr = "_mbdeither";
-  TFile* inf = TFile::Open("../hists_mbdtimereq_out_datsam.root","READ");
+  string fracstr = usefrac?"frac":"";
+  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_dat"+fracstr+"sam.root").c_str(),"READ");
 
-  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get(("hpttmbdt_dtc"+mbdstr+"dat").c_str());
+  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get(("hpttmbdt_dtc"+mbdstr+"dat"+fracstr).c_str());
 
   //h3_pt_lem_loh->GetZaxis()->SetTitle("t_{lead} [ns]");
   //136,165
   std::vector<vector<int>> ybounds = {{11,20},{21,40},{41,60}};
-  std::vector<vector<int>> zbounds = {{126,175},{126,175},{126,175}};
+  std::vector<vector<int>> zbounds = {{251,350},{251,350},{251,350}};
   std::vector<int> axis = {1,1,1};
   std::vector<int> colors = {kAzure,kOrange,kMagenta};//, kAzure};//, kViolet, kOrange, kGray};
   std::vector<int> markers = {21,20,71};//, 21};//, 71, 72, 88};
@@ -138,6 +142,16 @@ int draw_spec_fake(int mbdint = 0, int lo = 46, int hi = 60)
   
   drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"../../images/mbd/data_mbdt_proj1d"+mbdstr+".pdf","",{-10,10});
 
+
+  cout << fracstr << endl;
+  h3_pt_lem_loh = (TH3D*)inf->Get(("hpttdtdat"+fracstr).c_str());
+  std::vector<vector<int>> ybounds2 = {{11,20},{21,30},{31,45},{46,70}};
+  std::vector<vector<int>> zbounds2 = {{0,-1},{0,-1},{0,-1},{0,-1}};
+  std::vector<int> axis2 = {2,2,2,2};
+  std::vector<int> colors2 = {kAzure,kOrange,kMagenta,kSpring};//, kViolet, kOrange, kGray};
+  std::vector<int> markers2 = {21,20,71,72};
+  std::vector<string> numlabels2 = {"Jets 10<p_{T}^{uncalib}<20 GeV","Jets 20<p_{T}^{uncalib}<30 GeV","Jets 30<p_{T}^{uncalib}<45 GeV","Jets 45<p_{T}^{uncalib}<70 GeV"};//"EM fraction < 0.9 only","EM fraction > 0.1 only","OH fraction < 0.9 only","OH Fraction > 0.1 only","EM frac <0.9 && OH frac > 0.1"};
+  drawprettyeff(h3_pt_lem_loh,ybounds2,zbounds2,axis2,colors2,markers2,numlabels2,"../../images/mbd/data_dt_proj1d"+fracstr+".pdf","",{-3,3});
 
   TCanvas* can = new TCanvas("","",1500,1500);
   
