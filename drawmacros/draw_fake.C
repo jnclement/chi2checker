@@ -1,3 +1,5 @@
+#include "../dlUtility.h"
+
 int draw_fake(int toad = 0, int mbdtimereq = 0)
 {
   string toadstr = (toad?"frac":"");
@@ -93,11 +95,11 @@ int draw_fake(int toad = 0, int mbdtimereq = 0)
     }
   cout << "madeit" << endl;
   string ytitles[13] = {"Should not be drawn","Dijet-dt \& t \& MBD-t / Dijet dt \& t","Should not be drawn","MBD-coinc \& MBD-t \& Dijet dt \& t / MBD-coinc \& Dijet dt \& t","MBD-coinc \& MBD-t \& t \& Dijet dt / MBD-coinc \& Dijet dt \& t","Dijet-dt \& t \& MBD-t / Dijet dt \& t","MBD-coinc \& MBD-t \& Dijet \& t / MBD-coinc \& MBD-t","MBD-coinc \& MBD-t \& Dijet-dt \& t / MBD-coinc \& MBD-t","Should not be drawn","Dijet-dt \& t \& MBD-coinc / Dijet-dt \& t","Should not be drawn","t \& MBD-coinc / t","t \& Dijet-dt / t"};
-  TLegend *tleg = new TLegend(0.11,0.13,0.23,0.23,"","brNDC");
+  TLegend *tleg = new TLegend(0.15,0.17,0.5,0.35,"","brNDC");
   tleg->SetLineWidth(0);
   tleg->SetFillStyle(0);
-  int markers[2] = {20,72};
-  int colors[2] = {kSpring+2,kMagenta+2};
+  int markers[4] = {20,72,21,71};
+  int colors[4] = {kRed+2,kSpring+2,kOrange+2,kMagenta+2};
   for(int j=0; j<13; ++j)
     {
       if(j==0 || j==2 || j==8 || j==6 || j==10) continue;
@@ -105,30 +107,46 @@ int draw_fake(int toad = 0, int mbdtimereq = 0)
 	{
 	  cout << i << " " << j << endl;
 	  hratio[i][j]->SetMarkerSize(1.5);
-	  hratio[i][j]->SetMarkerStyle(markers[i]);
-	  hratio[i][j]->SetMarkerColor(colors[i]);
-	  hratio[i][j]->SetLineColor(colors[i]);
+	  hratio[i][j]->SetMarkerStyle(markers[i*2+j/8]);
+	  hratio[i][j]->SetMarkerColor(colors[i*2+j/8]);
+	  hratio[i][j]->SetLineColor(colors[i*2+j/8]);
 	  hratio[i][j]->GetYaxis()->SetRangeUser(0,1.05);
 	  hratio[i][j]->GetXaxis()->SetRangeUser(0,60);
 	  hratio[i][j]->GetYaxis()->SetTitle(("Ratio of "+ytitles[j]).c_str());
-	  if(j==1 && i==0)
+	  if(j==12 && i == 1)
 	    {
-	      tleg->AddEntry(hratio[0][1],"Data","p");
-	      tleg->AddEntry(hratio[1][1],"Sim","p");
+	      tleg->AddEntry(hratio[0][9],"Dijet\&t\&MBD / Dijet\&t (Data)","p");
+	      tleg->AddEntry(hratio[1][9],"Dijet\&t\&MBD / Dijet\&t (Sim)","p");
+	      tleg->AddEntry(hratio[0][7],"Dijet\&t\&MBD / MBD (Data)","p");
+	      tleg->AddEntry(hratio[1][7],"Dijet\&t\&MBD / MBD (Sim)","p");
 	    }
-	  if(i==0) hratio[i][j]->Draw("PE");
+	  //if(i==0) hratio[i][j]->Draw("PE");
 	  //else if(j!=1) hratio[i][j]->Draw("SAME PE");
 
 	}
       //if(j!=1) tleg->Draw();
-      c->SaveAs(("ratios"+mbdtimereqstr+"_"+toadstr+to_string(j)+".pdf").c_str());
+      //c->SaveAs(("ratios"+mbdtimereqstr+"_"+toadstr+to_string(j)+".pdf").c_str());
     }
   
-
+  c->SetTopMargin(0.05);
+  c->SetRightMargin(0.05);
+  c->SetLeftMargin(0.12);
+  c->SetBottomMargin(0.15);
+  hratio[0][9]->GetYaxis()->SetTitle("Ratio");
   //tleg->AddEntry(hratio[0][1],"Dijet\&t\&MBD / Dijet\&t (Data)","p");
   //tleg->AddEntry(hratio[1][1],"Dijet\&t\&MBD / Dijet\&t (Sim)","p");
 
+  hratio[0][9]->Draw("PE");
+  hratio[1][9]->Draw("SAME PE");
+  hratio[0][7]->Draw("SAME PE");
+  hratio[1][7]->Draw("SAME PE");
+  tleg->Draw();
 
+  maintexts(0.9,0.15);
+  drawText("Frac cut applied",0.15,0.78,0,kBlack,0.03);
+
+  c->SaveAs("mbdcuts_ratios.pdf");
+  
   TH3D* htdtmbdt;
   htdtmbdt = (TH3D*)(f[0]->Get("htdtmbdtdat"));
   htdtmbdt->GetZaxis()->SetTitle("MBD - t_{jet} [ns]");

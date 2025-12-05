@@ -88,11 +88,12 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 
    TH3D* hptdtfrac = new TH3D(("hptdtfrac"+simstr).c_str(),";Uncalibrated p_{T}^{leadjet} [GeV];#Delta-t [ns];Lead Jet Energy Fraction in OHCal",100,0,100,200,-10,10,120,-0.1,1.1);
    TH3D* hpttfrac = new TH3D(("hpttfrac"+simstr).c_str(),";Uncalibrated p_{T}^{leadjet} [GeV];t_{lead} [ns];Lead Jet Energy Fraction in OHCal",100,0,100,200,-10,10,120,-0.1,1.1);
-   TH3D* hptdtemfrac = new TH3D(("hptdtemfrac"+simstr).c_str(),";#Delta-t [ns];t_{lead} [ns];Lead Jet Energy Fraction in EMCal",100,0,100,200,-10,10,120,-0.1,1.1);
-   TH3D* hptdtohfrac = new TH3D(("hptdtohfrac"+simstr).c_str(),";#Delta-t [ns];t_{lead} [ns];Lead Jet Energy Fraction in OHCal",100,0,100,200,-10,10,120,-0.1,1.1);
+   TH3D* hptdtemfrac = new TH3D(("hptdtemfrac"+simstr).c_str(),";Uncalibrated p_{T}^{leadjet};#Delta-t [ns];Lead Jet Energy Fraction in EMCal",100,0,100,200,-10,10,120,-0.1,1.1);
+   TH3D* hptdtemfracnot = new TH3D(("hptdtemfracnot"+simstr).c_str(),";Uncalibrated p_{T}^{leadjet};#Delta-t [ns];Lead Jet Energy Fraction in EMCal",100,0,100,200,-10,10,120,-0.1,1.1);
+   TH3D* hptdtohfrac = new TH3D(("hptdtohfrac"+simstr).c_str(),";Uncalibrated p_{T}^{leadjet};#Delta-t [ns];Lead Jet Energy Fraction in OHCal",100,0,100,200,-10,10,120,-0.1,1.1);
 
-   TH3D* hptdtemfrac_all = new TH3D(("hptdtemfrac_all"+simstr).c_str(),";#Delta-t [ns];t_{lead} [ns];Lead Jet Energy Fraction in EMCal",100,0,100,200,-10,10,120,-0.1,1.1);
-   TH3D* hptdtohfrac_all = new TH3D(("hptdtohfrac_all"+simstr).c_str(),";#Delta-t [ns];t_{lead} [ns];Lead Jet Energy Fraction in OHCal",100,0,100,200,-10,10,120,-0.1,1.1);
+   TH3D* hptdtemfrac_all = new TH3D(("hptdtemfrac_all"+simstr).c_str(),";Uncalibrated p_{T}^{leadjet};#Delta-t [ns];Lead Jet Energy Fraction in EMCal",100,0,100,200,-10,10,120,-0.1,1.1);
+   TH3D* hptdtohfrac_all = new TH3D(("hptdtohfrac_all"+simstr).c_str(),";Uncalibrated p_{T}^{leadjet};#Delta-t [ns];Lead Jet Energy Fraction in OHCal",100,0,100,200,-10,10,120,-0.1,1.1);
    
    TH3D* hpttdt = new TH3D(("hpttdt"+simstr).c_str(),";Uncalibrated p_{T}^{jet} [GeV];Jet t [ns];#Delta t [ns]",100,0,100,600,-30,30,600,-30,30);
    TH3D* hpttmbdt = new TH3D(("hpttmbdt"+simstr).c_str(),";Uncalibrated p_{T}^{lead} [GeV];t_{lead} [ns];MBD - t_{lead} [ns]",60,0,60,600,-30,30,600,-30,30);
@@ -192,7 +193,7 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
       if (avgt[0] > -99 && avgt[1] < -99) mbdtime = avgt[0];
       if (avgt[0] < -99 && avgt[1] > -99) mbdtime = avgt[1];
       if (avgt[0] > -99 || avgt[1] > -99) MBDeither = true;
-
+      if (zvtx == 0 || abs(zvtx) > 999 || isnan(zvtx)) MBDboth = false;
       if (avgt[0] > -99 && avgt[1] > -99) {
 	mbdtime = 0.5*(avgt[0]+avgt[1]);
 	//	MBDboth = true;
@@ -206,7 +207,7 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
       if (TMath::Abs(jetleadtimeMBD) > 10.0 && !issim /*&& mbdtime > -99*/) PassLeadTimeWIDE = false;
       hleadtimeYESMBD->Fill(jetleadtimeMBD);
 
-      if (zvtx == 0) MBDboth = false;
+      
 
       // jet pT spectra - no cuts, with time requirement, with MBD requirements
       //hspectra[0]->Fill(jetkin[leadingjetindex][0]);   //  raw
@@ -316,6 +317,7 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 	{
 	  hptdtfrac->Fill(jetkin[leadingjetindex][0],dijetTimediff,frac[leadingjetindex][1]);
 	  hpttfrac->Fill(jetkin[leadingjetindex][0],jetleadtime,frac[leadingjetindex][1]);
+	  hptdtemfracnot->Fill(jetkin[leadingjetindex][0],dijetTimediff,frac[leadingjetindex][0]);
 	  if(jetleadtime < 4 && jetleadtime > -8)
 	    {
 	      hptdtemfrac->Fill(jetkin[leadingjetindex][0],dijetTimediff,frac[leadingjetindex][0]);
@@ -391,7 +393,7 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 
 
 
-      if (MBDboth && PassLeadTime && DijetAndt && PassLeadTimeONLY) hspectra[7]->Fill(jetkin[leadingjetindex][0]);
+      if (MBDboth && PassLeadTime && DijetAndt && PassLeadTimeONLY && DijetPartner) hspectra[7]->Fill(jetkin[leadingjetindex][0]);
       if (MBDboth && PassLeadTime) hspectra[6]->Fill(jetkin[leadingjetindex][0]);      
 
       if (MBDboth && PassLeadTime && PassMinimalFrac) hspectra[16]->Fill(jetkin[leadingjetindex][0]);
@@ -598,6 +600,7 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
     hrnt->Write();
     hrnto->Write();
     hrntj->Write();
+    hptdtemfracnot->Write();
     for(int i=0; i<20; ++i)
       {
 	hspectra[i]->Write();
