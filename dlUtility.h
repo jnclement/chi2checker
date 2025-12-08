@@ -163,6 +163,11 @@ void sphenixtext(float xpos = 0.7, float ypos = 0.96, int ra = 0, float textsize
   drawText("#bf{#it{sPHENIX}} Internal", xpos, ypos, ra, kBlack, textsize);
 }
 
+void sphenixsim(float xpos = 0.7, float ypos = 0.96, int ra = 0, float textsize = 0.04)
+{
+  drawText("#bf{#it{sPHENIX}} Simulation", xpos, ypos, ra, kBlack, textsize);
+}
+
 void sphenixwip(float xpos = 0.7, float ypos = 0.96, int ra = 0, float textsize = 0.04)
 {
   drawText("#bf{#it{sPHENIX}} Work in Progress", xpos, ypos, ra, kBlack, textsize);
@@ -180,7 +185,7 @@ void sphenixprelim(float xpos = 0.8, float ypos = 0.96, int ra = 1, float textsi
 
 void maintexts(float ystart = 0.96, float xpos = 0.7, int ra = 0, float textsize = 0.03, bool isdat = 1, int iswip = 0)
 {
-  iswip?(isdat?sphenixwip(xpos,ystart,ra,textsize):sphenixswip(xpos,ystart,ra,textsize)):sphenixtext(xpos,ystart,ra,textsize);
+  iswip?(isdat?sphenixwip(xpos,ystart,ra,textsize):sphenixswip(xpos,ystart,ra,textsize)):(isdat?sphenixtext(xpos,ystart,ra,textsize):sphenixsim(xpos,ystart,ra,textsize));
   sqrt_s_text(xpos,ystart-8*textsize/7,ra,textsize,isdat);
   antikt_text(0.4,xpos,ystart-16*textsize/7,ra,textsize);
   //drawText(isdat?"Data":"Simulation",xpos,ystart-2*textsize,ra,kBlack,textsize);

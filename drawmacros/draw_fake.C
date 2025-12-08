@@ -15,7 +15,7 @@ int draw_fake(int toad = 0, int mbdtimereq = 0)
     {
       typestr[i] += toadstr;
       cout << typestr[i] << endl;
-      f[i] = TFile::Open(("../hists"+mbdtimereqstr+"_out_"+typestr[i]+".root").c_str(),"READ");
+      f[i] = TFile::Open(("../hists"+mbdtimereqstr+"_out_"+typestr[i]+(i==0?"sam":"")+".root").c_str(),"READ");
     }
   const int ntype = 2;
   
@@ -98,7 +98,7 @@ int draw_fake(int toad = 0, int mbdtimereq = 0)
   TLegend *tleg = new TLegend(0.15,0.17,0.5,0.35,"","brNDC");
   tleg->SetLineWidth(0);
   tleg->SetFillStyle(0);
-  int markers[4] = {20,72,21,71};
+  int markers[4] = {20,21,71,72};
   int colors[4] = {kRed+2,kSpring+2,kOrange+2,kMagenta+2};
   for(int j=0; j<13; ++j)
     {
@@ -135,7 +135,7 @@ int draw_fake(int toad = 0, int mbdtimereq = 0)
   hratio[0][9]->GetYaxis()->SetTitle("Ratio");
   //tleg->AddEntry(hratio[0][1],"Dijet\&t\&MBD / Dijet\&t (Data)","p");
   //tleg->AddEntry(hratio[1][1],"Dijet\&t\&MBD / Dijet\&t (Sim)","p");
-
+  hratio[0][9]->GetXaxis()->SetTitle("Uncalibrated Jet p_{T} [GeV]");
   hratio[0][9]->Draw("PE");
   hratio[1][9]->Draw("SAME PE");
   hratio[0][7]->Draw("SAME PE");

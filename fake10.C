@@ -393,8 +393,8 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 
 
 
-      if (MBDboth && PassLeadTime && DijetAndt && PassLeadTimeONLY && DijetPartner) hspectra[7]->Fill(jetkin[leadingjetindex][0]);
-      if (MBDboth && PassLeadTime) hspectra[6]->Fill(jetkin[leadingjetindex][0]);      
+      if (MBDboth && PassLeadTime && PassLeadTimeONLY && DijetPartner) hspectra[7]->Fill(jetkin[leadingjetindex][0]);
+      if (MBDboth && PassLeadTime && PassLeadTimeONLY) hspectra[6]->Fill(jetkin[leadingjetindex][0]);      
 
       if (MBDboth && PassLeadTime && PassMinimalFrac) hspectra[16]->Fill(jetkin[leadingjetindex][0]);
       if (MBDboth && PassLeadTime && PassLeadTimeONLY && PassMinimalFrac && DijetAndt) hspectra[17]->Fill(jetkin[leadingjetindex][0]);      

@@ -1,5 +1,7 @@
 #include <../dlUtility.h>
 int _singlespec = 0;
+int isdat = 0;
+string stype = "jet30";
 int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vector<int>> zbounds, int axis, std::vector<int> colors, std::vector<int> markers, std::vector<string> numlabels, string title)
 {
 
@@ -144,7 +146,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
     }
   can->cd(0);
 
-  maintexts(_singlespec?0.75:0.67,0.5,0,0.03,1,0);
+  maintexts(_singlespec?0.75:0.67,0.5,0,0.03,isdat,0);
   //drawText("Jet30,50,70 PYTHIA",0.6,0.87,0,kBlack,0.03);
   drawText("No reconstructed z_{vtx} requirement",0.5,_singlespec?0.65:0.57,0,kBlack,0.03);
   //drawText("Truth-reco matched jets",0.05,0.91,0,kBlack,0.03);
@@ -165,9 +167,9 @@ int draw_timingcut(int singlespec = 0)
   gStyle->SetPadTickY(1);
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
-  TFile* inf = TFile::Open("../hists_mbdtimereq_out_datsam.root","READ");
+  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_"+stype+".root").c_str(),"READ");
 
-  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get("hpttdtdat");
+  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get(("hpttdt"+stype).c_str());
   //TH3D* h3_tpt_lem_loh = (TH3D*)inf->Get("simh3_apt_dtem_dtoh_both");
 
   std::vector<vector<int>> ybounds = {{111,170}};
@@ -177,7 +179,7 @@ int draw_timingcut(int singlespec = 0)
   std::vector<int> markers = {20};
   std::vector<string> numlabels = {"-8 ns<t_{lead}<4 ns && |#Delta t|<3 ns"};
 
-  drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"../../images/dnp/timing_cut_"+to_string(singlespec)+".pdf");
+  drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"../../images/dnp/timing_cut_"+to_string(singlespec)+stype+".pdf");
   
   return 0;
 }
