@@ -177,13 +177,13 @@ int draw_timingcut_fake(int singlespec = 0)
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
 
-  TFile* inf = TFile::Open("../hists_mbdtimereq_out_datsam.root","READ");
+  TFile* inf = TFile::Open("../hists_mbdtimereq_out_datsam_slewed.root","READ");
 
   TH3D* h3_pt_lem_loh = (TH3D*)inf->Get("hpttmbdtdat");
   //TH3D* h3_tpt_lem_loh = (TH3D*)inf->Get("simh3_apt_dtem_dtoh_both");
 
-  std::vector<vector<int>> ybounds = {{111,170}};
-  std::vector<vector<int>> zbounds = {{126,175}};
+  std::vector<vector<int>> ybounds = {{221,340}};
+  std::vector<vector<int>> zbounds = {{251,350}};
   int axis = 0;
   std::vector<int> colors = {kAzure};
   std::vector<int> markers = {20};

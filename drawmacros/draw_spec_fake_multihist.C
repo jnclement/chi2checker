@@ -124,7 +124,7 @@ int draw_spec_fake_multihist(string num = "", int samint = 1, int mbdint = 0)
   string mbdstr = "";
   if(mbdint==1) mbdstr = "_mbdboth";
   if(mbdint==2) mbdstr = "_mbdeither";
-  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_dat"+samstr+".root").c_str(),"READ");
+  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_dat"+samstr+"_slewed.root").c_str(),"READ");
 
 
   string firsthist = "";

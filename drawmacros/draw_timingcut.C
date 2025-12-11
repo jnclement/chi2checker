@@ -1,7 +1,7 @@
 #include <../dlUtility.h>
 int _singlespec = 0;
-int isdat = 0;
-string stype = "jet30";
+int isdat = 1;
+string stype = "dat";
 int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vector<int>> zbounds, int axis, std::vector<int> colors, std::vector<int> markers, std::vector<string> numlabels, string title)
 {
 
@@ -167,13 +167,13 @@ int draw_timingcut(int singlespec = 0)
   gStyle->SetPadTickY(1);
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
-  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_"+stype+".root").c_str(),"READ");
+  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_"+stype+"sam_slewed.root").c_str(),"READ");
 
   TH3D* h3_pt_lem_loh = (TH3D*)inf->Get(("hpttdt"+stype).c_str());
   //TH3D* h3_tpt_lem_loh = (TH3D*)inf->Get("simh3_apt_dtem_dtoh_both");
 
-  std::vector<vector<int>> ybounds = {{111,170}};
-  std::vector<vector<int>> zbounds = {{136,165}};
+  std::vector<vector<int>> ybounds = {{221,340}};
+  std::vector<vector<int>> zbounds = {{271,330}};
   int axis = 0;
   std::vector<int> colors = {kAzure};
   std::vector<int> markers = {20};

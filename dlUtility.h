@@ -155,7 +155,7 @@ void et_cut_text(float minet, float xp = 0.7, float yp = 0.8, bool isRightAlign=
 
 void sqrt_s_text(float xp = 0.7, float yp = 0.8, bool isRightAlign=0, double textsize = 0.04, bool isdat = 1)
 {
-  drawText(isdat?"p+p #sqrt{s}=200 GeV":"PYTHIA p+p #sqrt{s}=200 GeV",xp,yp,isRightAlign,kBlack,textsize);
+  drawText(isdat?"p+p#sqrt{s}=200 GeV":"PYTHIA p+p #sqrt{s}=200 GeV",xp,yp,isRightAlign,kBlack,textsize);
 }
 
 void sphenixtext(float xpos = 0.7, float ypos = 0.96, int ra = 0, float textsize = 0.04)

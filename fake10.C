@@ -10,7 +10,7 @@ void print_bounds_and_efficiency(string cutname, float* bounds, long long unsign
 }
 
 
-int fake10(string filename, bool issim = false, bool dofrac = false, string simstr = "dat", bool samtime = false) {
+int fake10(string filename, bool issim = false, bool dofrac = false, string simstr = "dat", bool samtime = false, bool slew = false) {
 
   if(dofrac) simstr += "frac";
   gErrorIgnoreLevel = kError;
@@ -19,6 +19,13 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
    gStyle->SetOptTitle(0);
    gStyle->SetOptDate(111);
    std::map<int, float> rntmap = {};
+   TF1* slewcor;
+   TFile* slewfile;
+   if(slew)
+     {
+       slewfile = TFile::Open(("slewcorfit_t_"+simstr+".root").c_str(),"READ");
+       slewcor = (TF1*)slewfile->Get("pol2");
+     }
 
    ifstream file = ifstream("/sphenix/user/samfred/projects/mbdt0/histmaking/MbdPmt.corr");
    string line;
@@ -199,13 +206,28 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 	//	MBDboth = true;
       }
 
-      jetleadtimeMBD = mbdoffset + mbdtime - 17.6*jetkin[leadingjetindex][4];
+      int subleadingjetindex = 0;
+      for (int ijet=0;ijet<njet;ijet++) {
+	double jetpt = jetkin[ijet][0];
+	if (jetpt < jetkin[leadingjetindex][0] && jetpt >= jetkin[subleadingjetindex][0]) {
+	  subleadingjetindex = ijet;
+	}
+      }
+
+      float leadslew = slew?slewcor->Eval(frac[leadingjetindex][1]):0;
+      float subslew = slew?slewcor->Eval(frac[subleadingjetindex][1]):0;
+
+      float totalslew = leadslew-subslew;
+
+      jetleadtimeMBD = mbdoffset + mbdtime - 17.6*jetkin[leadingjetindex][4] + leadslew;
+      jetleadtime -= leadslew;
       bool PassLeadTimeWIDE = true;
       bool inTailLeadTime = false;
       if (TMath::Abs(jetleadtimeMBD) > 3.0 && !issim /*&& mbdtime > -99*/) PassLeadTime = false;
       if (jetleadtimeMBD < -3.0 && jetleadtimeMBD > -30.0) inTailLeadTime = true;
       if (TMath::Abs(jetleadtimeMBD) > 10.0 && !issim /*&& mbdtime > -99*/) PassLeadTimeWIDE = false;
       hleadtimeYESMBD->Fill(jetleadtimeMBD);
+
 
       
 
@@ -217,13 +239,6 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 
       // now is there a dijet partner (what requirements do we want to apply....)
 
-      int subleadingjetindex = 0;
-      for (int ijet=0;ijet<njet;ijet++) {
-	double jetpt = jetkin[ijet][0];
-	if (jetpt < jetkin[leadingjetindex][0] && jetpt >= jetkin[subleadingjetindex][0]) {
-	  subleadingjetindex = ijet;
-	}
-      }
       // minimum subleading jet, xJ > 0.3 (energy)
       bool DijetPartner = false;
       bool DijetAndt = false;
@@ -262,7 +277,7 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 
 
       // dijet timing cut
-      double dijetTimediff = 17.6*jetkin[leadingjetindex][4] - 17.6*jetkin[subleadingjetindex][4];
+      double dijetTimediff = 17.6*jetkin[leadingjetindex][4] - 17.6*jetkin[subleadingjetindex][4] - totalslew;
       if(!issim)
 	{
 
@@ -562,7 +577,7 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
     hleadtimeYESMBDwdijetP->Draw("same");    
 
 
-    TFile* outf = TFile::Open(("hists_mbdtimereq_out_"+simstr+(samtime?"sam":"")+".root").c_str(),"RECREATE");
+    TFile* outf = TFile::Open(("hists_mbdtimereq_out_"+simstr+(samtime?"sam":"")+(slew?"_slewed":"")+".root").c_str(),"RECREATE");
 
     outf->cd();
 

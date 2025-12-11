@@ -1,7 +1,7 @@
 #include <../dlUtility.h>
 int globalusefrac = 0;
-int isdat = 0;
-string stype = "jet10";
+int isdat = 1;
+string stype = "dat";
 int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vector<int>> zbounds, std::vector<int> axis, std::vector<int> colors, std::vector<int> markers, std::vector<string> numlabels, string title, string ytitle, std::vector<float> linex)
 {
 
@@ -93,12 +93,12 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   line1->Draw();
   line2->Draw();
 
-  maintexts(0.8,0.605,0,0.03,isdat,0);
-  if(globalusefrac) drawText("Frac cut applied",0.605,0.61,0,kBlack,0.03);
+  maintexts(0.8,0.62,0,0.03,isdat,0);
+  if(globalusefrac) drawText("Frac cut applied",0.62,0.61,0,kBlack,0.03);
   //drawText("#Delta t \& t_{lead} cuts applied",0.625,0.69,0,kBlack,0.03);
-  drawText("No reconstructed",0.605,0.69,0,kBlack,0.03);
-  drawText("z_{vtx} requirement",0.605,0.65,0,kBlack,0.03);
-  drawText(("PYTHIA "+stype+" sample").c_str(),0.605,0.61,0,kBlack,0.03);
+  drawText("No reconstructed",0.62,0.69,0,kBlack,0.03);
+  drawText("z_{vtx} requirement",0.62,0.65,0,kBlack,0.03);
+  if(!isdat) drawText(("PYTHIA "+stype+" sample").c_str(),0.62,0.61,0,kBlack,0.03);
   //drawText("Truth-reco matched jets",0.05,0.91,0,kBlack,0.03);
 
   can->SaveAs(title.c_str());
@@ -124,18 +124,27 @@ int draw_spec_fake(int usefrac = 0, int mbdint = 0, int lo = 46, int hi = 60)
   if(mbdint==1) mbdstr = "_mbdboth";
   if(mbdint==2) mbdstr = "_mbdeither";
   string fracstr = usefrac?"frac":"";
-  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_"+stype+fracstr+(isdat?"sam":"")+".root").c_str(),"READ");
+  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_"+stype+fracstr+(isdat?"sam":"")+"_slewed.root").c_str(),"READ");
 
   TH3D* h3_pt_lem_loh = (TH3D*)inf->Get(("hpttmbdt_dtc"+mbdstr+stype+fracstr).c_str());
 
   //h3_pt_lem_loh->GetZaxis()->SetTitle("t_{lead} [ns]");
   //136,165
-  std::vector<vector<int>> ybounds = {{11,20},{21,40},{41,60}};
+  std::vector<vector<int>> ybounds = {{15,20},{21,30},{31,60}};
+  if(stype=="jet30")
+    {
+      ybounds[0][0]=31;
+      ybounds[0][1]=45;
+      ybounds[1][0]=46;
+      ybounds[1][1]=55;
+      ybounds[2][0]=56;
+      ybounds[2][1]=70;
+    }
   std::vector<vector<int>> zbounds = {{251,350},{251,350},{251,350}};
   std::vector<int> axis = {1,1,1};
   std::vector<int> colors = {kAzure,kOrange,kMagenta};//, kAzure};//, kViolet, kOrange, kGray};
   std::vector<int> markers = {21,20,71};//, 21};//, 71, 72, 88};
-  std::vector<string> numlabels = {"Jets 10<p_{T}^{uncalib}<20 GeV","Jets 20<p_{T}^{uncalib}<40 GeV","Jets 40<p_{T}^{uncalib}<60 GeV"};//"EM fraction < 0.9 only","EM fraction > 0.1 only","OH fraction < 0.9 only","OH Fraction > 0.1 only","EM frac <0.9 && OH frac > 0.1"};
+  std::vector<string> numlabels = {"Jets 30<p_{T}^{uncalib}<45 GeV","Jets 45<p_{T}^{uncalib}<55 GeV","Jets 55<p_{T}^{uncalib}<70 GeV"};//"EM fraction < 0.9 only","EM fraction > 0.1 only","OH fraction < 0.9 only","OH Fraction > 0.1 only","EM frac <0.9 && OH frac > 0.1"};
 
   drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"../../images/mbd/"+stype+"_t_proj1d"+mbdstr+".pdf","",{-8,4});//,"dN_{jet}/d#Delta t_{l,sl} [ns^{-1}]");
 
@@ -149,11 +158,21 @@ int draw_spec_fake(int usefrac = 0, int mbdint = 0, int lo = 46, int hi = 60)
   cout << fracstr << endl;
   h3_pt_lem_loh = (TH3D*)inf->Get(("hpttdt"+stype+fracstr).c_str());
   std::vector<vector<int>> ybounds2 = {{11,20},{21,30},{31,45},{46,70}};
+    if(stype=="jet30")
+    {
+      ybounds2[0][0]=31;
+      ybounds2[0][1]=45;
+      ybounds2[1][0]=46;
+      ybounds2[1][1]=55;
+      ybounds2[2][0]=56;
+      ybounds2[2][1]=70;
+    }
+
   std::vector<vector<int>> zbounds2 = {{0,-1},{0,-1},{0,-1},{0,-1}};
   std::vector<int> axis2 = {2,2,2,2};
   std::vector<int> colors2 = {kAzure,kOrange,kMagenta,kSpring};//, kViolet, kOrange, kGray};
   std::vector<int> markers2 = {21,20,71,72};
-  std::vector<string> numlabels2 = {"Jets 10<p_{T}^{uncalib}<20 GeV","Jets 20<p_{T}^{uncalib}<30 GeV","Jets 30<p_{T}^{uncalib}<45 GeV","Jets 45<p_{T}^{uncalib}<70 GeV"};//"EM fraction < 0.9 only","EM fraction > 0.1 only","OH fraction < 0.9 only","OH Fraction > 0.1 only","EM frac <0.9 && OH frac > 0.1"};
+  std::vector<string> numlabels2 = {"Jets 10<p_{T}^{uncalib}<20 GeV","Jets 20<p_{T}^{uncalib}<20 GeV","Jets 30<p_{T}^{uncalib}<45 GeV","Jets 45<p_{T}^{uncalib}<70 GeV"};//"EM fraction < 0.9 only","EM fraction > 0.1 only","OH fraction < 0.9 only","OH Fraction > 0.1 only","EM frac <0.9 && OH frac > 0.1"};
   drawprettyeff(h3_pt_lem_loh,ybounds2,zbounds2,axis2,colors2,markers2,numlabels2,"../../images/mbd/"+stype+"_dt_proj1d"+fracstr+".pdf","",{-3,3});
 
   TCanvas* can = new TCanvas("","",1500,1500);

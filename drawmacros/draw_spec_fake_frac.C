@@ -1,13 +1,13 @@
 #include <../dlUtility.h>
-int isdat = 0;
-string stype = "jet10";
+int isdat = 1;
+string stype = "dat";
 int draw_spec_fake_frac(string tt = "dt", string ap = "yz", int lo = 30, int hi = 45)
 {
   gStyle->SetPadTickX(1);
   gStyle->SetPadTickY(1);
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
-  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_"+stype+(isdat?"sam":"")+".root").c_str(),"READ");
+  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_"+stype+(isdat?"sam":"")+"_slewed.root").c_str(),"READ");
 
   TH3D* h3_pt_lem_loh = (TH3D*)inf->Get(("hpt"+tt+"frac"+stype).c_str());
 
@@ -74,6 +74,7 @@ int draw_spec_fake_frac(string tt = "dt", string ap = "yz", int lo = 30, int hi 
   tleg->SetFillStyle(0);
   tleg->SetBorderSize(0);
   tleg->SetFillColor(0);
+  TF1* myfit;
   if(ap=="yz")
     {
       line0->SetLineColor(kRed);
@@ -96,8 +97,19 @@ int draw_spec_fake_frac(string tt = "dt", string ap = "yz", int lo = 30, int hi 
       prof->SetMarkerColor(kGreen+2);
       prof->SetLineColor(kGreen+2);
       prof->Draw("SAME PE");
+      prof->Fit("pol2","I0",0,1);
+      myfit = prof->GetFunction("pol2");
     }
-      
+
+
+  TFile* outf;
+  if(ap=="yz")
+    {
+      outf = new TFile(("slewcorfit_"+tt+"_"+stype+".root").c_str(),"RECREATE");
+      outf->cd();
+      myfit->Write();
+    }
+  outf->Close();
   tdss << std::fixed << std::setprecision(1) << "Leading jets " << lobound << axstr << hibound << unitstr;
   drawText(tdss.str().c_str(),0.25,0.76,0,kBlack,0.04);
   drawText("No reconstructed z_{vtx} requirement",0.25,0.71,0,kBlack,0.04);
