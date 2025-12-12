@@ -232,9 +232,9 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("jet_et",_jet_et,"jet_et[jet_n]/F");
   jet_tree->Branch("jet_pt",_jet_pt,"jet_pt[jet_n]/F");
   jet_tree->Branch("jet_t",_jet_t,"jet_t[jet_n]/F");
-  //jet_tree->Branch("jet_t_em",_jet_t_em,"jet_t_em[jet_n]/F");
-  //jet_tree->Branch("jet_t_ih",_jet_t_ih,"jet_t_ih[jet_n]/F");
-  //jet_tree->Branch("jet_t_oh",_jet_t_oh,"jet_t_oh[jet_n]/F");
+  jet_tree->Branch("jet_t_em",_jet_t_em,"jet_t_em[jet_n]/F");
+  jet_tree->Branch("jet_t_ih",_jet_t_ih,"jet_t_ih[jet_n]/F");
+  jet_tree->Branch("jet_t_oh",_jet_t_oh,"jet_t_oh[jet_n]/F");
   jet_tree->Branch("jet_eta",_jet_eta,"jet_eta[jet_n]/F");
   jet_tree->Branch("jet_phi",_jet_phi,"jet_phi[jet_n]/F");
 
@@ -1056,7 +1056,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       int failscut = 0;
       _bbfqavec = 0;
       _elmbgvec = 0;
-
+      /*
       if(parNode) flagNode = findNode::getClass<PdbParameterMap>(parNode, "HasBeamBackground");
       else
 	{
@@ -1072,9 +1072,9 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	  return Fun4AllReturnCodes::ABORTRUN;
 	}
       _bbfqavec = _cutParams.get_int_param("HasBeamBackground_StreakSidebandFilter") << 5;
-
+      
       flagNode = findNode::getClass<PdbParameterMap>(parNode, "TimingCutParams");
-  
+      
       if(flagNode) _cutParams.FillFrom(flagNode);
       else
 	{
@@ -1086,6 +1086,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       _bbfqavec |= (_cutParams.get_int_param("passDeltatCut") & 1) << 3;
       _bbfqavec |= (_cutParams.get_int_param("passMbdDtCut") & 1) << 2;
       _bbfqavec |= (_cutParams.get_int_param("failAnyTimeCut") & 1) << 1;
+      */
       //if(_bbfqavec) cout << "bbfqavec: " << _bbfqavec <<  " and >> 5: " << (_bbfqavec >> 5) << endl;
 	  //}
       _maxTowDiff = _maxTowE - _subTowE;
@@ -1144,7 +1145,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       jet_ecc = eccentricity;
       jet_lfrac = maxEoverTot;
       failscut = (_bbfqavec >> 5) & 1;
-      bool dPhiCut = (_dphi < 3*M_PI/4 || !_isdijet || maxJetE*0.2 > subJetE);
+      bool dPhiCut = (_dphi < 3*M_PI/4 || !_isdijet || maxJetE*0.3 > subJetE);
       bool loETCut = _frcem > 0.9 || _frcem < 0.1 || _frcoh < 0.1 || _frcoh > 0.9 || (1.-_frcem-_frcoh) > 0.5;// ((_frcem < 0.1) && (_jet_ET > (50*_frcem+20))) && (dPhiCut || !_isdijet);
       bool hiETCut = ((_frcem > 0.9) && (_jet_ET > (-50*_frcem+70))) && (dPhiCut || !_isdijet);
       bool ihCut = (_frcem+_frcoh) < 0.65;

@@ -144,7 +144,7 @@ int draw_spec_fake(int usefrac = 0, int mbdint = 0, int lo = 46, int hi = 60)
   std::vector<int> axis = {1,1,1};
   std::vector<int> colors = {kAzure,kOrange,kMagenta};//, kAzure};//, kViolet, kOrange, kGray};
   std::vector<int> markers = {21,20,71};//, 21};//, 71, 72, 88};
-  std::vector<string> numlabels = {"Jets 30<p_{T}^{uncalib}<45 GeV","Jets 45<p_{T}^{uncalib}<55 GeV","Jets 55<p_{T}^{uncalib}<70 GeV"};//"EM fraction < 0.9 only","EM fraction > 0.1 only","OH fraction < 0.9 only","OH Fraction > 0.1 only","EM frac <0.9 && OH frac > 0.1"};
+  std::vector<string> numlabels = {"Jets 10<p_{T}^{uncalib}<20 GeV","Jets 20<p_{T}^{uncalib}<30 GeV","Jets 30<p_{T}^{uncalib}<45 GeV"};//"EM fraction < 0.9 only","EM fraction > 0.1 only","OH fraction < 0.9 only","OH Fraction > 0.1 only","EM frac <0.9 && OH frac > 0.1"};
 
   drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"../../images/mbd/"+stype+"_t_proj1d"+mbdstr+".pdf","",{-8,4});//,"dN_{jet}/d#Delta t_{l,sl} [ns^{-1}]");
 
