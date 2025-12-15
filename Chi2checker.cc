@@ -1219,7 +1219,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	}
       
       
-      if((maxJetE > 10 && (!loETCut || !dPhiCut)) || maxJetE > 10 || _doall60 || !_isdat)
+      if((maxJetE > 10 && (!loETCut || !dPhiCut)) || maxJetE > _minjetthresh || _doall60 || !_isdat)
 	{
 
 	  for(int j=0; j<12; ++j)

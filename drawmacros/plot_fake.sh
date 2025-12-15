@@ -1,8 +1,7 @@
 #!/bin/bash
 
-root -b -q -l "draw_spec_fake.C(0,11,20)"
-root -b -q -l "draw_spec_fake.C(1,11,20)"
-root -b -q -l "draw_spec_fake.C(2,11,20)"
+root -b -q -l "draw_spec_fake.C(0,0,31,40)"
+
 #root -b -q -l "draw_spec_fake.C(0,21,40)"
 #root -b -q -l "draw_spec_fake.C(1,21,40)"
 #root -b -q -l "draw_spec_fake.C(2,21,40)"

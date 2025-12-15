@@ -7,7 +7,7 @@ int draw_spec_fake_frac(string tt = "dt", string ap = "yz", int lo = 30, int hi 
   gStyle->SetPadTickY(1);
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
-  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_"+stype+(isdat?"sam":"")+"_slewed.root").c_str(),"READ");
+  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_"+stype+(isdat?"sam":"")+".root").c_str(),"READ");
 
   TH3D* h3_pt_lem_loh = (TH3D*)inf->Get(("hpt"+tt+"frac"+stype).c_str());
 
@@ -65,12 +65,12 @@ int draw_spec_fake_frac(string tt = "dt", string ap = "yz", int lo = 30, int hi 
       hibound = h3_pt_lem_loh->GetZaxis()->GetBinLowEdge(hi+1);
       unitstr = "";
     }
-  TLine* line0 = new TLine(-0.1,-3,1.1,-3);
-  TLine* line1 = new TLine(-0.1,3,1.1,3);
-  TLine* line2 = new TLine(-0.1,-4,1.1,-4);
-  TLine* line3 = new TLine(-0.1,4,1.1,4);
+  TLine* line0 = new TLine(-0.1,tt=="dt"?-3:-8,1.1,tt=="dt"?-3:-8);
+  TLine* line1 = new TLine(-0.1,tt=="dt"?3:4,1.1,tt=="dt"?3:4);
+  TLine* line2 = new TLine(-0.1,tt=="dt"?-4:-9,1.1,tt=="dt"?-4:-9);
+  TLine* line3 = new TLine(-0.1,tt=="dt"?4:5,1.1,tt=="dt"?4:5);
   TProfile* prof = h2_t_dt->ProfileX();
-  TLegend* tleg = new TLegend(0.4,0.12,0.9,0.25);
+  TLegend* tleg = new TLegend(0.4,0.22,0.9,0.35);
   tleg->SetFillStyle(0);
   tleg->SetBorderSize(0);
   tleg->SetFillColor(0);

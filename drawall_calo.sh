@@ -11,8 +11,9 @@ NEVT=0
 #done
 
 rm ranges.txt
-while [ $IT -lt $(( `cat chi2filesjet10.txt | wc -l` + 1 )) ]; do
-    UP=$(( $IT + 20 ))
+MAX=$(( `cat chi2filesblair.txt | wc -l` + 1 ))
+while [ $IT -lt $MAX ]; do
+    UP=$(( $IT + 10 ))
     #root -b -q -l "drawcalo.C(${IT},${UP},1)"
     #NEVT=$(( $NEVT + $? ))
     
@@ -20,7 +21,7 @@ while [ $IT -lt $(( `cat chi2filesjet10.txt | wc -l` + 1 )) ]; do
 #    root -b -q -l "timing_hists.C(${IT},${UP},0)"
     #root -b -q -l "drawf.C(${IT},${UP})"
     echo "${IT} ${UP}" >> ranges.txt
-    IT=$(( $IT + 20 ))
+    IT=$(( $IT + 10 ))
 
 done
 

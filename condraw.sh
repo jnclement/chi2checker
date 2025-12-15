@@ -7,4 +7,5 @@ export TESTINSTALL=/sphenix/user/jocl/projects/testinstall
 
 #root -b -l -q 'drawcalo.C('${1}','${2}',1,"chi2filesjet10.txt",0,-1,-1,0,0)'
 #root -b -l -q 'drawcalo.C('${1}','${2}',1,"chi2filesjet30.txt",0,-1,-1,0,0)'
-root -b -l -q 'drawcalo.C('${1}','${2}',1,"chi2filesjet50.txt",0,-1,-1,0,0)'
+#root -b -l -q 'drawcalo.C('${1}','${2}',1,"chi2filesjet50.txt",0,-1,-1,0,0)'
+root -b -l -q 'drawcalo.C('${1}','${2}',1,"chi2filesblair.txt")'

@@ -19,7 +19,7 @@ int drawprettyeff(string filename, string histname, std::vector<vector<int>> ybo
   
   for(int i=0; i<ybounds.size(); ++i)
     {
-      if(i>2) break;
+      if(i>3) break;
       int ylo = ybounds.at(i).at(0);
       int yhi = ybounds.at(i).at(1);
       int zlo = zbounds.at(i).at(0);
@@ -55,7 +55,7 @@ int drawprettyeff(string filename, string histname, std::vector<vector<int>> ybo
   gPad->SetRightMargin(0.05);
   gPad->SetLeftMargin(0.15);
   //gPad->SetLogy();
-  TLegend* leg = new TLegend(0.17,0.5,0.45,0.6);
+  TLegend* leg = new TLegend(0.17,0.35,0.45,0.55);
   leg->SetFillStyle(0);
   leg->SetLineWidth(0);
   float max = 0;
@@ -67,13 +67,13 @@ int drawprettyeff(string filename, string histname, std::vector<vector<int>> ybo
       nums1.at(i)->SetLineWidth(2);
       nums1.at(i)->SetMarkerStyle(markers.at(i));
       nums1.at(i)->SetMarkerSize(2);
-      nums1.at(i)->GetXaxis()->SetRangeUser(-25,25);
+      //nums1.at(i)->GetXaxis()->SetRangeUser(-25,25);
       nums1.at(i)->Fit("gaus","IWL","",isdat?-5:-4,isdat?1.5:2.5);
-      nums1.at(i)->GetFunction("gaus")->SetLineColor(kRed);
+      nums1.at(i)->GetFunction("gaus")->SetLineColor(colors.at(i));
       thef->SetParameter(0,nums1.at(i)->GetFunction("gaus")->GetParameter(0));
       thef->SetParameter(1,nums1.at(i)->GetFunction("gaus")->GetParameter(1));
       thef->SetParameter(2,nums1.at(i)->GetFunction("gaus")->GetParameter(2));
-      thef->SetLineColor(kRed);
+      thef->SetLineColor(colors.at(i));
       thef->SetLineStyle(2);
       
       if(nums1.at(i)->GetMaximum() > max) max = nums1.at(i)->GetMaximum();
@@ -91,10 +91,14 @@ int drawprettyeff(string filename, string histname, std::vector<vector<int>> ybo
 
   leg->Draw();
   maintexts(0.8,0.225,0,0.03,isdat,0);
+  stringstream sstr;
+  sstr << std::setprecision(0) << ybounds.at(0).at(0) << " GeV<p_{T}^{uncalib}<" << ybounds.at(0).at(1) << " GeV";
+  string ptstr = sstr.str();
   //drawText("#Delta t \& t_{lead} cuts applied",0.625,0.69,0,kBlack,0.03);
   drawText("No reconstructed",0.225,0.69,0,kBlack,0.03);
   drawText("z_{vtx} requirement",0.225,0.65,0,kBlack,0.03);
   drawText("Dijet pair required",0.225,0.61,0,kBlack,0.03);
+  drawText(ptstr.c_str(),0.225,0.57,0,kBlack,0.03);
   //drawText("Truth-reco matched jets",0.05,0.91,0,kBlack,0.03);
 
   can->SaveAs(title.c_str());

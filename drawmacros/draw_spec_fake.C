@@ -47,11 +47,11 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
 
   TCanvas* can = new TCanvas("","",1500,1500);
   can->cd();
-  gPad->SetTopMargin(0.16);
-  gPad->SetRightMargin(0.05);
+  gPad->SetTopMargin(0.05);
+  gPad->SetRightMargin(0.03);
   gPad->SetLeftMargin(0.15);
   //gPad->SetLogy();
-  TLegend* leg = new TLegend(0.62,0.35,0.92,0.6);
+  TLegend* leg = new TLegend(0.73,0.35,0.94,0.6);
   leg->SetFillStyle(0);
   leg->SetLineWidth(0);
   float max = 0;
@@ -71,6 +71,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   for(int i=0; i<nums1.size(); ++i)
     {
       nums1.at(i)->GetYaxis()->SetRangeUser(0,max);
+      nums1.at(i)->GetXaxis()->SetRangeUser(-10,10);
       nums1.at(i)->Draw((i==0?"PE":"SAME PE"));
     }
   
@@ -93,11 +94,11 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   line1->Draw();
   line2->Draw();
 
-  maintexts(0.8,0.62,0,0.03,isdat,0);
-  if(globalusefrac) drawText("Frac cut applied",0.62,0.61,0,kBlack,0.03);
+  maintexts(0.9,0.73,0,0.03,isdat,0);
+  if(globalusefrac) drawText("Frac cut applied",0.73,0.71,0,kBlack,0.03);
   //drawText("#Delta t \& t_{lead} cuts applied",0.625,0.69,0,kBlack,0.03);
-  drawText("No reconstructed",0.62,0.69,0,kBlack,0.03);
-  drawText("z_{vtx} requirement",0.62,0.65,0,kBlack,0.03);
+  drawText("No reconstructed",0.73,0.79,0,kBlack,0.03);
+  drawText("z_{vtx} requirement",0.73,0.75,0,kBlack,0.03);
   if(!isdat) drawText(("PYTHIA "+stype+" sample").c_str(),0.62,0.61,0,kBlack,0.03);
   //drawText("Truth-reco matched jets",0.05,0.91,0,kBlack,0.03);
 

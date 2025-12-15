@@ -65,6 +65,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   for(int i=0; i<nums1.size(); ++i)
     {
       nums1.at(i)->GetYaxis()->SetRangeUser(0,max);
+      nums1.at(i)->GetXaxis()->SetRangeUser(-10,10);
       nums1.at(i)->Draw((i==0?"PE":"SAME PE"));
     }
   

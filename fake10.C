@@ -10,7 +10,7 @@ void print_bounds_and_efficiency(string cutname, float* bounds, long long unsign
 }
 
 
-int fake10(string filename, bool issim = false, bool dofrac = false, string simstr = "dat", bool samtime = false, bool slew = false) {
+int fake10(string filename, bool issim = false, bool dofrac = false, string simstr = "dat", bool samtime = false, bool slew = false, string tag = "") {
 
   if(dofrac) simstr += "frac";
   gErrorIgnoreLevel = kError;
@@ -44,7 +44,7 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
    Int_t           evt;
    Int_t           run;
    Int_t           njet;
-   Float_t         jetkin[60][5];
+   Float_t         jetkin[100][7];
    Float_t         zvtx;
    UInt_t           mbdhit[2];
    Float_t         avgt[2];
@@ -95,6 +95,15 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 
    TH3D* hptdtfrac = new TH3D(("hptdtfrac"+simstr).c_str(),";Uncalibrated p_{T}^{leadjet} [GeV];#Delta-t [ns];Lead Jet Energy Fraction in OHCal",100,0,100,200,-10,10,120,-0.1,1.1);
    TH3D* hpttfrac = new TH3D(("hpttfrac"+simstr).c_str(),";Uncalibrated p_{T}^{leadjet} [GeV];t_{lead} [ns];Lead Jet Energy Fraction in OHCal",100,0,100,200,-10,10,120,-0.1,1.1);
+   
+   TH3D* htemtohfrac = new TH3D(("htemtohfrac"+simstr).c_str(),";t_{lead}^{EM} [ns];t_{lead}^{OH} [ns];Lead Jet Energy Fraction in EMCal",200,-10,10,200,-10,10,120,-0.1,1.1);
+   TH3D* hpttemfrac = new TH3D(("hpttemfrac"+simstr).c_str(),";p_{T}^{lead} [GeV];t_{lead}^{EM} [ns];Lead Jet Energy Fraction in EMCal",100,0,100,200,-10,10,120,-0.1,1.1);
+   TH3D* hpttohfrac = new TH3D(("hpttohfrac"+simstr).c_str(),";p_{T}^{lead} [GeV];t_{lead}^{OH} [ns];Lead Jet Energy Fraction in EMCal",100,0,100,200,-10,10,120,-0.1,1.1);
+
+   TH3D* htemtohfrac_all = new TH3D(("htemtohfrac_all"+simstr).c_str(),";t^{EM} [ns];t^{OH} [ns];Lead Jet Energy Fraction in EMCal",200,-10,10,200,-10,10,120,-0.1,1.1);
+   TH3D* hpttemfrac_all = new TH3D(("hpttemfrac_all"+simstr).c_str(),";p_{T}^{lead} [GeV];t^{EM} [ns];Lead Jet Energy Fraction in EMCal",100,0,100,200,-10,10,120,-0.1,1.1);
+   TH3D* hpttohfrac_all = new TH3D(("hpttohfrac_all"+simstr).c_str(),";p_{T}^{lead} [GeV];t^{OH} [ns];Lead Jet Energy Fraction in EMCal",100,0,100,200,-10,10,120,-0.1,1.1);
+
    TH3D* hptdtemfrac = new TH3D(("hptdtemfrac"+simstr).c_str(),";Uncalibrated p_{T}^{leadjet};#Delta-t [ns];Lead Jet Energy Fraction in EMCal",100,0,100,200,-10,10,120,-0.1,1.1);
    TH3D* hptdtemfracnot = new TH3D(("hptdtemfracnot"+simstr).c_str(),";Uncalibrated p_{T}^{leadjet};#Delta-t [ns];Lead Jet Energy Fraction in EMCal",100,0,100,200,-10,10,120,-0.1,1.1);
    TH3D* hptdtohfrac = new TH3D(("hptdtohfrac"+simstr).c_str(),";Uncalibrated p_{T}^{leadjet};#Delta-t [ns];Lead Jet Energy Fraction in OHCal",100,0,100,200,-10,10,120,-0.1,1.1);
@@ -332,6 +341,21 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 	{
 	  hptdtfrac->Fill(jetkin[leadingjetindex][0],dijetTimediff,frac[leadingjetindex][1]);
 	  hpttfrac->Fill(jetkin[leadingjetindex][0],jetleadtime,frac[leadingjetindex][1]);
+	  if(isfinite(jetkin[leadingjetindex][6]) && isfinite(jetkin[leadingjetindex][5]))
+	    {
+	      htemtohfrac->Fill(17.6*jetkin[leadingjetindex][5],17.6*jetkin[leadingjetindex][6],frac[leadingjetindex][0]);
+	    }
+
+	  if(isfinite(jetkin[leadingjetindex][6]))
+	    {
+	      hpttohfrac->Fill(jetkin[leadingjetindex][0],17.6*jetkin[leadingjetindex][6],frac[leadingjetindex][0]);
+	    }
+
+	  if(isfinite(jetkin[leadingjetindex][5]))
+	    {
+	      hpttemfrac->Fill(jetkin[leadingjetindex][0],17.6*jetkin[leadingjetindex][5],frac[leadingjetindex][0]);
+	    }
+	  
 	  hptdtemfracnot->Fill(jetkin[leadingjetindex][0],dijetTimediff,frac[leadingjetindex][0]);
 	  if(jetleadtime < 4 && jetleadtime > -8)
 	    {
@@ -340,6 +364,21 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 	    }
 	  for(int j=0; j<njet; ++j)
 	    {
+	      if(isfinite(jetkin[j][6]) && isfinite(jetkin[j][5]))
+		{
+		  htemtohfrac_all->Fill(17.6*jetkin[j][5],17.6*jetkin[j][6],frac[j][0]);
+		}
+	      
+	      if(isfinite(jetkin[j][6]))
+		{
+		  hpttohfrac_all->Fill(17.6*jetkin[j][0],17.6*jetkin[j][6],frac[j][0]);
+		}
+	      
+	      if(isfinite(jetkin[j][5]))
+		{
+		  hpttohfrac_all->Fill(17.6*jetkin[j][0],17.6*jetkin[j][5],frac[j][0]);
+		}
+
 	      if(jetleadtime < 4 && jetleadtime > -8)
 		{
 		  hptdtemfrac_all->Fill(jetkin[j][0],dijetTimediff,frac[j][0]);
@@ -577,7 +616,7 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
     hleadtimeYESMBDwdijetP->Draw("same");    
 
 
-    TFile* outf = TFile::Open(("hists_mbdtimereq_out_"+simstr+(samtime?"sam":"")+(slew?"_slewed":"")+".root").c_str(),"RECREATE");
+    TFile* outf = TFile::Open(("hists_mbdtimereq_out_"+simstr+(samtime?"sam":"")+(slew?"_slewed":"")+tag+".root").c_str(),"RECREATE");
 
     outf->cd();
 
@@ -596,6 +635,13 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
     hpttfrac->Write();
     hptdtemfrac->Write();
     hptdtohfrac->Write();
+
+    htemtohfrac->Write();
+    htemtohfrac_all->Write();
+    hpttemfrac->Write();
+    hpttemfrac_all->Write();
+    hpttohfrac->Write();
+    hpttohfrac_all->Write();
 
     hptdtemfrac_all->Write();
     hptdtohfrac_all->Write();

@@ -43,8 +43,13 @@ class Chi2checker : public SubsysReco
 
   void Print(const std::string &what = "ALL") const override;
 
+  void set_minjetthresh(float newthresh)
+  {
+    _minjetthresh = newthresh;
+  }
  
  private:
+  float _minjetthresh{10};
   int _dotruthpar;
   bool _isdat;
   int _doall60;

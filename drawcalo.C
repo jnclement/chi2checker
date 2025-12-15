@@ -552,7 +552,7 @@ void drawCalo(float towersem[96][256], float towersih[24][64], float towersoh[24
 }
 
 
-int drawcalo(int lo, int hi, int dosave = 0, string listfilename = "chi2filesdat.txt", int rainbow = 0, int rundraw = -1, int evtdraw = -1, int isdat = 1, int iscosmic = 0)
+int drawcalo(int lo, int hi, int dosave = 1, string listfilename = "chi2filesdat.txt", int rainbow = 0, int rundraw = -1, int evtdraw = -1, int isdat = 1, int iscosmic = 0)
 {
   cancount = lo;
   //TFile* evtfile = TFile::Open("../chi2/hadded_chi2file_20250902.root","READ");
@@ -567,13 +567,13 @@ int drawcalo(int lo, int hi, int dosave = 0, string listfilename = "chi2filesdat
     {
       simtype = "jet50";
     }
-  if(dosave) outf = TFile::Open(("../savedhists/savedhists_20251108_"+to_string(lo)+"_"+to_string(hi)+"_"+(isdat?"dat":simtype)+".root").c_str(),"RECREATE");
+  if(dosave) outf = TFile::Open(("../savedhists/savedhists_blairtest_"+to_string(lo)+"_"+to_string(hi)+"_"+(isdat?"dat":simtype)+".root").c_str(),"RECREATE");
   TTree* outt;
   if(dosave) outt = new TTree("outt","an output tree");
   if(dosave) outt->SetDirectory(outf);
   int passfrac, passdijet, outevt, outrun, outnjet;
   unsigned int outmbdhit[2];
-  float jetkin[100][5];
+  float jetkin[100][7];
   float outz;
   float outtime[2];
   float frac[100][2];
@@ -584,7 +584,7 @@ int drawcalo(int lo, int hi, int dosave = 0, string listfilename = "chi2filesdat
       outt->Branch("evt",&outevt,"evt/I");
       outt->Branch("run",&outrun,"run/I");
       outt->Branch("njet",&outnjet,"njet/I");
-      outt->Branch("jetkin",jetkin,"jetkin[njet][5]/F");
+      outt->Branch("jetkin",jetkin,"jetkin[njet][7]/F");
       outt->Branch("zvtx",&outz,"zvtx/F");
       outt->Branch("mbdhit",outmbdhit,"mbdhit[2]/i");
       outt->Branch("avgt",&outtime,"avgt[2]/F");
@@ -600,6 +600,8 @@ int drawcalo(int lo, int hi, int dosave = 0, string listfilename = "chi2filesdat
   float jet_eta[100];
   float jet_phi[100];
   float jet_t[100];
+  float jtem[100];
+  float jtoh[100];
   float emtow[96][256];
   float ihtow[24][64];
   float ohtow[24][64];
@@ -706,6 +708,9 @@ int drawcalo(int lo, int hi, int dosave = 0, string listfilename = "chi2filesdat
   jet_tree->SetBranchStatus("ihtow",1);
   jet_tree->SetBranchStatus("ohtow",1);
   jet_tree->SetBranchStatus("zvtx",1);
+  jet_tree->SetBranchStatus("jet_t_oh",1);
+  jet_tree->SetBranchStatus("jet_t_em",1);
+  
   /*
   jet_tree->SetBranchStatus("isbadem",1);
   jet_tree->SetBranchStatus("isbadih",1);
@@ -733,7 +738,8 @@ int drawcalo(int lo, int hi, int dosave = 0, string listfilename = "chi2filesdat
   jet_tree->SetBranchAddress("ihtow",ihtow);
   jet_tree->SetBranchAddress("ohtow",ohtow);
   jet_tree->SetBranchAddress("zvtx",&zvtx);
-
+  jet_tree->SetBranchAddress("jet_t_em",jtem);
+  jet_tree->SetBranchAddress("jet_t_oh",jtoh);
   /*
   jet_tree->SetBranchAddress("isbadem",isbadem);
   jet_tree->SetBranchAddress("isbadih",isbadih);
@@ -838,6 +844,8 @@ int drawcalo(int lo, int hi, int dosave = 0, string listfilename = "chi2filesdat
 	      jetkin[j][2] = jet_phi[j];
 	      jetkin[j][3] = jet_e[j];
 	      jetkin[j][4] = jet_t[j];
+	      jetkin[j][5] = jtem[j];
+	      jetkin[j][6] = jtoh[j];
 	    }
 	  outt->Fill();
 	}
