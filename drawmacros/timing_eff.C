@@ -52,7 +52,7 @@ int timing_eff()
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
   cout << "test" << endl;
-  TFile* inf = TFile::Open("../hists_mbdtimereq_out_datsam_slewed.root","READ");
+  TFile* inf = TFile::Open("../hists_mbdtimereq_out_datsam_slewed20251211.root","READ");
   TCanvas* c = new TCanvas("","",1000,1000);
   c->cd();
   gPad->SetTopMargin(0.05);
@@ -69,6 +69,11 @@ int timing_eff()
   TH2D* nomcuts2[nbincheck];
 
   TH1D* effs[3][3];
+
+  float ltc[2] = {-6,6};
+  float ltv[2] = {-7,7};
+  float dtc[2] = {-3,3};
+  float dtv[2] = {-4,4};
 
   h3pttdt->Rebin3D(10,10,10);
   
@@ -115,10 +120,10 @@ int timing_eff()
 	      usegaus->SetParameters(thefit->GetParameter(1),thefit->GetParameter(2),thefit->GetParameter(3));
 	      higaus->SetParameters(thefit->GetParameter(1)+thefit->GetParError(1),thefit->GetParameter(2)+thefit->GetParError(2),thefit->GetParameter(3)+thefit->GetParError(3));
 	      logaus->SetParameters(thefit->GetParameter(1)-thefit->GetParError(1),thefit->GetParameter(2)+thefit->GetParError(2),thefit->GetParameter(3)+thefit->GetParError(3));
-	      double errshi[3] = {higaus->Integral(-8,4)/higaus->Integral(-30,30)-usegaus->Integral(-8,4)/usegaus->Integral(-30,30),higaus->Integral(-9,5)/higaus->Integral(-30,30)-usegaus->Integral(-9,5)/usegaus->Integral(-30,30),higaus->Integral(-7,3)/higaus->Integral(-30,30)-usegaus->Integral(-7,3)/usegaus->Integral(-30,30)};
-	      double errslo[3] = {logaus->Integral(-8,4)/logaus->Integral(-30,30)-usegaus->Integral(-8,4)/usegaus->Integral(-30,30),logaus->Integral(-9,5)/logaus->Integral(-30,30)-usegaus->Integral(-9,5)/usegaus->Integral(-30,30),logaus->Integral(-7,3)/logaus->Integral(-30,30)-usegaus->Integral(-7,3)/usegaus->Integral(-30,30)};
-	      effs[0][0]->SetBinContent(j+1,usegaus->Integral(-8,4)/usegaus->Integral(-30,30));
-	      effs[0][1]->SetBinContent(j+1,usegaus->Integral(-9,5)/usegaus->Integral(-30,30));
+	      double errshi[3] = {higaus->Integral(ltc[0],ltc[1])/higaus->Integral(-30,30)-usegaus->Integral(ltc[0],ltc[1])/usegaus->Integral(-30,30),higaus->Integral(ltv[0],ltv[1])/higaus->Integral(-30,30)-usegaus->Integral(ltv[0],ltv[1])/usegaus->Integral(-30,30),higaus->Integral(-7,3)/higaus->Integral(-30,30)-usegaus->Integral(-7,3)/usegaus->Integral(-30,30)};
+	      double errslo[3] = {logaus->Integral(ltc[0],ltc[1])/logaus->Integral(-30,30)-usegaus->Integral(ltc[0],ltc[1])/usegaus->Integral(-30,30),logaus->Integral(ltv[0],ltv[1])/logaus->Integral(-30,30)-usegaus->Integral(ltv[0],ltv[1])/usegaus->Integral(-30,30),logaus->Integral(-7,3)/logaus->Integral(-30,30)-usegaus->Integral(-7,3)/usegaus->Integral(-30,30)};
+	      effs[0][0]->SetBinContent(j+1,usegaus->Integral(ltc[0],ltc[1])/usegaus->Integral(-30,30));
+	      effs[0][1]->SetBinContent(j+1,usegaus->Integral(ltv[0],ltv[1])/usegaus->Integral(-30,30));
 	      effs[0][2]->SetBinContent(j+1,usegaus->Integral(-7,3)/usegaus->Integral(-30,30));
 	      double errs[3] = {(abs(errshi[0])+abs(errslo[0]))/2,(abs(errshi[1])+abs(errslo[1]))/2,(abs(errshi[2])+abs(errslo[2]))/2};
 	      for(int k=0; k<3; ++k)
@@ -181,7 +186,7 @@ int timing_eff()
 	      theleg->SetFillStyle(0);
 	      theleg->SetFillColor(0);
 	      theleg->SetBorderSize(0);
-	      TLine* lines[2] = {new TLine(-8,0,-8,nomcuts[i][j]->GetMaximum()),new TLine(4,0,4,nomcuts[i][j]->GetMaximum())};
+	      TLine* lines[2] = {new TLine(ltc[0],0,ltc[0],nomcuts[i][j]->GetMaximum()),new TLine(ltc[1],0,ltc[1],nomcuts[i][j]->GetMaximum())};
 	      for(int k=0; k<2; ++k)
 		{
 		  lines[k]->SetLineColor(kGreen);
@@ -200,7 +205,7 @@ int timing_eff()
 	      drawText("z_{vtx} requirement",0.17,0.72,0,kBlack,0.03);
 	      drawText("Dijet cut applied",0.17,0.68,0,kBlack,0.03);
 
-	      c->SaveAs(("timeff_fit_t_"+to_string(i)+"_"+to_string(j)+".pdf").c_str());
+	      c->SaveAs(("../../images/effs/timeff_fit_t_"+to_string(i)+"_"+to_string(j)+".pdf").c_str());
 	      
 	      delete usegaus;
 	      delete higaus;
@@ -217,15 +222,15 @@ int timing_eff()
 		  higaus2->SetParameter(k,fit2gaus->GetParameter(k+1)+fit2gaus->GetParError(k+1));
 		  logaus2->SetParameter(k,fit2gaus->GetParameter(k+1)-fit2gaus->GetParError(k+1));
 		}
-	      cout << usegaus2->Integral(-8,4,-3,3) << endl;
+	      cout << usegaus2->Integral(ltc[0],ltc[1],dtc[0],dtc[1]) << endl;
 	      cout << usegaus2->Integral(-30,30,-30,30) << endl;
 
-	      double errshi2[3] = {higaus2->Integral(-8,4,-3,3)/higaus2->Integral(-30,30,-30,30)-usegaus2->Integral(-8,4,-3,3)/usegaus2->Integral(-30,30,-30,30),higaus2->Integral(-9,5,-4,4)/higaus2->Integral(-30,30,-30,30)-usegaus2->Integral(-9,5,-4,4)/usegaus2->Integral(-30,30,-30,30),higaus2->Integral(-7,3,-2,2)/higaus2->Integral(-30,30,-30,30)-usegaus2->Integral(-7,3,-2,2)/usegaus2->Integral(-30,30,-30,30)};
-	      double errslo2[3] = {logaus2->Integral(-8,4,-3,3)/logaus2->Integral(-30,30,-30,30)-usegaus2->Integral(-8,4,-3,3)/usegaus2->Integral(-30,30,-30,30),logaus2->Integral(-9,5,-4,4)/logaus2->Integral(-30,30,-30,30)-usegaus2->Integral(-9,5,-4,4)/usegaus2->Integral(-30,30,-30,30),logaus2->Integral(-7,3,-2,2)/logaus2->Integral(-30,30,-30,30)-usegaus2->Integral(-7,3,-2,2)/usegaus2->Integral(-30,30,-30,30)};
+	      double errshi2[3] = {higaus2->Integral(ltc[0],ltc[1],dtc[0],dtc[1])/higaus2->Integral(-30,30,-30,30)-usegaus2->Integral(ltc[0],ltc[1],dtc[0],dtc[1])/usegaus2->Integral(-30,30,-30,30),higaus2->Integral(ltv[0],ltv[1],dtv[0],4)/higaus2->Integral(-30,30,-30,30)-usegaus2->Integral(ltv[0],ltv[1],dtv[0],4)/usegaus2->Integral(-30,30,-30,30),higaus2->Integral(-7,3,-2,2)/higaus2->Integral(-30,30,-30,30)-usegaus2->Integral(-7,3,-2,2)/usegaus2->Integral(-30,30,-30,30)};
+	      double errslo2[3] = {logaus2->Integral(ltc[0],ltc[1],dtc[0],dtc[1])/logaus2->Integral(-30,30,-30,30)-usegaus2->Integral(ltc[0],ltc[1],dtc[0],dtc[1])/usegaus2->Integral(-30,30,-30,30),logaus2->Integral(ltv[0],ltv[1],dtv[0],4)/logaus2->Integral(-30,30,-30,30)-usegaus2->Integral(ltv[0],ltv[1],dtv[0],4)/usegaus2->Integral(-30,30,-30,30),logaus2->Integral(-7,3,-2,2)/logaus2->Integral(-30,30,-30,30)-usegaus2->Integral(-7,3,-2,2)/usegaus2->Integral(-30,30,-30,30)};
 	      
 	      
-	      effs[2][0]->SetBinContent(j+1,usegaus2->Integral(-8,4,-3,3)/usegaus2->Integral(-30,30,-30,30));
-	      effs[2][1]->SetBinContent(j+1,usegaus2->Integral(-9,5,-4,4)/usegaus2->Integral(-30,30,-30,30));
+	      effs[2][0]->SetBinContent(j+1,usegaus2->Integral(ltc[0],ltc[1],dtc[0],dtc[1])/usegaus2->Integral(-30,30,-30,30));
+	      effs[2][1]->SetBinContent(j+1,usegaus2->Integral(ltv[0],ltv[1],dtv[0],dtv[1])/usegaus2->Integral(-30,30,-30,30));
 	      effs[2][2]->SetBinContent(j+1,usegaus2->Integral(-7,3,-2,2)/usegaus2->Integral(-30,30,-30,30));
 
 	      double errs2[3] = {(abs(errshi2[0])+abs(errslo2[0]))/2,(abs(errshi2[1])+abs(errslo2[1]))/2,(abs(errshi2[2])+abs(errslo2[2]))/2};
@@ -265,10 +270,10 @@ int timing_eff()
 	      usegaus->SetParameters(thefit->GetParameter(1),thefit->GetParameter(2),thefit->GetParameter(3));
 	      higaus->SetParameters(thefit->GetParameter(1)+thefit->GetParError(1),thefit->GetParameter(2)+thefit->GetParError(2),thefit->GetParameter(3)+thefit->GetParError(3));
 	      logaus->SetParameters(thefit->GetParameter(1)-thefit->GetParError(1),thefit->GetParameter(2)+thefit->GetParError(2),thefit->GetParameter(3)+thefit->GetParError(3));
-	      double errshi[3] = {higaus->Integral(-8,4)/higaus->Integral(-30,30)-usegaus->Integral(-8,4)/usegaus->Integral(-30,30),higaus->Integral(-9,5)/higaus->Integral(-30,30)-usegaus->Integral(-9,5)/usegaus->Integral(-30,30),higaus->Integral(-7,3)/higaus->Integral(-30,30)-usegaus->Integral(-7,3)/usegaus->Integral(-30,30)};
-	      double errslo[3] = {logaus->Integral(-8,4)/logaus->Integral(-30,30)-usegaus->Integral(-8,4)/usegaus->Integral(-30,30),logaus->Integral(-9,5)/logaus->Integral(-30,30)-usegaus->Integral(-9,5)/usegaus->Integral(-30,30),logaus->Integral(-7,3)/logaus->Integral(-30,30)-usegaus->Integral(-7,3)/usegaus->Integral(-30,30)};
-	      effs[1][0]->SetBinContent(j+1,usegaus->Integral(-8,4)/usegaus->Integral(-30,30));
-	      effs[1][1]->SetBinContent(j+1,usegaus->Integral(-9,5)/usegaus->Integral(-30,30));
+	      double errshi[3] = {higaus->Integral(dtc[0],dtc[1])/higaus->Integral(-30,30)-usegaus->Integral(dtc[0],dtc[1])/usegaus->Integral(-30,30),higaus->Integral(dtv[0],dtv[1])/higaus->Integral(-30,30)-usegaus->Integral(dtv[0],dtv[1])/usegaus->Integral(-30,30),higaus->Integral(-7,3)/higaus->Integral(-30,30)-usegaus->Integral(-7,3)/usegaus->Integral(-30,30)};
+	      double errslo[3] = {logaus->Integral(dtc[0],dtc[1])/logaus->Integral(-30,30)-usegaus->Integral(dtc[0],dtc[1])/usegaus->Integral(-30,30),logaus->Integral(dtv[0],dtv[1])/logaus->Integral(-30,30)-usegaus->Integral(dtv[0],dtv[1])/usegaus->Integral(-30,30),logaus->Integral(-7,3)/logaus->Integral(-30,30)-usegaus->Integral(-7,3)/usegaus->Integral(-30,30)};
+	      effs[1][0]->SetBinContent(j+1,usegaus->Integral(dtc[0],dtc[1])/usegaus->Integral(-30,30));
+	      effs[1][1]->SetBinContent(j+1,usegaus->Integral(dtv[0],dtv[1])/usegaus->Integral(-30,30));
 	      effs[1][2]->SetBinContent(j+1,usegaus->Integral(-7,3)/usegaus->Integral(-30,30));
 	      double errs[3] = {(abs(errshi[0])+abs(errslo[0]))/2,(abs(errshi[1])+abs(errslo[1]))/2,(abs(errshi[2])+abs(errslo[2]))/2};
 	      for(int k=0; k<3; ++k)
@@ -331,7 +336,7 @@ int timing_eff()
 	      theleg->SetFillStyle(0);
 	      theleg->SetFillColor(0);
 	      theleg->SetBorderSize(0);
-	      TLine* lines[2] = {new TLine(-3,0,-3,nomcuts[i][j]->GetMaximum()),new TLine(3,0,3,nomcuts[i][j]->GetMaximum())};
+	      TLine* lines[2] = {new TLine(dtc[0],0,dtc[0],nomcuts[i][j]->GetMaximum()),new TLine(3,0,3,nomcuts[i][j]->GetMaximum())};
 	      
 	      for(int k=0; k<2; ++k)
 		{
@@ -349,7 +354,7 @@ int timing_eff()
 	      drawText("z_{vtx} requirement",0.17,0.72,0,kBlack,0.03);
 	      drawText("Dijet cut applied",0.17,0.68,0,kBlack,0.03);
 
-	      c->SaveAs(("timeff_fit_dt_"+to_string(i)+"_"+to_string(j)+".pdf").c_str());
+	      c->SaveAs(("../../images/effs/timeff_fit_dt_"+to_string(i)+"_"+to_string(j)+".pdf").c_str());
 	      
 	      delete usegaus;
 	      delete logaus;
@@ -399,7 +404,7 @@ int timing_eff()
       leg->Draw();
       maintexts(0.9,0.6);
       //drawText(type[i].c_str(),0.6,0.78,0,kBlack,0.03);
-      c->SaveAs(("effstype"+to_string(i)+".pdf").c_str());
+      c->SaveAs(("../../images/effs/effstype"+to_string(i)+".pdf").c_str());
     }
   return 0;
 }

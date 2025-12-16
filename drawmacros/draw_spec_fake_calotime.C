@@ -1,7 +1,7 @@
 #include <../dlUtility.h>
 int isdat = 1;
 string stype = "dat";
-int draw_spec_fake_frac(string tt = "dt", string ap = "yz", int lo = 30, int hi = 45, int docorr = 0)
+int draw_spec_fake_calotime(string ap = "xy", int lo = 16, int hi = 30)
 {
   gStyle->SetPadTickX(1);
   gStyle->SetPadTickY(1);
@@ -9,7 +9,7 @@ int draw_spec_fake_frac(string tt = "dt", string ap = "yz", int lo = 30, int hi 
   gStyle->SetOptTitle(0);
   TFile* inf = TFile::Open(("../hists_mbdtimereq_out_"+stype+(isdat?"sam":"")+"20251211.root").c_str(),"READ");
 
-  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get(("hpt"+tt+"frac"+stype).c_str());
+  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get(("htemtohfrac"+stype).c_str());
 
   TCanvas* can = new TCanvas("","",1500,1500);
   
@@ -53,30 +53,33 @@ int draw_spec_fake_frac(string tt = "dt", string ap = "yz", int lo = 30, int hi 
     }
   else if(ap=="xz")
     {
-      axstr = tt=="dt"?"<#Delta-t<":"<t_{lead}<";
+      axstr = "";
       lobound = h3_pt_lem_loh->GetYaxis()->GetBinLowEdge(lo);
       hibound = h3_pt_lem_loh->GetYaxis()->GetBinLowEdge(hi+1);
       unitstr = " ns";
     }
   else if(ap=="xy")
     {
-      axstr = "<E^{jet}_{OHCal}/E^{jet}<";
+      axstr = "<E^{jet}_{EMCal}/E^{jet}<";
       lobound = h3_pt_lem_loh->GetZaxis()->GetBinLowEdge(lo);
       hibound = h3_pt_lem_loh->GetZaxis()->GetBinLowEdge(hi+1);
       unitstr = "";
     }
-  TLine* line0 = new TLine(-0.1,tt=="dt"?-3:-6,1.1,tt=="dt"?-3:-6);
-  TLine* line1 = new TLine(-0.1,tt=="dt"?3:6,1.1,tt=="dt"?3:6);
-  TLine* line2 = new TLine(-0.1,tt=="dt"?-4:-7,1.1,tt=="dt"?-4:-7);
-  TLine* line3 = new TLine(-0.1,tt=="dt"?4:7,1.1,tt=="dt"?4:7);
+  /*
+  TLine* line0 = new TLine(-0.1,tt=="dt"?-3:-8,1.1,tt=="dt"?-3:-8);
+  TLine* line1 = new TLine(-0.1,tt=="dt"?3:4,1.1,tt=="dt"?3:4);
+  TLine* line2 = new TLine(-0.1,tt=="dt"?-4:-9,1.1,tt=="dt"?-4:-9);
+  TLine* line3 = new TLine(-0.1,tt=="dt"?4:5,1.1,tt=="dt"?4:5);
+  */
   TProfile* prof = h2_t_dt->ProfileX();
-  TLegend* tleg = new TLegend(0.4,0.58,0.9,0.7);
+  TLegend* tleg = new TLegend(0.4,0.22,0.9,0.35);
   tleg->SetFillStyle(0);
   tleg->SetBorderSize(0);
   tleg->SetFillColor(0);
   TF1* myfit;
   if(ap=="yz")
     {
+      /*
       line0->SetLineColor(kRed);
       line2->SetLineColor(kAzure+2);
       line1->SetLineColor(kRed);
@@ -85,12 +88,14 @@ int draw_spec_fake_frac(string tt = "dt", string ap = "yz", int lo = 30, int hi 
       line1->SetLineWidth(2);
       line2->SetLineWidth(2);
       line3->SetLineWidth(2);
+      /*
       tleg->AddEntry(line0,"Nominal cut bounds","l");
       tleg->AddEntry(line2,"Cut variation bounds","l");
       line0->Draw();
       line1->Draw();
       line2->Draw();
       line3->Draw();
+      */
       tleg->Draw();
       prof->SetMarkerStyle(20);
       prof->SetMarkerSize(2);
@@ -102,20 +107,22 @@ int draw_spec_fake_frac(string tt = "dt", string ap = "yz", int lo = 30, int hi 
     }
 
 
-  TFile* outf;
-  if(ap=="yz" && docorr)
+  //TFile* outf;
+  /*
+  if(ap=="yz")
     {
       outf = new TFile(("slewcorfit_"+tt+"_"+stype+".root").c_str(),"RECREATE");
       outf->cd();
       myfit->Write();
     }
-  outf->Close();
+  */
+  //outf->Close();
   tdss << std::fixed << std::setprecision(1) << "Leading jets " << lobound << axstr << hibound << unitstr;
   drawText(tdss.str().c_str(),0.25,0.76,0,kBlack,0.04);
   drawText("No reconstructed z_{vtx} requirement",0.25,0.71,0,kBlack,0.04);
   if(!isdat) drawText(("PYTHIA "+stype+" sample").c_str(),0.25,0.66,0,kBlack,0.04);
-  can->SaveAs(("../../images/efd/"+stype+"_"+tt+"_"+ap+"_proj2d_"+to_string(lo)+"-"+to_string(hi)+".pdf").c_str());
+  can->SaveAs(("../../images/efd/"+stype+"_temtoh_"+ap+"_proj2d_"+to_string(lo)+"-"+to_string(hi)+".pdf").c_str());
   gPad->SetLogz();
-  can->SaveAs(("../../images/efd/"+stype+"_"+tt+"_"+ap+"_proj2d_"+to_string(lo)+"-"+to_string(hi)+"_log.pdf").c_str());
+  can->SaveAs(("../../images/efd/"+stype+"_temtoh_"+ap+"_proj2d_"+to_string(lo)+"-"+to_string(hi)+"_log.pdf").c_str());
   return 0;
 }

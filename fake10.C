@@ -149,6 +149,11 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
    for (Long64_t i=0; i<nentries;i++) {
       nbytes += outt->GetEntry(i);
 
+      if(i%100000==0)
+	{
+	  cout << ((float)i)/nentries << endl;
+	}
+
       if (run == 51161) continue;  // somehow a bad apple
 
       // spectra of leading jets or all jets (does this make any difference?)
@@ -184,9 +189,12 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
       if (frac[leadingjetindex][0] < 0.10 || frac[leadingjetindex][0]>0.9 ||
 	  frac[leadingjetindex][1] < 0.10 || frac[leadingjetindex][1]>0.9) PassMinimalFrac = false;
 
+
+      float leadslew = slew?slewcor->Eval(frac[leadingjetindex][1]):0;
       double jetleadtime = 17.6*(jetkin[leadingjetindex][4]);
       //if (TMath::Abs(jetleadtime + 2.0) < 6.0 || issim) PassLeadTime = true;
-      if (TMath::Abs(jetleadtime + 2.0) < 6.0 || issim) PassLeadTimeONLY = true;      
+      //if (TMath::Abs(jetleadtime + 2.0) < 6.0 || issim) PassLeadTimeONLY = true;
+      if (TMath::Abs(jetleadtime-leadslew) < 6.0 || issim) PassLeadTimeONLY = true;      
       hleadtimeNOMBD->Fill(jetleadtime);
       
       // now check if MBD time is available, and if so, apply the stricter cut
@@ -223,7 +231,7 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 	}
       }
 
-      float leadslew = slew?slewcor->Eval(frac[leadingjetindex][1]):0;
+      
       float subslew = slew?slewcor->Eval(frac[subleadingjetindex][1]):0;
 
       float totalslew = leadslew-subslew;
@@ -234,7 +242,7 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
       bool inTailLeadTime = false;
       if (TMath::Abs(jetleadtimeMBD) > 3.0 && !issim /*&& mbdtime > -99*/) PassLeadTime = false;
       if (jetleadtimeMBD < -3.0 && jetleadtimeMBD > -30.0) inTailLeadTime = true;
-      if (TMath::Abs(jetleadtimeMBD) > 10.0 && !issim /*&& mbdtime > -99*/) PassLeadTimeWIDE = false;
+      if (TMath::Abs(jetleadtimeMBD) > 5.0 && !issim /*&& mbdtime > -99*/) PassLeadTimeWIDE = false;
       hleadtimeYESMBD->Fill(jetleadtimeMBD);
 
 
@@ -341,17 +349,17 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 	{
 	  hptdtfrac->Fill(jetkin[leadingjetindex][0],dijetTimediff,frac[leadingjetindex][1]);
 	  hpttfrac->Fill(jetkin[leadingjetindex][0],jetleadtime,frac[leadingjetindex][1]);
-	  if(isfinite(jetkin[leadingjetindex][6]) && isfinite(jetkin[leadingjetindex][5]))
+	  if(isfinite(jetkin[leadingjetindex][6]) && isfinite(jetkin[leadingjetindex][5]) && abs(jetkin[leadingjetindex][6])>0 && abs(jetkin[leadingjetindex][5])>0)
 	    {
 	      htemtohfrac->Fill(17.6*jetkin[leadingjetindex][5],17.6*jetkin[leadingjetindex][6],frac[leadingjetindex][0]);
 	    }
 
-	  if(isfinite(jetkin[leadingjetindex][6]))
+	  if(isfinite(jetkin[leadingjetindex][6]) && abs(jetkin[leadingjetindex][6])>0)
 	    {
 	      hpttohfrac->Fill(jetkin[leadingjetindex][0],17.6*jetkin[leadingjetindex][6],frac[leadingjetindex][0]);
 	    }
 
-	  if(isfinite(jetkin[leadingjetindex][5]))
+	  if(isfinite(jetkin[leadingjetindex][5]) && abs(jetkin[leadingjetindex][5])>0)
 	    {
 	      hpttemfrac->Fill(jetkin[leadingjetindex][0],17.6*jetkin[leadingjetindex][5],frac[leadingjetindex][0]);
 	    }
@@ -364,17 +372,17 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 	    }
 	  for(int j=0; j<njet; ++j)
 	    {
-	      if(isfinite(jetkin[j][6]) && isfinite(jetkin[j][5]))
+	      if(isfinite(jetkin[j][6]) && isfinite(jetkin[j][5]) && abs(jetkin[j][6])>0 && abs(jetkin[j][5])>0)
 		{
 		  htemtohfrac_all->Fill(17.6*jetkin[j][5],17.6*jetkin[j][6],frac[j][0]);
 		}
 	      
-	      if(isfinite(jetkin[j][6]))
+	      if(isfinite(jetkin[j][6])&& abs(jetkin[j][6])>0)
 		{
 		  hpttohfrac_all->Fill(17.6*jetkin[j][0],17.6*jetkin[j][6],frac[j][0]);
 		}
 	      
-	      if(isfinite(jetkin[j][5]))
+	      if(isfinite(jetkin[j][5]) && abs(jetkin[j][5])>0)
 		{
 		  hpttohfrac_all->Fill(17.6*jetkin[j][0],17.6*jetkin[j][5],frac[j][0]);
 		}
