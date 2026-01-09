@@ -1,7 +1,7 @@
 #include <../dlUtility.h>
 int globalusefrac = 0;
-int isdat = 0;
-string stype = "jet30";
+int isdat = 1;
+string stype = "dat";
 int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vector<int>> zbounds, std::vector<int> axis, std::vector<int> colors, std::vector<int> markers, std::vector<string> numlabels, string title, string ytitle, std::vector<float> linex)
 {
 
@@ -130,14 +130,14 @@ int draw_spec_fake(int usefrac = 0, int mbdint = 0, int lo = 46, int hi = 60)
   if(mbdint==1) mbdstr = "_mbdboth";
   if(mbdint==2) mbdstr = "_mbdeither";
   string fracstr = usefrac?"frac":"";
-  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_"+stype+fracstr+(isdat?"sam":"")+".root").c_str(),"READ");
+  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_"+stype+fracstr+(isdat?"samblairtest":"")+".root").c_str(),"READ");
 
   TH3D* h3_pt_lem_loh = (TH3D*)inf->Get(("hpttmbdt_dtc"+mbdstr+stype+fracstr).c_str());
 
   //h3_pt_lem_loh->GetZaxis()->SetTitle("t_{lead} [ns]");
   //136,165
-  std::vector<vector<int>> ybounds = {{11,20},{21,30},{31,60}};
-  if(stype=="jet30" || true)
+  std::vector<vector<int>> ybounds = {{11,15},{16,20},{21,40}};
+  if(stype=="jet30")
     {
       ybounds[0][0]=31;
       ybounds[0][1]=45;
@@ -150,11 +150,12 @@ int draw_spec_fake(int usefrac = 0, int mbdint = 0, int lo = 46, int hi = 60)
   std::vector<int> axis = {1,1,1};
   std::vector<int> colors = {kAzure,kOrange,kMagenta};//, kAzure};//, kViolet, kOrange, kGray};
   std::vector<int> markers = {21,20,71};//, 21};//, 71, 72, 88};
-  std::vector<string> numlabels = {"Jets 10<p_{T}^{uncalib}<20 GeV","Jets 20<p_{T}^{uncalib}<30 GeV","Jets 30<p_{T}^{uncalib}<45 GeV"};//"EM fraction < 0.9 only","EM fraction > 0.1 only","OH fraction < 0.9 only","OH Fraction > 0.1 only","EM frac <0.9 && OH frac > 0.1"};
+  std::vector<string> numlabels = {"Jets 10<p_{T}^{uncalib}<15 GeV","Jets 15<p_{T}^{uncalib}<20 GeV","Jets 20<p_{T}^{uncalib}<40 GeV"};//"EM fraction < 0.9 only","EM fraction > 0.1 only","OH fraction < 0.9 only","OH Fraction > 0.1 only","EM frac <0.9 && OH frac > 0.1"};
+  /*
   numlabels[0] = "Jets 30 GeV<p_{T}^{uncalib}<45 GeV";
   numlabels[1] = "Jets 45 GeV<p_{T}^{uncalib}<55 GeV";
   numlabels[2] = "Jets 55 GeV<p_{T}^{uncalib}<70 GeV";
-
+  */
 
 
   axis.at(0) = 2;
@@ -170,10 +171,16 @@ int draw_spec_fake(int usefrac = 0, int mbdint = 0, int lo = 46, int hi = 60)
   axis.at(0) = 1;
   axis.at(1) = 1;
   axis.at(2) = 1;
+
+  zbounds.clear();
+  for(int i=0; i<ybounds.size(); ++i)
+    {
+      zbounds.push_back({0,-1});
+    }
   
   drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"../../images/mbd/"+stype+"_t_proj1d"+mbdstr+".pdf","",{-6,6});//,"dN_{jet}/d#Delta t_{l,sl} [ns^{-1}]");
   std::vector<vector<int>> ybounds2 = {{11,20},{21,30},{31,45},{46,70}};
-    if(stype=="jet30" || true)
+    if(stype=="jet30")
     {
       ybounds2[0][0]=31;
       ybounds2[0][1]=45;
@@ -187,11 +194,13 @@ int draw_spec_fake(int usefrac = 0, int mbdint = 0, int lo = 46, int hi = 60)
   std::vector<int> axis2 = {2,2,2,2};
   std::vector<int> colors2 = {kAzure,kOrange,kMagenta,kSpring};//, kViolet, kOrange, kGray};
   std::vector<int> markers2 = {21,20,71,72};
-  std::vector<string> numlabels2 = {"Jets 10<p_{T}^{uncalib}<20 GeV","Jets 20<p_{T}^{uncalib}<30 GeV","Jets 30<p_{T}^{uncalib}<45 GeV","Jets 45<p_{T}^{uncalib}<70 GeV"};//"EM fraction < 0.9 only","EM fraction > 0.1 only","OH fraction < 0.9 only","OH Fraction > 0.1 only","EM frac <0.9 && OH frac > 0.1"};
+  //std::vector<string> numlabels2 = {"Jets 10<p_{T}^{uncalib}<20 GeV","Jets 20<p_{T}^{uncalib}<30 GeV","Jets 30<p_{T}^{uncalib}<45 GeV","Jets 45<p_{T}^{uncalib}<70 GeV"};//"EM fraction < 0.9 only","EM fraction > 0.1 only","OH fraction < 0.9 only","OH Fraction > 0.1 only","EM frac <0.9 && OH frac > 0.1"};
+  std::vector<string> numlabels2 = {"Jets 10<p_{T}^{uncalib}<15 GeV","Jets 15<p_{T}^{uncalib}<20 GeV","Jets 20<p_{T}^{uncalib}<40 GeV"};//"EM fraction < 0.9 only","EM fraction > 0.1 only","OH fraction < 0.9 only","OH Fraction > 0.1 only","EM frac <0.9 && OH frac > 0.1"};
+  /*
   numlabels2[0] = "Jets 30 GeV<p_{T}^{uncalib}<45 GeV";
   numlabels2[1] = "Jets 45 GeV<p_{T}^{uncalib}<55 GeV";
   numlabels2[2] = "Jets 55 GeV<p_{T}^{uncalib}<70 GeV";
-
+  */
   drawprettyeff(h3_pt_lem_loh,ybounds2,zbounds2,axis2,colors2,markers2,numlabels2,"../../images/mbd/"+stype+"_dt_proj1d"+fracstr+".pdf","",{-3,3});
 
   TCanvas* can = new TCanvas("","",1500,1500);

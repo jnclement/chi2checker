@@ -217,8 +217,9 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("ohPhiBinMaxFrac",&_ohPhiBinMaxFrac,"ohPhiBinMaxFrac/F");
   jet_tree->Branch("maxETowIsZS",&_maxETowIsZS,"maxETowIsZS/I");
   jet_tree->Branch("maxETowChi2Det",&_maxETowChi2Det,"maxETowChi2Det/I");
-  jet_tree->Branch("triggervec",&_triggervec,"triggervec/g");
   */
+  jet_tree->Branch("triggervec",&_triggervec,"triggervec/g");
+  
   jet_tree->Branch("bbfqavec",&_bbfqavec,"bbfqavec/i");
   /*
   jet_tree->Branch("elmbgvec",&_elmbgvec,"elmbgvec/i");
@@ -230,11 +231,14 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("alljetfrcoh",_alljetfrcoh,"alljetfrcoh[jet_n]/F");
   jet_tree->Branch("alljetfrcem",_alljetfrcem,"alljetfrcem[jet_n]/F");
   jet_tree->Branch("jet_et",_jet_et,"jet_et[jet_n]/F");
+  jet_tree->Branch("jet_etrans",_jet_etrans,"jet_etrans[jet_n]/F");
   jet_tree->Branch("jet_pt",_jet_pt,"jet_pt[jet_n]/F");
   jet_tree->Branch("jet_t",_jet_t,"jet_t[jet_n]/F");
+  /*
   jet_tree->Branch("jet_t_em",_jet_t_em,"jet_t_em[jet_n]/F");
   jet_tree->Branch("jet_t_ih",_jet_t_ih,"jet_t_ih[jet_n]/F");
   jet_tree->Branch("jet_t_oh",_jet_t_oh,"jet_t_oh[jet_n]/F");
+  */
   jet_tree->Branch("jet_eta",_jet_eta,"jet_eta[jet_n]/F");
   jet_tree->Branch("jet_phi",_jet_phi,"jet_phi[jet_n]/F");
 
@@ -247,9 +251,9 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("tjet_phi",_tjet_phi,"tjet_phi[tjet_n]/F");
     }
   
-  jet_tree->Branch("emtow",_emtow,"emtow[96][256]/F");
-  jet_tree->Branch("ihtow",_ihtow,"ihtow[24][64]/F");
-  jet_tree->Branch("ohtow",_ohtow,"ohtow[24][64]/F");
+  //jet_tree->Branch("emtow",_emtow,"emtow[96][256]/F");
+  //jet_tree->Branch("ihtow",_ihtow,"ihtow[24][64]/F");
+  //jet_tree->Branch("ohtow",_ohtow,"ohtow[24][64]/F");
   /*
   jet_tree->Branch("isbadem",_isbadem,"isbadem[96][256]/I");
   jet_tree->Branch("isbadih",_isbadih,"isbadih[24][64]/I");
@@ -261,11 +265,11 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("nocalih",_nocalih,"nocalih[24][64]/I");
   jet_tree->Branch("nocaloh",_nocaloh,"nocaloh[24][64]/I");
   */
-  jet_tree->Branch("jconem",_jconem,"jconem[24][64]/F");
-  jet_tree->Branch("jconih",_jconih,"jconih[24][64]/F");
-  jet_tree->Branch("jconoh",_jconoh,"jconoh[24][64]/F");
+  //jet_tree->Branch("jconem",_jconem,"jconem[24][64]/F");
+  //jet_tree->Branch("jconih",_jconih,"jconih[24][64]/F");
+  //jet_tree->Branch("jconoh",_jconoh,"jconoh[24][64]/F");
   
-  jet_tree->Branch("isblt",&_isbadlive,"isblt/I");
+  //jet_tree->Branch("isblt",&_isbadlive,"isblt/I");
   /*
   jet_tree->Branch("chi2em",_chi2em,"chi2em[96][256]/F");
   jet_tree->Branch("chi2ih",_chi2ih,"chi2ih[24][64]/F");
@@ -430,6 +434,9 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       PHG4VtxPoint *gvertex = truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
       _tzvtx = gvertex->get_z();
     }
+
+  int isjettrig = 0;
+  int isjmbtrig = 0;
   
   if(_isdat)
     {
@@ -443,8 +450,8 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       if(_debug > 1) cout << "Chi2checker: Getting gl1 trigger vector from: " << gl1 << endl;
       _triggervec = gl1->getScaledVector();
       
-      int isjettrig = (_triggervec >> 22) & 1;
-      int isjmbtrig = (_triggervec >> 18) & 1;
+      isjettrig = (_triggervec >> 22) & 1;
+      isjmbtrig = (_triggervec >> 18) & 1;
       //int ismbtrig = (_triggervec >> 10) & 1;
       //if(_debug > 2) cout << _triggervec << " " << isjettrig << " " << ismbtrig << endl;
       /*
@@ -753,6 +760,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	      _alljetfrcem[_jet_n] = 0;
 	      _alljetfrcoh[_jet_n] = 0;
 	      _jet_et[_jet_n] = jet->get_e();
+	      _jet_etrans[_jet_n] = jet->get_e()/cosh(jet->get_eta());
 	      _jet_eta[_jet_n] = jet->get_eta();
 	      //if(check_bad_jet_eta(_jet_eta[_jet_n],zvtx,0.4)) continue;
 	      _jet_pt[_jet_n] = jet->get_pt();
@@ -1219,7 +1227,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	}
       
       
-      if((maxJetE > 10 && (!loETCut || !dPhiCut)) || maxJetE > _minjetthresh || _doall60 || !_isdat)
+      if((maxJetE > 10 && (!loETCut || !dPhiCut)) || maxJetE > _minjetthresh || _doall60 || !_isdat || isjettrig || isjmbtrig)
 	{
 
 	  for(int j=0; j<12; ++j)

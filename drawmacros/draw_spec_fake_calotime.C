@@ -7,9 +7,9 @@ int draw_spec_fake_calotime(string ap = "xy", int lo = 16, int hi = 30)
   gStyle->SetPadTickY(1);
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
-  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_"+stype+(isdat?"sam":"")+"20251211.root").c_str(),"READ");
+  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_"+stype+(isdat?"sam":"")+"blairtest.root").c_str(),"READ");
 
-  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get(("htemtohfrac"+stype).c_str());
+  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get(("hpttfrac"+stype).c_str());
 
   TCanvas* can = new TCanvas("","",1500,1500);
   

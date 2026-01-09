@@ -49,7 +49,7 @@ class Chi2checker : public SubsysReco
   }
  
  private:
-  float _minjetthresh{10};
+  float _minjetthresh{7};
   int _dotruthpar;
   bool _isdat;
   int _doall60;
@@ -115,6 +115,7 @@ class Chi2checker : public SubsysReco
   int _runnum;
   int _evtnum;
   float _jet_et[100];
+  float _jet_etrans[100];
   float _jet_pt[100];
   float _jet_t[100];
   float _jet_t_em[100];
