@@ -111,12 +111,14 @@ class Chi2checker : public SubsysReco
   unsigned int _elmbgvec;
   int _mbevt;
   int _jet_n;
+  int _calib_jet_n;
   int _failscut;
   int _runnum;
   int _evtnum;
   float _jet_et[100];
   float _jet_etrans[100];
   float _jet_pt[100];
+  float _jet_pt_calib[100];
   float _jet_t[100];
   float _jet_t_em[100];
   float _jet_t_ih[100];

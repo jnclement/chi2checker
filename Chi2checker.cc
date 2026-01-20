@@ -225,6 +225,7 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("elmbgvec",&_elmbgvec,"elmbgvec/i");
   */
   jet_tree->Branch("jet_n",&_jet_n,"jet_n/I");
+  jet_tree->Branch("calib_jet_n",&_calib_jet_n,"calib_jet_n/I");
   jet_tree->Branch("runnum",&_runnum,"runnum/I");
   jet_tree->Branch("evtnum",&_evtnum,"evtnum/I");
   jet_tree->Branch("failscut",&_failscut,"failscut/I");
@@ -234,6 +235,7 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("jet_etrans",_jet_etrans,"jet_etrans[jet_n]/F");
   jet_tree->Branch("jet_pt",_jet_pt,"jet_pt[jet_n]/F");
   jet_tree->Branch("jet_t",_jet_t,"jet_t[jet_n]/F");
+  jet_tree->Branch("jet_pt_calib",_jet_pt_calib,"jet_pt_calib[calib_jet_n]/F");
   /*
   jet_tree->Branch("jet_t_em",_jet_t_em,"jet_t_em[jet_n]/F");
   jet_tree->Branch("jet_t_ih",_jet_t_ih,"jet_t_ih[jet_n]/F");
@@ -613,8 +615,10 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   regtows[0] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_CEMC");
   regtows[1] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_HCALIN");
   regtows[2] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_HCALOUT");
-  JetContainer *jets = findNode::getClass<JetContainerv1>(topNode, "AntiKt_Tower_HIRecoSeedsRaw_r04");//"AntiKt_unsubtracted_r04");
+  JetContainer *jets = findNode::getClass<JetContainerv1>(topNode, "AntiKt_unsubtracted_r04");//"AntiKt_unsubtracted_r04");
+  JetContainer *calib_jets = findNode::getClass<JetContainerv1>(topNode, "AntiKt_unsubtracted_r04_calib");//"AntiKt_unsubtracted_r04");
   if(!jets) jets = findNode::getClass<JetContainerv1>(topNode, "AntiKt_unsubtracted_r04");
+  
   JetContainer* truthjets = NULL;
   if(!_isdat) truthjets = findNode::getClass<JetContainerv1>(topNode, "AntiKt_Truth_r04");
   //cout <<"truthjets: " <<  truthjets << endl;
@@ -633,6 +637,35 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
         }
     }
 
+  std::vector<int> record_index = {};
+  int index_counter = 0;
+  _calib_jet_n = 0;
+  if(calib_jets)
+    {
+      for(int i=0; i<calib_jets->size(); ++i)
+	{
+	  Jet* jet = calib_jets->get_jet(i);
+	  if(jet->get_pt() < 1)
+	    {
+	      ++index_counter;
+	      continue;
+	    }
+	  record_index.push_back(index_counter);
+	  ++index_counter;
+	  _jet_pt_calib[_calib_jet_n] = jet->get_pt();
+	  ++_calib_jet_n;
+	}
+    }
+  else
+    {
+      cout << "no calib jets" << endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  index_counter = 0;
+
+  
+
   
   if(_debug > 2) cout << towers[0] << " " << towers[1] << " " << towers[2] << endl;
 
@@ -649,6 +682,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   _mbdavgt[1] = 0;
   _mbdhit[0] = 0;
   _mbdhit[1] = 0;
+  
   if(mbdpmt)
     {
       for(int i=0; i<128; ++i)
@@ -743,6 +777,12 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
       if(_debug > 2) cout << "Found " << tocheck << " jets to check..." << endl;
       for(int i=0; i<tocheck; ++i)
         {
+	  if (std::find(record_index.begin(), record_index.end(), index_counter) == record_index.end())
+	    {
+	      index_counter++;
+	      continue;
+	    }
+	  index_counter++;
           Jet *jet = jets->get_jet(i);
           if(jet)
             {
@@ -754,8 +794,6 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	      float sigEtaPhi = 0;
 	      float sigPhiPhi = 0;
 	      //if(_debug > 5) cout << "jet E/eta: " << testJetE  << " " << jet->get_eta() << endl;
-	      if(jet->get_pt() < 1) continue;
-	      if(jet->get_e() < 1) continue;
 	      //if(_debug > 3) cout << "got a candidate jet" << endl;
 	      _alljetfrcem[_jet_n] = 0;
 	      _alljetfrcoh[_jet_n] = 0;
@@ -1425,9 +1463,11 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
     }
   else
     {
-      if(_debug > 0) cout << "no jets" << endl;
+      cout << "no jets" << endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
+
+  if(_calib_jet_n != _jet_n) cout << "calib_jet_n != jet_n!!!" << _calib_jet_n << " != " << _jet_n << endl;
   if(_debug > 3) cout << "end event" << endl;
   return Fun4AllReturnCodes::EVENT_OK;
     
