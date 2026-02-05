@@ -572,6 +572,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	}
     }
   */
+  /*
     if(mbdvtxmap)
     {
       for(auto iter = mbdvtxmap->begin(); iter != mbdvtxmap->end(); ++iter)
@@ -580,6 +581,25 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
           if(mbdvtx) zvtx = mbdvtx->get_z();
           break;
         }
+    }
+  */
+  GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+  zvtx=NAN;
+  if(vertexmap)
+    {
+      std::vector<GlobalVertex*> vertices = vertexmap->get_gvtxs_with_type({GlobalVertex::MBD});
+      if(!vertices.empty())
+	{
+	  if(vertices.at(0))
+	    {
+	      zvtx = vertices.at(0)->get_z();
+	    }
+	}
+    }
+  else
+    {
+      cout << "no global vertex map! Abort run!" << endl;
+      return Fun4AllReturnCodes::ABORTRUN;
     }
     /*
   else
