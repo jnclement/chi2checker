@@ -33,18 +33,19 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
       */
       
       nums1.at(i)->Rebin(2);
-      if(i==1) nums1.at(i)->Rebin(4);
+      //if(i==1) nums1.at(i)->Rebin(4);
       int nbinx = nums1.at(i)->GetNbinsX();
-      while(nums1.at(i)->GetMaximum() < 8 && (nbinx%2==0 || nbinx%3 == 0 || nbinx%5 == 0))
+      while(nums1.at(i)->GetMaximum() < 19 && (nbinx%2==0 || nbinx%3 == 0 || nbinx%5 == 0) && nbinx > 20)
 	{
 	  if(nbinx%2==0) nums1.at(i)->Rebin(2);
 	  else if(nbinx%5==0) nums1.at(i)->Rebin(5);
 	  else if(nbinx%3==0) nums1.at(i)->Rebin(3);
 	  nbinx = nums1.at(i)->GetNbinsX();
 	}
-      
+
+      float intrange = axis.at(i)==1?15:10;
       //nums1.at(i)->Rebin(5);
-      nums1.at(i)->Scale(1./nums1.at(i)->Integral("WIDTH"));
+      nums1.at(i)->Scale(1./nums1.at(i)->Integral(nums1.at(i)->FindBin(-intrange),nums1.at(i)->FindBin(intrange),"WIDTH"));
       if(ytitle!="")nums1.at(i)->GetYaxis()->SetTitle(ytitle.c_str());
       else nums1.at(i)->GetYaxis()->SetTitle("Integral Normalized Counts");
     }
@@ -130,7 +131,7 @@ int draw_spec_fake(int usefrac = 0, int mbdint = 0, int lo = 46, int hi = 60)
   if(mbdint==1) mbdstr = "_mbdboth";
   if(mbdint==2) mbdstr = "_mbdeither";
   string fracstr = usefrac?"frac":"";
-  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_"+stype+fracstr+(isdat?"samblairtest":"")+".root").c_str(),"READ");
+  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_"+stype+fracstr+(isdat?"sam_slewed20251211":"")+".root").c_str(),"READ");
 
   TH3D* h3_pt_lem_loh = (TH3D*)inf->Get(("hpttmbdt_dtc"+mbdstr+stype+fracstr).c_str());
 
@@ -177,9 +178,10 @@ int draw_spec_fake(int usefrac = 0, int mbdint = 0, int lo = 46, int hi = 60)
     {
       zbounds.push_back({0,-1});
     }
-  
-  drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"../../images/mbd/"+stype+"_t_proj1d"+mbdstr+".pdf","",{-6,6});//,"dN_{jet}/d#Delta t_{l,sl} [ns^{-1}]");
-  std::vector<vector<int>> ybounds2 = {{11,20},{21,30},{31,45},{46,70}};
+  std::vector<vector<int>> ybounds2 = {{31,45},{46,55},{56,70}};//{{11,20},{21,30},{31,45},{46,70}};
+  std::vector<string> numlabels2 = {"Jets 30<p_{T}^{uncalib}<45 GeV","Jets 45<p_{T}^{uncalib}<55 GeV","Jets 55<p_{T}^{uncalib}<70 GeV"};//"EM fraction < 0.9 only","EM fraction > 0.1 only","OH fraction < 0.9 only","OH Fraction > 0.1 only","EM frac <0.9 && OH frac > 0.1"};
+  drawprettyeff(h3_pt_lem_loh,ybounds2,zbounds,axis,colors,markers,numlabels2,"../../images/mbd/"+stype+"_t_proj1d"+mbdstr+".pdf","",{-6,6});//,"dN_{jet}/d#Delta t_{l,sl} [ns^{-1}]");
+
     if(stype=="jet30")
     {
       ybounds2[0][0]=31;
@@ -190,12 +192,12 @@ int draw_spec_fake(int usefrac = 0, int mbdint = 0, int lo = 46, int hi = 60)
       ybounds2[2][1]=70;
     }
 
-  std::vector<vector<int>> zbounds2 = {{0,-1},{0,-1},{0,-1},{0,-1}};
+  std::vector<vector<int>> zbounds2 = {{0,-1},{0,-1},{0,-1}};
   std::vector<int> axis2 = {2,2,2,2};
   std::vector<int> colors2 = {kAzure,kOrange,kMagenta,kSpring};//, kViolet, kOrange, kGray};
   std::vector<int> markers2 = {21,20,71,72};
   //std::vector<string> numlabels2 = {"Jets 10<p_{T}^{uncalib}<20 GeV","Jets 20<p_{T}^{uncalib}<30 GeV","Jets 30<p_{T}^{uncalib}<45 GeV","Jets 45<p_{T}^{uncalib}<70 GeV"};//"EM fraction < 0.9 only","EM fraction > 0.1 only","OH fraction < 0.9 only","OH Fraction > 0.1 only","EM frac <0.9 && OH frac > 0.1"};
-  std::vector<string> numlabels2 = {"Jets 10<p_{T}^{uncalib}<15 GeV","Jets 15<p_{T}^{uncalib}<20 GeV","Jets 20<p_{T}^{uncalib}<40 GeV"};//"EM fraction < 0.9 only","EM fraction > 0.1 only","OH fraction < 0.9 only","OH Fraction > 0.1 only","EM frac <0.9 && OH frac > 0.1"};
+  
   /*
   numlabels2[0] = "Jets 30 GeV<p_{T}^{uncalib}<45 GeV";
   numlabels2[1] = "Jets 45 GeV<p_{T}^{uncalib}<55 GeV";

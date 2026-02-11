@@ -1,13 +1,13 @@
 #include <../dlUtility.h>
 int isdat = 1;
 string stype = "dat";
-int draw_spec_fake_frac(string tt = "dt", string ap = "yz", int lo = 30, int hi = 45, int docorr = 0)
+int draw_spec_fake_frac(string tt = "dt", string ap = "yz", int lo = 31, int hi = 45, int docorr = 0)
 {
   gStyle->SetPadTickX(1);
   gStyle->SetPadTickY(1);
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
-  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_"+stype+(isdat?"sam":"")+"20251211.root").c_str(),"READ");
+  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_"+stype+(isdat?"sam":"")+"_slewed20251211.root").c_str(),"READ");
 
   TH3D* h3_pt_lem_loh = (TH3D*)inf->Get(("hpt"+tt+"frac"+stype).c_str());
 

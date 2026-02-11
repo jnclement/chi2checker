@@ -11,9 +11,9 @@ NEVT=0
 #done
 
 rm ranges.txt
-MAX=$(( `cat chi2filesblair.txt | wc -l` + 1 ))
+MAX=$(( `cat chi2filesdat.txt | wc -l` + 1 ))
 while [ $IT -lt $MAX ]; do
-    UP=$(( $IT + 10 ))
+    UP=$(( $IT + 30 ))
     #root -b -q -l "drawcalo.C(${IT},${UP},1)"
     #NEVT=$(( $NEVT + $? ))
     
@@ -21,10 +21,10 @@ while [ $IT -lt $MAX ]; do
 #    root -b -q -l "timing_hists.C(${IT},${UP},0)"
     #root -b -q -l "drawf.C(${IT},${UP})"
     echo "${IT} ${UP}" >> ranges.txt
-    IT=$(( $IT + 10 ))
+    IT=$(( $IT + 30 ))
 
 done
-
+wc -l ranges.txt
 condor_submit condraw.job
 #IT=0
 #while [ $IT -lt $(( `cat chi2files50.txt | wc -l` + 1 )) ]; do

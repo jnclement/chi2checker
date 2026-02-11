@@ -172,12 +172,12 @@ int draw_timingcut(int singlespec = 0)
   TH3D* h3_pt_lem_loh = (TH3D*)inf->Get(("hpttdt"+stype).c_str());
   //TH3D* h3_tpt_lem_loh = (TH3D*)inf->Get("simh3_apt_dtem_dtoh_both");
 
-  std::vector<vector<int>> ybounds = {{221,340}};
+  std::vector<vector<int>> ybounds = {{241,360}};
   std::vector<vector<int>> zbounds = {{271,330}};
   int axis = 0;
   std::vector<int> colors = {kAzure};
   std::vector<int> markers = {20};
-  std::vector<string> numlabels = {"-8 ns<t_{lead}<4 ns && |#Delta t|<3 ns"};
+  std::vector<string> numlabels = {"|t_{lead}|<6 ns && |#Delta t|<3 ns"};
 
   drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"../../images/dnp/timing_cut_"+to_string(singlespec)+stype+".pdf");
   

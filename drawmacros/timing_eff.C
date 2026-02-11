@@ -103,7 +103,7 @@ int timing_eff()
 	      fitsnom1[i][j]->SetParameters(nomcuts[i][j]->GetBinContent(22),nomcuts[i][j]->GetMaximum(),0,nomcuts[i][j]->GetStdDev());
 	      nomcuts[i][j]->Fit(fitsnom1[i][j],"LI");
 	      
-	      fitsnom2[j] = new TF2(("f2nom"+to_string(j)).c_str(),fitf2,-30,30,-30,30,6);
+	      fitsnom2[j] = new TF2(("f2nom"+to_string(j)).c_str(),fitf2,-6,6,-3,3,6);
 	      fitsnom2[j]->SetParLimits(0,1e-30,999999);
 	      fitsnom2[j]->SetParLimits(1,0.00001,99999999);
 	      fitsnom2[j]->SetParLimits(4,0.00001,999999);
@@ -224,7 +224,7 @@ int timing_eff()
 		}
 	      cout << usegaus2->Integral(ltc[0],ltc[1],dtc[0],dtc[1]) << endl;
 	      cout << usegaus2->Integral(-30,30,-30,30) << endl;
-
+	      cout << "Purity: " << usegaus2->Integral(ltc[0],ltc[1],dtc[0],dtc[1])/fit2gaus->Integral(ltc[0],ltc[1],dtc[0],dtc[1]) << endl;
 	      double errshi2[3] = {higaus2->Integral(ltc[0],ltc[1],dtc[0],dtc[1])/higaus2->Integral(-30,30,-30,30)-usegaus2->Integral(ltc[0],ltc[1],dtc[0],dtc[1])/usegaus2->Integral(-30,30,-30,30),higaus2->Integral(ltv[0],ltv[1],dtv[0],4)/higaus2->Integral(-30,30,-30,30)-usegaus2->Integral(ltv[0],ltv[1],dtv[0],4)/usegaus2->Integral(-30,30,-30,30),higaus2->Integral(-7,3,-2,2)/higaus2->Integral(-30,30,-30,30)-usegaus2->Integral(-7,3,-2,2)/usegaus2->Integral(-30,30,-30,30)};
 	      double errslo2[3] = {logaus2->Integral(ltc[0],ltc[1],dtc[0],dtc[1])/logaus2->Integral(-30,30,-30,30)-usegaus2->Integral(ltc[0],ltc[1],dtc[0],dtc[1])/usegaus2->Integral(-30,30,-30,30),logaus2->Integral(ltv[0],ltv[1],dtv[0],4)/logaus2->Integral(-30,30,-30,30)-usegaus2->Integral(ltv[0],ltv[1],dtv[0],4)/usegaus2->Integral(-30,30,-30,30),logaus2->Integral(-7,3,-2,2)/logaus2->Integral(-30,30,-30,30)-usegaus2->Integral(-7,3,-2,2)/usegaus2->Integral(-30,30,-30,30)};
 	      

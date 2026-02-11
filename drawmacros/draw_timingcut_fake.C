@@ -81,7 +81,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   temph->SetLineWidth(2);
   temph->SetMarkerStyle(20);
   temph->SetMarkerSize(2);
-  leg->AddEntry(temph,"-8 ns<t_{lead}<4 ns only","p");
+  leg->AddEntry(temph,"-6 ns<t_{lead}<6 ns only","p");
 
   
   den1->GetXaxis()->SetTitle("Uncalibrated p_{T}^{jet} [GeV]");
@@ -177,17 +177,17 @@ int draw_timingcut_fake(int singlespec = 0)
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
 
-  TFile* inf = TFile::Open("../hists_mbdtimereq_out_datsam_slewed.root","READ");
+  TFile* inf = TFile::Open("../hists_mbdtimereq_out_datsam_slewed20251211.root","READ");
 
-  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get("hpttmbdtdat");
+  TH3D* h3_pt_lem_loh = (TH3D*)inf->Get("hpttdtdat");
   //TH3D* h3_tpt_lem_loh = (TH3D*)inf->Get("simh3_apt_dtem_dtoh_both");
 
-  std::vector<vector<int>> ybounds = {{221,340}};
-  std::vector<vector<int>> zbounds = {{251,350}};
+  std::vector<vector<int>> ybounds = {{241,360}};
+  std::vector<vector<int>> zbounds = {{271,330}};
   int axis = 0;
   std::vector<int> colors = {kAzure};
   std::vector<int> markers = {20};
-  std::vector<string> numlabels = {"-8 ns<t_{lead}<4 ns && |t_{MBD}-t_{lead}|<5 ns"};
+  std::vector<string> numlabels = {"|t_{lead}|<6 ns && |#Delta t|<3 ns"};
 
   drawprettyeff(h3_pt_lem_loh,ybounds,zbounds,axis,colors,markers,numlabels,"../../images/dnp/timing_cut_fake_"+to_string(singlespec)+".pdf");
   

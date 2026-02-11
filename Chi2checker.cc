@@ -1115,10 +1115,12 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	      continue;
 	    }
 	}
+      /*
       if(!_jet_n)
 	{
 	  return Fun4AllReturnCodes::ABORTEVENT;
 	}
+      */
       int failscut = 0;
       _bbfqavec = 0;
       _elmbgvec = 0;
@@ -1484,7 +1486,7 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
   else
     {
       cout << "no jets" << endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
+      //return Fun4AllReturnCodes::ABORTEVENT;
     }
 
   if(_calib_jet_n != _jet_n) cout << "calib_jet_n != jet_n!!!" << _calib_jet_n << " != " << _jet_n << endl;
