@@ -36,8 +36,24 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
      iss >> irunnum >> t0;
      rntmap[irunnum] = t0;
    }
-   TFile *f  = TFile::Open(filename.c_str(),"READ");
-   TTree *outt = static_cast <TTree *> (f->Get("outt"));
+
+   ifstream infile(filename);
+   
+   TChain outt("outt");
+
+   int counter = 0;
+   
+   while(getline(infile,line))
+     {
+       cout << counter << endl;
+       outt.Add(line.c_str());
+       ++counter;
+     }
+
+   cout << "done adding TChain!" << endl;
+   
+   //TFile *f  = TFile::Open(filename.c_str(),"READ");
+   //TTree *outt = static_cast <TTree *> (f->Get("outt"));
 
    Int_t           passfrac;
    Int_t           passdijet;
@@ -51,16 +67,16 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
    Float_t         frac[60][2];   
    
    // Set branch addresses.
-   outt->SetBranchAddress("passfrac",&passfrac);
-   outt->SetBranchAddress("passdijet",&passdijet);
-   outt->SetBranchAddress("evt",&evt);
-   outt->SetBranchAddress("run",&run);
-   outt->SetBranchAddress("njet",&njet);
-   outt->SetBranchAddress("jetkin",jetkin);
-   outt->SetBranchAddress("zvtx",&zvtx);
-   outt->SetBranchAddress("mbdhit",mbdhit);
-   outt->SetBranchAddress("avgt",avgt);
-   outt->SetBranchAddress("frac",frac);   
+   outt.SetBranchAddress("passfrac",&passfrac);
+   outt.SetBranchAddress("passdijet",&passdijet);
+   outt.SetBranchAddress("evt",&evt);
+   outt.SetBranchAddress("run",&run);
+   outt.SetBranchAddress("njet",&njet);
+   outt.SetBranchAddress("jetkin",jetkin);
+   outt.SetBranchAddress("zvtx",&zvtx);
+   outt.SetBranchAddress("mbdhit",mbdhit);
+   outt.SetBranchAddress("avgt",avgt);
+   outt.SetBranchAddress("frac",frac);   
 
    //=======================
    // DECLARE HISTOGRAMS
@@ -144,10 +160,10 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
    long long unsigned int nPassDeltat[4] = {0};
    long long unsigned int nPassBothTime[4] = {0};
    float bounds[4] = {30,35,40,45};
-   Long64_t nentries = outt->GetEntries();
+   Long64_t nentries = outt.GetEntries();
    Long64_t nbytes = 0;
    for (Long64_t i=0; i<nentries;i++) {
-      nbytes += outt->GetEntry(i);
+      nbytes += outt.GetEntry(i);
 
       if(i%100000==0)
 	{
