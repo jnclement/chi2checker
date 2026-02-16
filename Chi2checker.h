@@ -31,6 +31,10 @@ class Chi2checker : public SubsysReco
 
   int InitRun(PHCompositeNode *topNode) override;
 
+  int fill_jet_quantities(PHCompositeNode* topNode, std::string jet_nodename, int& njet, int& calib_njet, float* jet_pt, float* jet_pt_calib, float* jet_eta, float* jet_phi, float* jet_e, float* jet_et, float* jet_t, float* jet_frcem, float* jet_frcoh);
+
+  int fill_tjet_quantities(PHCompositeNode* topNode, std::string jet_nodename, int& njet, float* jet_pt, float* jet_eta, float* jet_phi, float* jet_e);
+
   int process_event(PHCompositeNode *topNode) override;
 
   int ResetEvent(PHCompositeNode *topNode) override;
@@ -110,11 +114,61 @@ class Chi2checker : public SubsysReco
   unsigned int _bbfqavec;
   unsigned int _elmbgvec;
   int _mbevt;
-  int _jet_n;
-  int _calib_jet_n;
   int _failscut;
   int _runnum;
   int _evtnum;
+
+
+  int _r02_jet_n;
+  int _calib_r02_jet_n;
+  float _r02_jet_et[100];
+  float _r02_jet_etrans[100];
+  float _r02_jet_pt[100];
+  float _r02_jet_pt_calib[100];
+  float _r02_jet_t[100];
+  float _r02_jet_t_em[100];
+  float _r02_jet_t_ih[100];
+  float _r02_jet_t_oh[100];
+  float _r02_jet_eta[100];
+  float _r02_jet_phi[100];
+
+  int _r02_tjet_n;
+  float _r02_tjet_e[100];
+  float _r02_tjet_pt[100];
+  float _r02_tjet_eta[100];
+  float _r02_tjet_phi[100];
+  
+  float _allr02_jetfrcem[100];
+  float _allr02_jetfrcoh[100];
+
+
+
+  int _r03_jet_n;
+  int _calib_r03_jet_n;
+  float _r03_jet_et[100];
+  float _r03_jet_etrans[100];
+  float _r03_jet_pt[100];
+  float _r03_jet_pt_calib[100];
+  float _r03_jet_t[100];
+  float _r03_jet_t_em[100];
+  float _r03_jet_t_ih[100];
+  float _r03_jet_t_oh[100];
+  float _r03_jet_eta[100];
+  float _r03_jet_phi[100];
+
+  int _r03_tjet_n;
+  float _r03_tjet_e[100];
+  float _r03_tjet_pt[100];
+  float _r03_tjet_eta[100];
+  float _r03_tjet_phi[100];
+  
+  float _allr03_jetfrcem[100];
+  float _allr03_jetfrcoh[100];
+
+
+
+  int _jet_n;
+  int _calib_jet_n;
   float _jet_et[100];
   float _jet_etrans[100];
   float _jet_pt[100];
@@ -134,6 +188,59 @@ class Chi2checker : public SubsysReco
   
   float _alljetfrcem[100];
   float _alljetfrcoh[100];
+
+
+  int _r06_jet_n;
+  int _calib_r06_jet_n;
+  float _r06_jet_et[100];
+  float _r06_jet_etrans[100];
+  float _r06_jet_pt[100];
+  float _r06_jet_pt_calib[100];
+  float _r06_jet_t[100];
+  float _r06_jet_t_em[100];
+  float _r06_jet_t_ih[100];
+  float _r06_jet_t_oh[100];
+  float _r06_jet_eta[100];
+  float _r06_jet_phi[100];
+
+  int _r06_tjet_n;
+  float _r06_tjet_e[100];
+  float _r06_tjet_pt[100];
+  float _r06_tjet_eta[100];
+  float _r06_tjet_phi[100];
+  
+  float _allr06_jetfrcem[100];
+  float _allr06_jetfrcoh[100];
+
+
+
+
+  int _r08_jet_n;
+  int _calib_r08_jet_n;
+  float _r08_jet_et[100];
+  float _r08_jet_etrans[100];
+  float _r08_jet_pt[100];
+  float _r08_jet_pt_calib[100];
+  float _r08_jet_t[100];
+  float _r08_jet_t_em[100];
+  float _r08_jet_t_ih[100];
+  float _r08_jet_t_oh[100];
+  float _r08_jet_eta[100];
+  float _r08_jet_phi[100];
+
+  int _r08_tjet_n;
+  float _r08_tjet_e[100];
+  float _r08_tjet_pt[100];
+  float _r08_tjet_eta[100];
+  float _r08_tjet_phi[100];
+  
+  float _allr08_jetfrcem[100];
+  float _allr08_jetfrcoh[100];
+
+
+
+
+
   float _emtow[nemx][nemy];
   float _ihtow[nx][ny];
   float _ohtow[nx][ny];
