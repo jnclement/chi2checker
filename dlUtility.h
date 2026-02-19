@@ -183,11 +183,11 @@ void sphenixprelim(float xpos = 0.8, float ypos = 0.96, int ra = 1, float textsi
   drawText("#bf{#it{sPHENIX}} Preliminary", xpos, ypos, ra, kBlack, textsize);
 }
 
-void maintexts(float ystart = 0.96, float xpos = 0.7, int ra = 0, float textsize = 0.03, bool isdat = 1, int iswip = 0)
+void maintexts(float ystart = 0.96, float xpos = 0.7, int ra = 0, float textsize = 0.03, bool isdat = 1, int iswip = 0, int radius_index = 4)
 {
   iswip?(isdat?sphenixwip(xpos,ystart,ra,textsize):sphenixswip(xpos,ystart,ra,textsize)):(isdat?sphenixtext(xpos,ystart,ra,textsize):sphenixsim(xpos,ystart,ra,textsize));
   sqrt_s_text(xpos,ystart-8*textsize/7,ra,textsize,isdat);
-  antikt_text(0.4,xpos,ystart-16*textsize/7,ra,textsize);
+  antikt_text(((float)radius_index)/10.,xpos,ystart-16*textsize/7,ra,textsize);
   //drawText(isdat?"Data":"Simulation",xpos,ystart-2*textsize,ra,kBlack,textsize);
 }
 

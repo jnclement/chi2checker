@@ -60,11 +60,11 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
    Int_t           evt;
    Int_t           run;
    Int_t           njet;
-   Float_t         jetkin[100][7];
+   Float_t         jetkin[100][5];
    Float_t         zvtx;
    UInt_t           mbdhit[2];
    Float_t         avgt[2];
-   Float_t         frac[60][2];   
+   Float_t         frac[100][2];   
    
    // Set branch addresses.
    outt.SetBranchAddress("passfrac",&passfrac);
@@ -365,19 +365,19 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 	{
 	  hptdtfrac->Fill(jetkin[leadingjetindex][0],dijetTimediff,frac[leadingjetindex][1]);
 	  hpttfrac->Fill(jetkin[leadingjetindex][0],jetleadtime,frac[leadingjetindex][1]);
-	  if(isfinite(jetkin[leadingjetindex][6]) && isfinite(jetkin[leadingjetindex][5]) && abs(jetkin[leadingjetindex][6])>0 && abs(jetkin[leadingjetindex][5])>0)
+	  if(isfinite(jetkin[leadingjetindex][4]) && isfinite(jetkin[leadingjetindex][4]) && abs(jetkin[leadingjetindex][4])>0 && abs(jetkin[leadingjetindex][4])>0)
 	    {
-	      htemtohfrac->Fill(17.6*jetkin[leadingjetindex][5],17.6*jetkin[leadingjetindex][6],frac[leadingjetindex][0]);
+	      htemtohfrac->Fill(17.6*jetkin[leadingjetindex][4],17.6*jetkin[leadingjetindex][4],frac[leadingjetindex][0]);
 	    }
 
-	  if(isfinite(jetkin[leadingjetindex][6]) && abs(jetkin[leadingjetindex][6])>0)
+	  if(isfinite(jetkin[leadingjetindex][4]) && abs(jetkin[leadingjetindex][4])>0)
 	    {
-	      hpttohfrac->Fill(jetkin[leadingjetindex][0],17.6*jetkin[leadingjetindex][6],frac[leadingjetindex][0]);
+	      hpttohfrac->Fill(jetkin[leadingjetindex][0],17.6*jetkin[leadingjetindex][4],frac[leadingjetindex][0]);
 	    }
 
-	  if(isfinite(jetkin[leadingjetindex][5]) && abs(jetkin[leadingjetindex][5])>0)
+	  if(isfinite(jetkin[leadingjetindex][4]) && abs(jetkin[leadingjetindex][4])>0)
 	    {
-	      hpttemfrac->Fill(jetkin[leadingjetindex][0],17.6*jetkin[leadingjetindex][5],frac[leadingjetindex][0]);
+	      hpttemfrac->Fill(jetkin[leadingjetindex][0],17.6*jetkin[leadingjetindex][4],frac[leadingjetindex][0]);
 	    }
 	  
 	  hptdtemfracnot->Fill(jetkin[leadingjetindex][0],dijetTimediff,frac[leadingjetindex][0]);
@@ -388,19 +388,19 @@ int fake10(string filename, bool issim = false, bool dofrac = false, string sims
 	    }
 	  for(int j=0; j<njet; ++j)
 	    {
-	      if(isfinite(jetkin[j][6]) && isfinite(jetkin[j][5]) && abs(jetkin[j][6])>0 && abs(jetkin[j][5])>0)
+	      if(isfinite(jetkin[j][4]) && isfinite(jetkin[j][4]) && abs(jetkin[j][4])>0 && abs(jetkin[j][4])>0)
 		{
-		  htemtohfrac_all->Fill(17.6*jetkin[j][5],17.6*jetkin[j][6],frac[j][0]);
+		  htemtohfrac_all->Fill(17.6*jetkin[j][4],17.6*jetkin[j][4],frac[j][0]);
 		}
 	      
-	      if(isfinite(jetkin[j][6])&& abs(jetkin[j][6])>0)
+	      if(isfinite(jetkin[j][4])&& abs(jetkin[j][4])>0)
 		{
-		  hpttohfrac_all->Fill(17.6*jetkin[j][0],17.6*jetkin[j][6],frac[j][0]);
+		  hpttohfrac_all->Fill(17.6*jetkin[j][0],17.6*jetkin[j][4],frac[j][0]);
 		}
 	      
-	      if(isfinite(jetkin[j][5]) && abs(jetkin[j][5])>0)
+	      if(isfinite(jetkin[j][4]) && abs(jetkin[j][4])>0)
 		{
-		  hpttohfrac_all->Fill(17.6*jetkin[j][0],17.6*jetkin[j][5],frac[j][0]);
+		  hpttohfrac_all->Fill(17.6*jetkin[j][0],17.6*jetkin[j][4],frac[j][0]);
 		}
 
 	      if(jetleadtime < 4 && jetleadtime > -8)

@@ -7,7 +7,7 @@ int draw_spec_fake_frac(string tt = "dt", string ap = "yz", int lo = 31, int hi 
   gStyle->SetPadTickY(1);
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
-  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_"+stype+(isdat?"sam":"")+"_slewed20251211.root").c_str(),"READ");
+  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_"+stype+(isdat?"sam":"")+"20250208.root").c_str(),"READ");
 
   TH3D* h3_pt_lem_loh = (TH3D*)inf->Get(("hpt"+tt+"frac"+stype).c_str());
 
@@ -70,7 +70,7 @@ int draw_spec_fake_frac(string tt = "dt", string ap = "yz", int lo = 31, int hi 
   TLine* line2 = new TLine(-0.1,tt=="dt"?-4:-7,1.1,tt=="dt"?-4:-7);
   TLine* line3 = new TLine(-0.1,tt=="dt"?4:7,1.1,tt=="dt"?4:7);
   TProfile* prof = h2_t_dt->ProfileX();
-  TLegend* tleg = new TLegend(0.4,0.58,0.9,0.7);
+  TLegend* tleg = new TLegend(0.4,0.54,0.9,0.7);
   tleg->SetFillStyle(0);
   tleg->SetBorderSize(0);
   tleg->SetFillColor(0);
@@ -94,19 +94,26 @@ int draw_spec_fake_frac(string tt = "dt", string ap = "yz", int lo = 31, int hi 
       tleg->Draw();
       prof->SetMarkerStyle(20);
       prof->SetMarkerSize(2);
-      prof->SetMarkerColor(kGreen+2);
-      prof->SetLineColor(kGreen+2);
+      prof->SetMarkerColor(kGreen+3);
+      prof->SetLineColor(kGreen+3);
       prof->Draw("SAME PE");
-      prof->Fit("pol2","I0",0,1);
+      prof->Fit("pol2","I","",0.05,0.95);
       myfit = prof->GetFunction("pol2");
+      myfit->SetLineColor(kGreen);
+      myfit->SetRange(-0.1,1.1);
+      tleg->AddEntry(prof,"Profile histogram","p");
+      tleg->AddEntry(myfit,"Fit to profile","l");
     }
 
 
   TFile* outf;
   if(ap=="yz" && docorr)
     {
-      outf = new TFile(("slewcorfit_"+tt+"_"+stype+".root").c_str(),"RECREATE");
+      if(lo==16 && hi==60) outf = new TFile("OHCAL_JET_TIME_FracCorr_Fit_Run24_pp_fullrange.root","RECREATE");
+      else outf = new TFile(("OHCAL_JET_TIME_corfit_run24_pp_"+to_string(lo-1)+"_"+to_string(hi)+".root").c_str(),"RECREATE");
       outf->cd();
+      myfit->SetName(("JET_TIMING_CALO_FRACTION_CALIB_"+to_string(lo-1)+"_"+to_string(hi)).c_str());
+      if(lo==16 && hi==60) myfit->SetName("JET_TIMING_CALO_FRACTION_CALIB_fullrange");
       myfit->Write();
     }
   outf->Close();
@@ -114,8 +121,8 @@ int draw_spec_fake_frac(string tt = "dt", string ap = "yz", int lo = 31, int hi 
   drawText(tdss.str().c_str(),0.25,0.76,0,kBlack,0.04);
   drawText("No reconstructed z_{vtx} requirement",0.25,0.71,0,kBlack,0.04);
   if(!isdat) drawText(("PYTHIA "+stype+" sample").c_str(),0.25,0.66,0,kBlack,0.04);
-  can->SaveAs(("../../images/efd/"+stype+"_"+tt+"_"+ap+"_proj2d_"+to_string(lo)+"-"+to_string(hi)+".pdf").c_str());
+  can->SaveAs(("../../images/efd/"+stype+"_"+tt+"_"+ap+"_proj2d_"+to_string(lo-1)+"-"+to_string(hi)+".pdf").c_str());
   gPad->SetLogz();
-  can->SaveAs(("../../images/efd/"+stype+"_"+tt+"_"+ap+"_proj2d_"+to_string(lo)+"-"+to_string(hi)+"_log.pdf").c_str());
+  can->SaveAs(("../../images/efd/"+stype+"_"+tt+"_"+ap+"_proj2d_"+to_string(lo-1)+"-"+to_string(hi)+"_log.pdf").c_str());
   return 0;
 }
