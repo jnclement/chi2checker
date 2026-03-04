@@ -7,7 +7,7 @@ int draw_spec_fake_frac(string tt = "dt", string ap = "yz", int lo = 31, int hi 
   gStyle->SetPadTickY(1);
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
-  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_"+stype+(isdat?"sam":"")+"20250208.root").c_str(),"READ");
+  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_"+stype+(isdat?"sam":"")+"_slewed20251211.root").c_str(),"READ");
 
   TH3D* h3_pt_lem_loh = (TH3D*)inf->Get(("hpt"+tt+"frac"+stype).c_str());
 
@@ -53,7 +53,7 @@ int draw_spec_fake_frac(string tt = "dt", string ap = "yz", int lo = 31, int hi 
     }
   else if(ap=="xz")
     {
-      axstr = tt=="dt"?"<#Delta-t<":"<t_{lead}<";
+      axstr = tt=="dt"?"<#Delta t<":"<t_{lead}<";
       lobound = h3_pt_lem_loh->GetYaxis()->GetBinLowEdge(lo);
       hibound = h3_pt_lem_loh->GetYaxis()->GetBinLowEdge(hi+1);
       unitstr = " ns";
@@ -77,6 +77,7 @@ int draw_spec_fake_frac(string tt = "dt", string ap = "yz", int lo = 31, int hi 
   TF1* myfit;
   if(ap=="yz")
     {
+      h2_t_dt->GetYaxis()->SetTitle("#Delta t [ns]");
       line0->SetLineColor(kRed);
       line2->SetLineColor(kAzure+2);
       line1->SetLineColor(kRed);

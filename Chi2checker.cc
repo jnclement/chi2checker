@@ -201,6 +201,9 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("mbdavgt",_mbdavgt,"mbdavgt[2]/F");
   jet_tree->Branch("mbdhit",_mbdhit,"mbdhit[2]/i");
   //jet_tree->Branch("bbfqavec",&_bbfqavec,"bbfqavec/i");
+  jet_tree->Branch("emtow",_emtow,"emtow[96][256]/F");
+  jet_tree->Branch("ihtow",_ihtow,"ihtow[24][64]/F");
+  jet_tree->Branch("ohtow",_ohtow,"ohtow[24][64]/F");
 
   jet_tree->Branch("r02_jet_n",&_r02_jet_n,"r02_jet_n/I");
   jet_tree->Branch("calib_r02_jet_n",&_calib_r02_jet_n,"calib_r02_jet_n/I");
@@ -213,7 +216,7 @@ int Chi2checker::Init(PHCompositeNode *topNode)
   jet_tree->Branch("r02_jet_pt_calib",_r02_jet_pt_calib,"r02_jet_pt_calib[calib_r02_jet_n]/F");
   jet_tree->Branch("r02_jet_eta",_r02_jet_eta,"r02_jet_eta[r02_jet_n]/F");
   jet_tree->Branch("r02_jet_phi",_r02_jet_phi,"r02_jet_phi[r02_jet_n]/F");
-
+  
   jet_tree->Branch("r03_jet_n",&_r03_jet_n,"r03_jet_n/I");
   jet_tree->Branch("calib_r03_jet_n",&_calib_r03_jet_n,"calib_r03_jet_n/I");
   jet_tree->Branch("allr03_jetfrcoh",_allr03_jetfrcoh,"allr03_jetfrcoh[r03_jet_n]/F");
@@ -491,6 +494,39 @@ int Chi2checker::fill_jet_quantities(PHCompositeNode* topNode, std::string jet_n
   
 }
 
+int Chi2checker::fill_towers(TowerInfoContainer* tinfo, int neta, int nphi, float* towers)
+{
+  if(!tinfo)
+    {
+      cout << "missing tinfo! do not fill!" << endl;
+      return 1;
+    }
+  else
+    {
+      int ntow = tinfo->size();
+      for(int i=0; i<ntow; ++i)
+	{
+	  TowerInfo* tow = tinfo->get_tower_at_channel(i);
+	  int key = tinfo->encode_key(i);
+	  int phibin = tinfo->getTowerPhiBin(key);
+	  int etabin = tinfo->getTowerEtaBin(key);
+	  if(phibin > nphi || etabin > neta)
+	    {
+	      cout << "phibin or etabin too large! quit!" << endl;
+	      return 2;
+	    }
+	  if(!tow->get_isGood())
+	    {
+	      towers[etabin*nphi + phibin] = 0;
+	    }
+	  else
+	    {
+	      towers[etabin*nphi + phibin] = tow->get_energy();
+	    }
+	}
+    }
+  return 0;
+}
 
 int Chi2checker::fill_tjet_quantities(PHCompositeNode* topNode, std::string jet_nodename, int& njet, float* jet_pt, float* jet_eta, float* jet_phi, float* jet_e)
 {
@@ -523,7 +559,14 @@ int Chi2checker::fill_tjet_quantities(PHCompositeNode* topNode, std::string jet_
 int Chi2checker::process_event(PHCompositeNode *topNode)
 {
 
-  
+  TowerInfoContainer *towers[3];
+  towers[0] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
+  towers[1] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
+  towers[2] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
+
+  fill_towers(towers[0],nemx,nemy,&_emtow[0][0]);
+  fill_towers(towers[1],ny,ny,&_ihtow[0][0]);
+  fill_towers(towers[2],ny,ny,&_ohtow[0][0]);
 
   if(_debug > 1) cout << endl << endl << endl << "Chi2checker: Beginning event processing" << endl;
   if(_nprocessed % 1000 == 0) cout << "processing event " << _nprocessed << endl;
@@ -814,6 +857,26 @@ int Chi2checker::process_event(PHCompositeNode *topNode)
 	  _truthparid.push_back(truth->get_pid());	      
 	}
     }
+
+
+  PHNodeIterator itNode(topNode);
+  PHCompositeNode* parNode = dynamic_cast<PHCompositeNode*>(itNode.findFirst("PHCompositeNode","PAR"));
+  PdbParameterMap* flagNode;
+  if(parNode) flagNode = findNode::getClass<PdbParameterMap>(parNode, "TimingCutParams"); //note - needs to be the same as the "name" field in the object instantiation in the macro
+  else
+    {
+      cout << "No parNode! Abort run." << endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+  if(flagNode) _cutParams.FillFrom(flagNode);
+  else
+    {
+      cout << "No flagNode - abort run" << endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+
+  //cout << "Uncorrected vs corrected lead jet time: " << _cutParams.get_double_param("maxJett") << " " << _cutParams.get_double_param("corrMaxJett") << endl;
+  //cout << "Uncorrected vs corrected subleading jet time: " << _cutParams.get_double_param("subJett") << " " << _cutParams.get_double_param("corrSubJett") << endl;
   
   
   if(maxjetpt > _minjetthresh || !_isdat || isjettrig || isjmbtrig)

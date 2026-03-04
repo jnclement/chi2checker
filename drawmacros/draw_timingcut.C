@@ -76,6 +76,14 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   den1->SetMarkerSize(2);
   leg->AddEntry(den1,"#splitline{Dijet cut only}{(jets + background)}","p");
   den1->GetXaxis()->SetTitle("Uncalibrated p_{T}^{jet} [GeV]");
+
+  TH1D* diff1 = (TH1D*)den1->Clone("diff1");
+
+  diff1->Add(nums1.at(0),-1);
+  diff1->SetMarkerStyle(20);
+  diff1->SetMarkerColor(kRed+2);
+  diff1->SetLineColor(kRed+2);
+  diff1->SetMarkerSize(2);
   //den1->Scale(1./100);
   std::vector<TH1D*> subs1 = {};
   for(int i=0; i<nums1.size(); ++i)
@@ -118,6 +126,8 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   den1->GetXaxis()->SetRangeUser(10,100);
   den1->GetYaxis()->SetRangeUser(_singlespec?0.02:0.05001,den1->GetMaximum()*2);
   den1->Draw("PE");
+  diff1->Draw("SAME PE");
+  leg->AddEntry(diff1,"#splitline{Dijet cut only - timing cut}{(removed background)}","p");
   leg->Draw();
   if(!_singlespec)
     {
@@ -146,9 +156,9 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
     }
   can->cd(0);
 
-  maintexts(_singlespec?0.75:0.67,0.5,0,0.03,isdat,0);
+  maintexts(_singlespec?0.75:0.6,0.5,0,0.03,isdat,0);
   //drawText("Jet30,50,70 PYTHIA",0.6,0.87,0,kBlack,0.03);
-  drawText("No reconstructed z_{vtx} requirement",0.5,_singlespec?0.65:0.57,0,kBlack,0.03);
+  drawText("No reconstructed z_{vtx} requirement",0.5,_singlespec?0.65:0.5,0,kBlack,0.03);
   //drawText("Truth-reco matched jets",0.05,0.91,0,kBlack,0.03);
 
   can->SaveAs(title.c_str());

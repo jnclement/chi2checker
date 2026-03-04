@@ -1,6 +1,6 @@
 executable = condraw.sh
-arguments = $(lower) $(upper)
-output = output/out/drawall_$(lower)_$(upper).out
-log = /tmp/jocl_condor_condraw.log
+arguments = $(stype) $(lower) $(upper)
+output = output/out/drawall_$(stype)_$(lower)_$(upper).out
+log = /tmp/jocl_condor_condraw_$(stype).log
 request_memory = 4GB
-queue lower, upper from ranges.txt
+queue stype, lower, upper from ranges.txt

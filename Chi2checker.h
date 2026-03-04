@@ -9,6 +9,7 @@
 #include "TH2D.h"
 #include <phparameter/PHParameters.h>
 #include <globalvertex/GlobalVertex.h>
+#include <calobase/TowerInfoContainer.h>
 class PHCompositeNode;
 class CentralityInfo;
 class Chi2checker : public SubsysReco
@@ -32,6 +33,8 @@ class Chi2checker : public SubsysReco
   int InitRun(PHCompositeNode *topNode) override;
 
   int fill_jet_quantities(PHCompositeNode* topNode, std::string jet_nodename, int& njet, int& calib_njet, float* jet_pt, float* jet_pt_calib, float* jet_eta, float* jet_phi, float* jet_e, float* jet_et, float* jet_t, float* jet_frcem, float* jet_frcoh);
+
+  int fill_towers(TowerInfoContainer* tinfo, int neta, int nphi, float* towers);
 
   int fill_tjet_quantities(PHCompositeNode* topNode, std::string jet_nodename, int& njet, float* jet_pt, float* jet_eta, float* jet_phi, float* jet_e);
 

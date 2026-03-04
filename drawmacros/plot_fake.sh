@@ -1,7 +1,9 @@
 #!/bin/bash
 
-root -b -q -l "draw_spec_fake.C(0,0,31,45)"
-root -b -q -l "draw_spec_fake.C(0,0,46,55)"
+root -b -q -l 'draw_spec_fake.C("../hists_mbdtimereq_out_datsam20250220.root", 1, "dat", 0, 46, 60)'
+#root -b -q -l 'draw_spec_fake.C("../hists_mbdtimereq_out_jet3020250220.root", 0, "jet30", 0, 46, 60)'
+
+#root -b -q -l "draw_spec_fake.C(0,0,46,55)"
 
 #root -b -q -l "draw_spec_fake.C(0,21,40)"
 #root -b -q -l "draw_spec_fake.C(1,21,40)"

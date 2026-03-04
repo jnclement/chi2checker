@@ -74,7 +74,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   den1->SetLineWidth(2);
   den1->SetMarkerStyle(20);
   den1->SetMarkerSize(2);
-  leg->AddEntry(den1,"#splitline{MBD time required only}{(jets + background)}","p");
+  leg->AddEntry(den1,"#splitline{Dijet cut only}{(jets + background)}","p");
 
   temph->SetMarkerColor(kGreen+2);
   temph->SetLineColor(kGreen+2);

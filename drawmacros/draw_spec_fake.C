@@ -87,7 +87,7 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   TBox* box1 = new TBox(linex.at(0),0,linex.at(1),max);
   box1->SetFillColorAlpha(kGreen+1,0.1);
   box1->SetLineWidth(0);
-  leg->AddEntry(line1,"Cut bounds","l");
+  //leg->AddEntry(line1,"Cut bounds","l");
   leg->Draw();
   line1->SetLineStyle(9);
   line1->SetLineColor(kGreen+1);
@@ -96,9 +96,9 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
   line2->SetLineColor(kGreen+1);
   line2->SetLineWidth(3);
 
-  box1->Draw();
-  line1->Draw();
-  line2->Draw();
+  //box1->Draw();
+  //line1->Draw();
+  //line2->Draw();
 
   maintexts(0.9,0.73,0,0.03,isdat,0);
   if(globalusefrac) drawText("Frac cut applied",0.73,0.71,0,kBlack,0.03);
@@ -120,18 +120,21 @@ int drawprettyeff(TH3D* hist3, std::vector<vector<int>> ybounds, std::vector<vec
 }
 
 
-int draw_spec_fake(int usefrac = 0, int mbdint = 0, int lo = 46, int hi = 60)
+int draw_spec_fake(string filename, int _isdat = 1, string _stype = "dat", int usefrac = 0, int lo = 46, int hi = 60)
 {
+  isdat = _isdat;
+  stype = _stype;
   globalusefrac = usefrac;
   gStyle->SetPadTickX(1);
   gStyle->SetPadTickY(1);
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
+  int mbdint = 0;
   string mbdstr = "";
   if(mbdint==1) mbdstr = "_mbdboth";
   if(mbdint==2) mbdstr = "_mbdeither";
   string fracstr = usefrac?"frac":"";
-  TFile* inf = TFile::Open(("../hists_mbdtimereq_out_"+stype+fracstr+(isdat?"sam_slewed20251211":"")+".root").c_str(),"READ");
+  TFile* inf = TFile::Open((filename).c_str(),"READ");
 
   TH3D* h3_pt_lem_loh = (TH3D*)inf->Get(("hpttmbdt_dtc"+mbdstr+stype+fracstr).c_str());
 

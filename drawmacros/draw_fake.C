@@ -7,15 +7,16 @@ int draw_fake(int toad = 0, int mbdtimereq = 0)
   gStyle->SetOptTitle(0);
   gStyle->SetPadTickX(1);
   gStyle->SetPadTickY(1);
-  
-  TFile* f[4];
-  string typestr[4] = {"dat","jet10","jet30","jet50"};
+
+  const int nf = 4;
+  TFile* f[nf];
+  string typestr[nf] = {"dat","jet12","jet30","jet50"};
   string mbdtimereqstr = (mbdtimereq?"_mbdtimereq":"");
-  for(int i=0; i<4; ++i)
+  for(int i=0; i<nf; ++i)
     {
       typestr[i] += toadstr;
       cout << typestr[i] << endl;
-      f[i] = TFile::Open(("../hists"+mbdtimereqstr+"_out_"+typestr[i]+(i==0?"sam":"")+".root").c_str(),"READ");
+      f[i] = TFile::Open(("../hists"+mbdtimereqstr+"_out_"+typestr[i]+(i==0?"sam":"")+"20250220.root").c_str(),"READ");
     }
   const int ntype = 2;
   
@@ -32,7 +33,7 @@ int draw_fake(int toad = 0, int mbdtimereq = 0)
   hfrac[1] = (TH1D*)(f[0]->Get(("hfracbad0dat")));
   float scfs[3] = {3.997e6/7.2695,2.502e3/7.2695,1};
   
-  for(int i=0; i<4; ++i)
+  for(int i=0; i<nf; ++i)
     {
       cout << i << endl;
       int index = (i==0?0:1);
@@ -116,9 +117,9 @@ int draw_fake(int toad = 0, int mbdtimereq = 0)
 	  if(j==12 && i == 1)
 	    {
 	      tleg->AddEntry(hratio[0][9],"Dijet\&t\&MBD / Dijet\&t (Data)","p");
-	      tleg->AddEntry(hratio[1][9],"Dijet\&t\&MBD / Dijet\&t (Sim)","p");
+	      tleg->AddEntry(hratio[1][9],"Dijet\&MBD / Dijet (Sim)","p");
 	      tleg->AddEntry(hratio[0][7],"Dijet\&t\&MBD / MBD (Data)","p");
-	      tleg->AddEntry(hratio[1][7],"Dijet\&t\&MBD / MBD (Sim)","p");
+	      tleg->AddEntry(hratio[1][7],"Dijet\&MBD / MBD (Sim)","p");
 	    }
 	  //if(i==0) hratio[i][j]->Draw("PE");
 	  //else if(j!=1) hratio[i][j]->Draw("SAME PE");
